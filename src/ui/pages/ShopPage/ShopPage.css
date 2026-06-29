@@ -1,0 +1,13 @@
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+@media (max-width: 880px) {
+  .plans-grid {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+  }
+}

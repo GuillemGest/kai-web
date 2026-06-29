@@ -1,0 +1,20 @@
+.support-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.support-item {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.support-item__title {
+  font: var(--type-action);
+}
+.support-item__body {
+  margin-top: var(--space-2);
+  color: var(--fg-muted);
+  font: var(--type-body);
+}

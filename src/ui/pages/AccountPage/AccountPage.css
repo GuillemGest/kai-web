@@ -1,0 +1,30 @@
+.account-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: var(--space-4) var(--space-5);
+  max-width: 560px;
+}
+
+.account-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  font: var(--type-body);
+}
+.account-row + .account-row {
+  border-top: 1px solid var(--border);
+}
+.account-row__label {
+  color: var(--fg-muted);
+}
+
+.status--active {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.account-actions {
+  margin-top: var(--space-4);
+}

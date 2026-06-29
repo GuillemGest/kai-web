@@ -1,0 +1,68 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  font: var(--type-action);
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+/* Tamaños */
+.btn--small {
+  height: 24px;
+  padding: 0 var(--space-2);
+  font: var(--type-secondary);
+}
+.btn--default {
+  height: 32px;
+  padding: 0 var(--space-3);
+  font: var(--type-ui);
+}
+.btn--large {
+  height: 40px;
+  padding: 0 var(--space-4);
+}
+
+/* Primary — accent, único por vista */
+.btn--primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+.btn--primary:hover {
+  background: color-mix(in srgb, var(--accent) 85%, #fff);
+}
+
+/* Secondary — superficie translúcida */
+.btn--secondary {
+  background: var(--surface-strong);
+  color: var(--fg);
+}
+.btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Ghost — sin fondo */
+.btn--ghost {
+  background: transparent;
+  color: var(--fg);
+}
+.btn--ghost:hover {
+  background: var(--surface);
+}
+
+/* Destructive */
+.btn--destructive {
+  background: var(--error);
+  color: var(--fg);
+}
+.btn--destructive:hover {
+  background: color-mix(in srgb, var(--error) 85%, #fff);
+}
+
+.btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}

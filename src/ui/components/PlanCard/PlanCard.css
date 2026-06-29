@@ -1,0 +1,67 @@
+.plan-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.plan-card--highlighted {
+  border-color: var(--accent);
+}
+
+.plan-card__badge {
+  position: absolute;
+  top: calc(-1 * var(--space-2));
+  right: var(--space-4);
+  background: var(--accent);
+  color: var(--bg);
+  font: var(--type-secondary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--r-full);
+}
+
+.plan-card__name {
+  font: var(--type-title);
+}
+
+.plan-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+.plan-card__amount {
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+}
+.plan-card__period {
+  color: var(--fg-muted);
+  font: var(--type-ui);
+}
+
+.plan-card__features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  flex: 1;
+}
+.plan-card__feature {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-body);
+}
+.plan-card__check {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.plan-card__cta {
+  width: 100%;
+}
