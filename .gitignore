@@ -1,0 +1,8 @@
+node_modules/
+dist/
+supabase/.temp/
+.env
+.env.local
+CONTEXT.md
+.claude/
+BASE_DE_DATOS.md

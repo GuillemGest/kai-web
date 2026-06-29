@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-06-23T00:00:00.000Z",
+  "title": "Design System: Nara Campus",
+  "extensions": {
+    "colorMeta": {
+      "render-orange": {
+        "role": "primary",
+        "displayName": "Render Orange",
+        "canonical": "#FA7052",
+        "tonalRamp": ["#2a120c", "#4d1f14", "#7a2f1d", "#a83f26", "#d4502f", "#FA7052", "#fb8d75", "#fdbaab"]
+      },
+      "realtime-green": {
+        "role": "secondary",
+        "displayName": "Realtime Green",
+        "canonical": "#29B97A",
+        "tonalRamp": ["#082018", "#0d3526", "#125438", "#18774d", "#1f9863", "#29B97A", "#5fcf9c", "#9ee3c3"]
+      },
+      "viewport-black": {
+        "role": "neutral",
+        "displayName": "Viewport Black",
+        "canonical": "#0b0d10",
+        "tonalRamp": ["#0b0d10", "#111418", "#13171e", "#16191f", "#23272f", "#3a3f49", "#7a8190", "#f1f1ec"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink (Warm White)",
+        "canonical": "#f1f1ec",
+        "tonalRamp": ["#16191f", "#23272f", "#3a3f49", "#5a606c", "#7a8190", "#a9aeb6", "#d4d6d3", "#f1f1ec"]
+      },
+      "muted-steel": {
+        "role": "neutral",
+        "displayName": "Muted Steel",
+        "canonical": "#7a8190",
+        "tonalRamp": ["#16191f", "#23272f", "#3a3f49", "#565d6a", "#7a8190", "#9ba1ac", "#bcc0c8", "#dde0e4"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Títulos hero. Cabinet Grotesk 900, una vez por vista." },
+      "headline": { "displayName": "Headline", "purpose": "Títulos de sección. Cabinet Grotesk 800." },
+      "title": { "displayName": "Title", "purpose": "Títulos de tarjeta de curso / bloques destacados." },
+      "body": { "displayName": "Body", "purpose": "Párrafos y descripciones. Space Grotesk, medida 65–75ch." },
+      "label": { "displayName": "Label", "purpose": "Eyebrows, botones, metadatos, nav, tags. MAYÚSCULAS con tracking ≥0.1em." }
+    },
+    "shadows": [
+      { "name": "lift-on-hover", "value": "0 12px 36px rgba(0,0,0,0.5)", "purpose": "Única sombra del sistema. Solo en hover de la tarjeta de curso, junto al transform de elevación." }
+    ],
+    "motion": [
+      { "name": "ease-smooth", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Easing por defecto para cambios de estado y transiciones de UI." },
+      { "name": "ease-reveal", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "Reveals largos (carrusel/secciones), ease-out expo." },
+      { "name": "press", "value": "transform: scale(0.97)", "purpose": "Feedback :active en botones." }
+    ],
+    "breakpoints": [
+      { "name": "mobile", "value": "768px" },
+      { "name": "narrow", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "CTA primario. Fondo Render Orange, texto blanco, label en mayúsculas. Hover invierte a fantasma.",
+      "html": "<button class=\"ds-btn-primary\">VER CURSO</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; gap: 12px; background: var(--accent, #FA7052); color: #fff; border: 1px solid var(--accent, #FA7052); border-radius: 0; padding: 13px 28px; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, opacity 0.15s ease, transform 0.12s ease-out; } .ds-btn-primary:hover { background: transparent; color: var(--accent, #FA7052); } .ds-btn-primary:focus-visible { outline: 2px solid var(--accent, #FA7052); outline-offset: 2px; } .ds-btn-primary:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Acción secundaria. Transparente con borde divider; hover vira a Render Orange.",
+      "html": "<button class=\"ds-btn-ghost\">MÁS INFO</button>",
+      "css": ".ds-btn-ghost { background: transparent; color: #f1f1ec; border: 1px solid rgba(255,255,255,0.555); border-radius: 0; padding: 10px 12px; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; transition: color 0.2s ease, border-color 0.2s ease, transform 0.12s ease-out; } .ds-btn-ghost:hover { color: var(--accent, #FA7052); border-color: var(--accent, #FA7052); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--accent, #FA7052); outline-offset: 2px; } .ds-btn-ghost:active { transform: scale(0.97); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Campo sin caja: fondo sutil y solo border-bottom. Foco vira la línea a Render Orange.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Tu correo\" />",
+      "css": ".ds-input { width: 100%; padding: 11px 14px; background: rgba(255,255,255,0.04); border: none; border-bottom: 1px solid rgba(255,255,255,0.555); border-radius: 0; color: #f1f1ec; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 0.95rem; transition: border-color 0.2s ease; } .ds-input::placeholder { color: #7a8190; opacity: 0.4; } .ds-input:focus { outline: none; border-bottom-color: var(--accent, #FA7052); }"
+    },
+    {
+      "name": "Course Card",
+      "kind": "card",
+      "refersTo": "card-course",
+      "description": "Tarjeta de curso. Plana en reposo; en hover se eleva con transform + la única sombra del sistema.",
+      "html": "<article class=\"ds-card\"><div class=\"ds-card-tag\">REALTIME 3D</div><h3 class=\"ds-card-title\">Unreal Engine para Arquitectura</h3><p class=\"ds-card-body\">De CAD a recorrido inmersivo en tiempo real.</p></article>",
+      "css": ".ds-card { background: #13171e; color: #f1f1ec; border-radius: 0; padding: 24px; transition: transform 0.2s ease, box-shadow 0.2s ease; } .ds-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.5); } .ds-card-tag { display: inline-block; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #29B97A; margin-bottom: 16px; } .ds-card-title { font-family: 'Cabinet Grotesk', 'Space Grotesk', system-ui, sans-serif; font-size: clamp(1.4rem, 2.5vw, 2.1rem); font-weight: 800; line-height: 1.2; margin-bottom: 10px; } .ds-card-body { font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 0.95rem; line-height: 1.6; color: #7a8190; }"
+    },
+    {
+      "name": "Nav Link",
+      "kind": "nav",
+      "refersTo": "button-ghost",
+      "description": "Enlace de navegación del header fijo. Label en mayúsculas; hover/activo viran a Render Orange.",
+      "html": "<a class=\"ds-nav-link\" href=\"#\">CURSOS</a>",
+      "css": ".ds-nav-link { font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 0.72rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; color: #f1f1ec; text-decoration: none; transition: color 0.2s ease; } .ds-nav-link:hover, .ds-nav-link[aria-current=\"page\"] { color: var(--accent, #FA7052); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Render Viewport",
+    "overview": "Nara Campus se construye como el entorno donde su alumnado trabajará de verdad: un viewport de Unreal/realtime 3D a baja luz. El fondo negro (#0b0d10) es el lienzo de trabajo; todo lo demás se renderiza encima y la interfaz se aparta para que el contenido sea lo que se ilumina. El naranja #FA7052 funciona como un gizmo de herramienta: aparece solo donde hay acción o estado. El sistema es denso, recto (esquinas a 90°) y plano por defecto, con la profundidad construida por capas tonales y dividers de 1px. La tipografía hace el trabajo pesado: display Cabinet Grotesk 800–900 apretado contra labels en mayúsculas con tracking amplio.",
+    "keyCharacteristics": [
+      "Oscuro intencional: el fondo negro ES el medio (XR a baja luz), no una opción estética.",
+      "Un solo acento con propósito: #FA7052 marca acción/estado, ≤10% de cualquier pantalla.",
+      "Plano por defecto: profundidad por capas tonales y divisores 1px, no por sombras.",
+      "Bordes rectos (radius 0): registro de panel técnico / software, no de tarjeta marketing.",
+      "La tipografía lidera: display pesado + labels en mayúsculas tracked como contraste central."
+    ],
+    "rules": [
+      { "name": "The Gizmo Rule", "body": "Render Orange aparece en ≤10% de cualquier pantalla y siempre sobre algo accionable (botón, foco, hover, estado). Si el naranja decora, está mal usado.", "section": "colors" },
+      { "name": "The Tonal Depth Rule", "body": "La separación entre zonas se consigue subiendo un escalón de luminosidad (#0b0d10 → #111418 → #16191f) o con un divider de 1px — no con sombras ni bordes de color.", "section": "colors" },
+      { "name": "The Tracked-Caps Rule", "body": "Las mayúsculas se reservan a labels y botones cortos, siempre con tracking ≥0.1em. Nunca en cuerpo de texto.", "section": "typography" },
+      { "name": "The Heavy-Display Rule", "body": "Los titulares viven en 800–900; pesos intermedios no se usan en display. El contraste de peso es la jerarquía.", "section": "typography" },
+      { "name": "The Flat-At-Rest Rule", "body": "Toda superficie es plana en reposo. Para separar dos zonas, sube un escalón tonal o pon un divider de 1px; no añadas una sombra ambiental.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do mantener #0b0d10 como lienzo y construir profundidad por capas tonales + dividers de 1px.",
+      "Do reservar Render Orange para acción/estado en ≤10% de la pantalla.",
+      "Do usar esquinas rectas (radius 0) en botones, inputs y tarjetas.",
+      "Do dar todo el peso de la jerarquía a la tipografía: display 800–900 apretado contra labels en mayúsculas tracked.",
+      "Do usar el blanco cálido #f1f1ec para el texto, no #ffffff puro, y verificar ≥4.5:1 sobre el fondo."
+    ],
+    "donts": [
+      "Don't parecerse a una plataforma educativa genérica (Coursera/Udemy): clara, corporativa y sin carácter.",
+      "Don't caer en SaaS cream / warm-neutral con tipografía ligera.",
+      "Don't usar glassmorphism decorativo ni neón/efectos sin propósito.",
+      "Don't montar grids de tarjetas idénticas sin jerarquía visual.",
+      "Don't usar eyebrows numerados (01 / 02 / 03) como andamiaje de sección.",
+      "Don't añadir sombras a superficies en reposo; la única sombra es el Lift on hover de la tarjeta de curso.",
+      "Don't poner texto en mayúsculas en cuerpo de párrafo ni usar pesos intermedios en titulares.",
+      "Don't usar el naranja como fondo de sección o relleno."
+    ]
+  }
+}
