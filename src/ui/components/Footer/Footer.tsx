@@ -5,7 +5,7 @@ const COLUMNS = [
   {
     title: 'Producto',
     links: [
-      { to: '/', label: 'Visión general' },
+      { to: '/', label: 'Producto' },
       { to: '/descargar', label: 'Descargar' },
       { to: '/planes', label: 'Planes' },
     ],

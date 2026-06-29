@@ -44,7 +44,7 @@
 .footer__col-title {
   font: var(--type-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   color: var(--fg-muted);
   margin-bottom: var(--space-1);
 }

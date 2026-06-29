@@ -5,6 +5,18 @@
   height: var(--header-h);
   background: var(--bg);
   border-bottom: 1px solid var(--border);
+  transition: box-shadow 0.2s var(--ease-out-quart), border-color 0.2s var(--ease-out-quart);
+}
+/* Al separarse del top, el header se ancla con una sombra sutil. */
+.header--scrolled {
+  border-bottom-color: transparent;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    transition: none;
+  }
 }
 
 .header__inner {
@@ -47,8 +59,127 @@
   gap: var(--space-2);
 }
 
+/* Botón hamburguesa — solo móvil. Touch target 44x44. */
+.header__menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 calc(-1 * var(--space-1));
+  background: transparent;
+  border: none;
+  border-radius: var(--r-md);
+  color: var(--fg);
+}
+.header__menu-btn:hover {
+  background: var(--surface);
+}
+
+/* ==========================================================================
+   Drawer móvil (<dialog> nativo: foco atrapado + ESC + backdrop gratis)
+   ========================================================================== */
+.header__drawer {
+  margin: 0 0 0 auto;
+  max-width: 360px;
+  width: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  background: var(--bg);
+  border: none;
+  border-left: 1px solid var(--border);
+  color: var(--fg);
+  /* Entrada: slide + fade desde la derecha (transición sobre display/overlay). */
+  opacity: 0;
+  transform: translateX(100%);
+  transition: opacity 0.28s var(--ease-out-quart),
+    transform 0.32s var(--ease-out-expo),
+    overlay 0.32s allow-discrete,
+    display 0.32s allow-discrete;
+}
+.header__drawer[open] {
+  opacity: 1;
+  transform: translateX(0);
+}
+@starting-style {
+  .header__drawer[open] {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+.header__drawer::backdrop {
+  background: rgba(0, 0, 0, 0);
+  transition: background-color 0.28s var(--ease-out-quart),
+    overlay 0.32s allow-discrete,
+    display 0.32s allow-discrete;
+}
+.header__drawer[open]::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+@starting-style {
+  .header__drawer[open]::backdrop {
+    background: rgba(0, 0, 0, 0);
+  }
+}
+
+.header__drawer-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 var(--space-4) max(var(--space-4), env(safe-area-inset-bottom));
+}
+
+.header__drawer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-h);
+  border-bottom: 1px solid var(--border);
+}
+/* La X vive dentro del <dialog>: visibilidad propia, sin depender del breakpoint. */
+.header__drawer-top .header__menu-btn {
+  display: inline-flex;
+}
+
+.header__drawer-nav {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) 0;
+  gap: var(--space-1);
+}
+.header__drawer-nav .header__link {
+  font: var(--type-title);
+  padding: var(--space-3) var(--space-2);
+  border-radius: var(--r-md);
+}
+.header__drawer-nav .header__link:hover {
+  background: var(--surface);
+}
+
+.header__drawer-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.header__drawer-cta {
+  width: 100%;
+}
+
+/* ==========================================================================
+   Breakpoint: a ≤720px la nav inline y los CTAs ceden al drawer
+   ========================================================================== */
 @media (max-width: 720px) {
-  .header__nav {
+  .header__nav,
+  .header__actions {
     display: none;
+  }
+  .header__inner {
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .header__menu-btn {
+    display: inline-flex;
   }
 }

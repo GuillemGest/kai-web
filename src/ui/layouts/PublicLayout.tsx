@@ -6,8 +6,11 @@ import './PublicLayout.css'
 export function PublicLayout() {
   return (
     <div className="public-layout">
+      <a className="skip-link" href="#contenido">
+        Saltar al contenido
+      </a>
       <Header />
-      <main className="public-layout__main">
+      <main id="contenido" className="public-layout__main" tabIndex={-1}>
         <Outlet />
       </main>
       <Footer />

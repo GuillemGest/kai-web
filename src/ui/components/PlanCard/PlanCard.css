@@ -11,6 +11,13 @@
 
 .plan-card--highlighted {
   border-color: var(--accent);
+  background: var(--surface-2);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+@media (min-width: 881px) {
+  .plan-card--highlighted {
+    transform: scale(1.03);
+  }
 }
 
 .plan-card__badge {
@@ -34,9 +41,10 @@
   gap: var(--space-1);
 }
 .plan-card__amount {
-  font-size: 40px;
+  font-size: var(--fs-h2);
   font-weight: 700;
   line-height: 1;
+  letter-spacing: -0.02em;
 }
 .plan-card__period {
   color: var(--fg-muted);
