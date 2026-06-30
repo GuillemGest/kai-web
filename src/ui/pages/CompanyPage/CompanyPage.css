@@ -1,0 +1,228 @@
+/* ==========================================================================
+   CompanyPage — "Sobre KAI": página de confianza B2B.
+   Reutiliza tokens y el lenguaje visual de MainPage (hero, CTA). Dark con
+   intención; accent solo en interacción y en el énfasis del titular.
+   ========================================================================== */
+
+.company {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-8) max(var(--space-4), env(safe-area-inset-right))
+    var(--space-8) max(var(--space-4), env(safe-area-inset-left));
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Hero — la misión como titular; el origen como lead
+   ========================================================================== */
+.company__hero {
+  max-width: 60ch;
+  padding-block: clamp(var(--space-5), 6vw, var(--space-8)) var(--space-8);
+  border-bottom: 1px solid var(--border);
+}
+.company__kicker {
+  font: var(--type-secondary);
+  color: var(--accent);
+  margin-bottom: var(--space-3);
+}
+.company__title {
+  font-size: var(--fs-h1);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+  max-width: 18ch;
+}
+.company__lead {
+  margin-top: var(--space-4);
+  max-width: 58ch;
+  color: var(--fg-muted);
+  font-family: var(--font);
+  font-size: var(--fs-lead);
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Misión — composición asimétrica: claim a la izquierda, prosa a la derecha
+   ========================================================================== */
+.company__mission {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(var(--space-5), 6vw, var(--space-8));
+  align-items: start;
+  padding-block: clamp(var(--space-7), 8vw, var(--space-9));
+  border-bottom: 1px solid var(--border);
+}
+.company__mission-title {
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+  max-width: 16ch;
+}
+.company__mission-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.company__mission-body p {
+  max-width: 64ch;
+  color: var(--fg-muted);
+  font: var(--type-body);
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Partners — el respaldo: cada organización con su rol (no grid de cards)
+   ========================================================================== */
+.company__partners {
+  padding-block: clamp(var(--space-7), 8vw, var(--space-9));
+}
+.company__partners-head {
+  max-width: 60ch;
+  margin-bottom: clamp(var(--space-5), 5vw, var(--space-7));
+}
+.company__partners-title {
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.company__partners-intro {
+  margin-top: var(--space-3);
+  color: var(--fg-muted);
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.company__partner-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.company__partner {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: clamp(var(--space-4), 5vw, var(--space-7));
+  align-items: center;
+  padding-block: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+.company__partner:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Hueco de logo (sustituir por <img>). Como placeholder: marco con el nombre. */
+.company__partner-logo {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 72px;
+  padding: var(--space-3);
+  object-fit: contain;
+}
+.company__partner-logo--placeholder {
+  font: var(--type-ui);
+  text-align: center;
+  text-wrap: balance;
+  color: var(--fg-muted);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+}
+
+.company__partner-text {
+  min-width: 0;
+}
+.company__partner-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2) var(--space-3);
+  font-size: var(--fs-sub);
+  font-weight: 700;
+}
+.company__partner-note {
+  font: var(--type-secondary);
+  color: var(--fg-muted);
+}
+.company__partner-role {
+  margin-top: var(--space-2);
+  max-width: 60ch;
+  color: var(--fg-muted);
+  font: var(--type-body);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   CTA de cierre — reutiliza el patrón visual de .cta de MainPage
+   ========================================================================== */
+.company__cta {
+  margin-top: var(--space-7);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-elevated);
+}
+.company__cta-inner {
+  padding: clamp(var(--space-7), 8vw, var(--space-9)) var(--space-4);
+  text-align: center;
+}
+.company__cta-title {
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.company__cta-lead {
+  margin: var(--space-3) auto var(--space-6);
+  max-width: 50ch;
+  color: var(--fg-muted);
+  font-family: var(--font);
+  font-size: var(--fs-lead);
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.company__cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+/* El botón de email lleva icono: alinear icono + texto */
+.company__cta-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (max-width: 760px) {
+  .company__mission {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .company__partner {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+    justify-items: start;
+  }
+  .company__partner-logo {
+    width: auto;
+    min-width: 160px;
+    max-width: 220px;
+  }
+}

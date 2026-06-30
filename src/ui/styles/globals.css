@@ -231,6 +231,26 @@ h3 {
 }
 
 /* ==========================================================================
+   Reveal por scroll (gestionado por useScrollReveal + IntersectionObserver).
+   Visible por defecto: la clase `.reveal` (estado oculto) solo la añade JS y
+   solo fuera de reduced-motion. Entra una vez con fade + leve subida.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+    /* Stagger por índice (lo pone el componente en --reveal-i); 0 si no aplica. */
+    transition-delay: calc(var(--reveal-i, 0) * 0.08s);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
    Skip-link (a11y): salta al contenido, oculto hasta recibir foco
    ========================================================================== */
 .skip-link {
@@ -248,6 +268,29 @@ h3 {
 }
 .skip-link:focus-visible {
   transform: translateY(0);
+}
+
+/* ==========================================================================
+   Scrollbar custom — usado en cualquier contenedor con overflow-y: auto/scroll.
+   Webkit: barra fina, colores del sistema de diseño.
+   Firefox: scrollbar-width + scrollbar-color.
+   ========================================================================== */
+.scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-strong) transparent;
+}
+.scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar::-webkit-scrollbar-thumb {
+  background: var(--surface-strong);
+  border-radius: var(--r-full);
+}
+.scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
 }
 
 /* ==========================================================================

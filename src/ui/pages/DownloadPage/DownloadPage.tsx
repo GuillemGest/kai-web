@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { Apple, Monitor, Terminal, Download as DownloadIcon, Lock } from 'lucide-react'
 import { downloadsUseCases } from '../../../modules/downloads/application/factory'
@@ -6,6 +6,7 @@ import type { DownloadBuild, OperatingSystem } from '../../../modules/downloads/
 import { authUseCases } from '../../../modules/auth/application/factory'
 import { billingUseCases } from '../../../modules/billing/application/factory'
 import { Button } from '../../components/Button/Button'
+import { useScrollReveal } from '../../hooks/useScrollReveal'
 import './DownloadPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
@@ -88,6 +89,9 @@ export function DownloadPage() {
   const primary = builds.find((b) => b.os === detected) ?? null
   const others = builds.filter((b) => b !== primary)
 
+  // Re-observa cuando cambian los estados de carga (el contenido aparece async).
+  useScrollReveal([state, access])
+
   return (
     <div className="download">
       <header className="download__head">
@@ -168,10 +172,17 @@ export function DownloadPage() {
       )}
 
       <section className="download__steps">
-        <h2 className="download__steps-title">Después de descargar</h2>
+        <h2 className="download__steps-title" data-reveal>
+          Después de descargar
+        </h2>
         <ol className="steps">
           {STEPS.map((step, i) => (
-            <li key={step} className="step">
+            <li
+              key={step}
+              className="step"
+              data-reveal
+              style={{ '--reveal-i': i } as CSSProperties}
+            >
               <span className="step__num" aria-hidden>
                 {i + 1}
               </span>

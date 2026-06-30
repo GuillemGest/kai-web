@@ -7,9 +7,8 @@ import './Header.css'
 const NAV = [
   { to: '/', label: 'Producto', end: true },
   { to: '/planes', label: 'Planes' },
-  { to: '/descargar', label: 'Descargar' },
-  { to: '/soporte', label: 'Soporte' },
-  { to: '/empresa', label: 'Empresa' },
+  { to: '/recursos', label: 'Recursos' },
+  { to: '/empresa', label: 'Quiénes somos' },
 ]
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -53,7 +52,7 @@ export function Header() {
     <header className={`header ${scrolled ? 'header--scrolled' : ''}`}>
       <div className="header__inner">
         <Link to="/" className="header__logo" aria-label="KAI — inicio">
-          KAI
+          <img src="/logo.svg" alt="KAI" className="header__logo-img" />
         </Link>
 
         <nav className="header__nav" aria-label="Principal">
@@ -96,7 +95,9 @@ export function Header() {
       >
         <div className="header__drawer-inner">
           <div className="header__drawer-top">
-            <span className="header__logo">KAI</span>
+            <span className="header__logo">
+              <img src="/logo.svg" alt="KAI" className="header__logo-img" />
+            </span>
             <button
               type="button"
               className="header__menu-btn"

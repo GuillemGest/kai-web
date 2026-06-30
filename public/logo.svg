@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="24" viewBox="0 0 64 24" role="img" aria-label="KAI"><text x="0" y="19" font-family="Plus Jakarta Sans, sans-serif" font-size="22" font-weight="700" letter-spacing="1" fill="currentColor">KAI</text></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 303.36 180.42">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #32a6ae;
+      }
+
+      .cls-2 {
+        fill: #f8f5ff;
+      }
+    </style>
+  </defs>
+  <path class="cls-1" d="M236.67,25.35h-21.23l40.82,129.72h23.6L236.67,25.35h0Z"/>
+  <path class="cls-2" d="M242.49,155.07h-23.6s-23.47-74.23-32.92-104.38c-9.47,30.15-32.93,104.38-32.93,104.38h-45.79l-27.45-54.15h-7.14v54.15h-38.92,13.6V25.35h25.32v49.26h7.14l27.08-49.26h43.79l-38.46,57.88c-1.75,2.64-1.78,6.06-.07,8.73l25.21,39.36,33.78-101.34c.76-2.82,3.2-4.51,6.21-4.51h17.27c3,0,5.44,1.69,6.19,4.51l41.7,125.09h-.01Z"/>
+  <rect class="cls-1" x="23.75" y="25.35" width="23.59" height="129.72"/>
+</svg>

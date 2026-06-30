@@ -4,6 +4,7 @@ import { ShieldCheck, CreditCard, Headset, Info } from 'lucide-react'
 import { billingUseCases } from '../../../modules/billing/application/factory'
 import type { Plan } from '../../../modules/billing/domain/Plan'
 import { PlanCard } from '../../components/PlanCard/PlanCard'
+import { useScrollReveal } from '../../hooks/useScrollReveal'
 import './ShopPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
@@ -60,6 +61,10 @@ export function ShopPage() {
   const handleSelect = (plan: Plan) => {
     navigate(`/login?plan=${plan.id}`)
   }
+
+  // Re-observa al pasar a 'ready' (la zona inferior es estable, pero el reveal
+  // se inicializa una vez montado el contenido principal).
+  useScrollReveal([state])
 
   return (
     <div className="shop">
@@ -121,13 +126,13 @@ export function ShopPage() {
           <p className="shop__empty-hint">
             Escríbenos y te contamos las opciones que mejor encajan con tu producción.
           </p>
-          <Link to="/soporte" className="shop__empty-link">
+          <Link to="/recursos" className="shop__empty-link">
             Hablar con nosotros
           </Link>
         </div>
       )}
 
-      <ul className="shop__reassurance">
+      <ul className="shop__reassurance" data-reveal>
         {REASSURANCE.map(({ icon: Icon, text }) => (
           <li key={text} className="shop__reassurance-item">
             <Icon size={18} strokeWidth={2} aria-hidden />
@@ -137,8 +142,10 @@ export function ShopPage() {
       </ul>
 
       <section className="shop__faq">
-        <h2 className="shop__faq-title">Preguntas frecuentes</h2>
-        <div className="shop__faq-list">
+        <h2 className="shop__faq-title" data-reveal>
+          Preguntas frecuentes
+        </h2>
+        <div className="shop__faq-list" data-reveal>
           {FAQS.map(({ q, a }) => (
             <details key={q} className="faq">
               <summary className="faq__q">{q}</summary>

@@ -1,0 +1,437 @@
+/* ==========================================================================
+   ResourcesPage — Centro de recursos de KAI
+   Reutiliza el acordeón .faq (globals.css), el componente Button y los tokens.
+   Dark con intención; accent solo en interacción.
+   ========================================================================== */
+
+.resources {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-8) max(var(--space-4), env(safe-area-inset-right))
+    var(--space-8) max(var(--space-4), env(safe-area-inset-left));
+}
+
+/* ---- Cabecera: copy + buscador ---- */
+.resources__head {
+  padding-bottom: var(--space-7);
+  border-bottom: 1px solid var(--border);
+}
+.resources__head-copy {
+  min-width: 0;
+}
+
+.resources__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-2);
+  font: var(--type-secondary);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: var(--r-full);
+}
+.resources__badge svg {
+  color: var(--accent);
+}
+
+.resources__title {
+  margin-top: var(--space-4);
+  font-size: var(--fs-h1);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+  max-width: 16ch;
+}
+.resources__lead {
+  margin-top: var(--space-4);
+  max-width: 52ch;
+  color: var(--fg-muted);
+  font-family: var(--font);
+  font-size: var(--fs-lead);
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* Buscador — reusa el lenguaje del .demo__prompt de MainPage (pill + icono accent) */
+.resources__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  max-width: 480px;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  transition: border-color 0.18s var(--ease-out-quart),
+    background-color 0.18s var(--ease-out-quart);
+}
+.resources__search:focus-within {
+  border-color: var(--accent);
+  background: var(--surface-strong);
+}
+.resources__search-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.resources__search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font: var(--type-body);
+  letter-spacing: 0.01em;
+}
+.resources__search-input::placeholder {
+  /* Placeholder con contraste suficiente (AA), no gris lavado. */
+  color: var(--fg-muted);
+}
+.resources__search-input:focus {
+  outline: none;
+}
+/* Quita la cruz nativa del type=search en webkit (la limpieza vive en el estado vacío) */
+.resources__search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.resources__search-status {
+  margin-top: var(--space-3);
+  font: var(--type-secondary);
+  color: var(--fg-muted);
+}
+
+/* ==========================================================================
+   Cuerpo: índice lateral pegajoso + columna de contenido (acordeón)
+   ========================================================================== */
+.resources__body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: clamp(var(--space-5), 5vw, var(--space-7));
+  margin-top: var(--space-7);
+}
+/* Sin índice (≤1 categoría o estados loading/vacío), el contenido ocupa todo */
+.resources__body:has(.resources__content:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.resources__index {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-4));
+  align-self: start;
+}
+.resources__index-label {
+  font: var(--type-secondary);
+  color: var(--fg-muted);
+  margin-bottom: var(--space-3);
+}
+.resources__index-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.resources__index-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--r-md);
+  font: var(--type-ui);
+  color: var(--fg-muted);
+  transition: color 0.15s var(--ease-out-quart),
+    background-color 0.15s var(--ease-out-quart);
+}
+@media (hover: hover) {
+  .resources__index-link:hover {
+    color: var(--fg);
+    background: var(--surface);
+  }
+}
+.resources__index-link:active {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+.resources__index-count {
+  font: var(--type-secondary);
+  color: var(--fg-muted);
+  padding: 0 var(--space-2);
+  background: var(--surface-2);
+  border-radius: var(--r-full);
+}
+
+.resources__content {
+  min-width: 0;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: var(--space-2);
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface-strong) transparent;
+}
+.resources__content::-webkit-scrollbar {
+  width: 4px;
+}
+.resources__content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.resources__content::-webkit-scrollbar-thumb {
+  background: var(--surface-strong);
+  border-radius: var(--r-full);
+}
+.resources__content::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-muted);
+}
+
+/* ---- Grupos de categoría + acordeón (.faq reutilizado de globals.css) ---- */
+.resources__group {
+  scroll-margin-top: calc(var(--header-h) + var(--space-4));
+}
+.resources__group + .resources__group {
+  margin-top: var(--space-7);
+}
+.resources__group-title {
+  font-size: var(--fs-h3);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+  margin-bottom: var(--space-3);
+}
+/* Wrapper con fade — NO tiene overflow para que la máscara no corte el scrollbar */
+.resources__faqs-wrap {
+  /* Eliminado: el scroll es único en resources__content */
+}
+
+.resources__faqs {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Estado vacío (búsqueda sin resultados) ---- */
+.resources__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: clamp(var(--space-7), 8vw, var(--space-9)) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.resources__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  color: var(--accent);
+  background: var(--surface-strong);
+  border-radius: var(--r-md);
+}
+.resources__empty-title {
+  margin-top: var(--space-4);
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  text-wrap: balance;
+}
+.resources__empty-body {
+  margin-top: var(--space-2);
+  max-width: 44ch;
+  color: var(--fg-muted);
+  font: var(--type-body);
+  text-wrap: pretty;
+}
+.resources__empty-actions {
+  margin-top: var(--space-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: center;
+}
+
+/* ---- Skeletons de carga ---- */
+.resources__skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.resources__skeleton {
+  height: 60px;
+  border-radius: var(--r-md);
+  background: linear-gradient(
+    100deg,
+    var(--surface) 30%,
+    var(--surface-2) 50%,
+    var(--surface) 70%
+  );
+  background-size: 200% 100%;
+  animation: resources-shimmer 1.4s var(--ease-out-quart) infinite;
+}
+@keyframes resources-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+
+/* ==========================================================================
+   Guías paso a paso — lista de tarjetas-enlace (la guía completa va aparte)
+   ========================================================================== */
+.resources__guides {
+  margin-top: var(--space-8);
+  padding-top: var(--space-7);
+  border-top: 1px solid var(--border);
+}
+.resources__guides-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+.resources__guides-title {
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.resources__guide-list {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Tarjeta-enlace: solo título + intro; la guía completa vive en su propia página */
+.resources__guide-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: clamp(var(--space-4), 3vw, var(--space-5));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  color: inherit;
+  transition: border-color 0.18s var(--ease-out-quart),
+    background-color 0.18s var(--ease-out-quart),
+    transform 0.18s var(--ease-out-quart);
+}
+@media (hover: hover) {
+  .resources__guide-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+    background: var(--surface-2);
+  }
+  .resources__guide-card:hover .resources__guide-card-arrow {
+    color: var(--accent);
+    transform: translateX(2px);
+  }
+}
+.resources__guide-card:active {
+  transform: translateY(1px);
+}
+
+.resources__guide-card-text {
+  min-width: 0;
+  flex: 1;
+}
+.resources__guide-card-title {
+  font-size: var(--fs-sub);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+.resources__guide-card-intro {
+  margin-top: var(--space-2);
+  color: var(--fg-muted);
+  font: var(--type-body);
+  line-height: 1.55;
+  text-wrap: pretty;
+  /* Recorta la intro a 2 líneas: en la lista solo es un adelanto */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+.resources__guide-card-arrow {
+  flex-shrink: 0;
+  color: var(--fg-muted);
+  transition: color 0.18s var(--ease-out-quart),
+    transform 0.18s var(--ease-out-quart);
+}
+
+/* ==========================================================================
+   CTA de cierre — reutiliza el patrón visual de .cta de MainPage
+   ========================================================================== */
+.resources__cta {
+  margin-top: var(--space-8);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--bg-elevated);
+}
+.resources__cta-inner {
+  padding: clamp(var(--space-7), 7vw, var(--space-8)) var(--space-4);
+  text-align: center;
+}
+.resources__cta-title {
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-wrap: balance;
+  max-width: 20ch;
+  margin: 0 auto;
+}
+.resources__cta-lead {
+  margin: var(--space-3) auto var(--space-6);
+  max-width: 50ch;
+  color: var(--fg-muted);
+  font-family: var(--font);
+  font-size: var(--fs-lead);
+  font-weight: 400;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+/* ---- Tablet: el cuerpo pasa a una sola columna ---- */
+@media (max-width: 900px) {
+  .resources__body {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ==========================================================================
+   Móvil (≤520px): se repiensa, no se encoge.
+   - Índice de categorías fuera: los títulos de sección ya guían el scroll.
+   ========================================================================== */
+@media (max-width: 520px) {
+  .resources__search {
+    max-width: none;
+  }
+  .resources__body {
+    margin-top: var(--space-5);
+  }
+
+  /* Índice de anclas: innecesario en móvil, los títulos de sección bastan */
+  .resources__index {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resources__skeleton {
+    animation: none;
+  }
+}

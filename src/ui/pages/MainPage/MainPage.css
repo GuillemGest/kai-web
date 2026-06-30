@@ -109,6 +109,25 @@
 }
 
 /* ==========================================================================
+   Trusted — prueba social: la cinta de logos justo tras el hero
+   ========================================================================== */
+.trusted {
+  border-bottom: 1px solid var(--border);
+  padding: clamp(var(--space-6), 6vw, var(--space-8)) 0;
+  overflow: hidden;
+}
+.trusted__title {
+  max-width: var(--content-max);
+  margin: 0 auto clamp(var(--space-4), 4vw, var(--space-6));
+  padding: 0 var(--space-4);
+  font: var(--type-secondary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  text-align: center;
+}
+
+/* ==========================================================================
    Demo — la prueba del ahorro: tu material → con KAI
    ========================================================================== */
 .demo {
@@ -201,6 +220,19 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
+  transition: transform 0.25s var(--ease-out-expo),
+    border-color 0.25s var(--ease-out-expo), background-color 0.25s var(--ease-out-expo);
+}
+@media (hover: hover) {
+  .demo__clip:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    background: var(--surface-2);
+  }
+  .demo__clip:hover .demo__clip-thumb {
+    color: var(--bg);
+    background: var(--accent);
+  }
 }
 .demo__clip-thumb {
   display: grid;
@@ -211,6 +243,7 @@
   color: var(--accent);
   background: var(--surface-strong);
   border-radius: var(--r-sm);
+  transition: color 0.25s var(--ease-out-expo), background-color 0.25s var(--ease-out-expo);
 }
 .demo__clip-meta {
   display: flex;
@@ -245,9 +278,11 @@
   margin-bottom: var(--space-5);
   max-width: 24ch;
 }
+/* Jerarquía: la primera feature (búsqueda) domina y ocupa toda la fila superior;
+   las otras dos la apoyan debajo. Rompe el grid de cards idénticas. */
 .features {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
 }
 .feature {
@@ -257,7 +292,41 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
+  transition: transform 0.3s var(--ease-out-expo),
+    border-color 0.3s var(--ease-out-expo), background-color 0.3s var(--ease-out-expo);
 }
+@media (hover: hover) {
+  .feature:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    background: var(--surface-2);
+  }
+}
+.feature:active {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: var(--surface-2);
+}
+
+/* La feature dominante: a lo ancho, más aire, con un glow de marca contenido. */
+.feature--lead {
+  grid-column: 1 / -1;
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-6);
+  background: radial-gradient(
+      120% 140% at 100% 0%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 55%
+    ),
+    var(--surface);
+}
+.feature--lead .feature__title {
+  font-size: var(--fs-h3);
+}
+.feature--lead .feature__body {
+  max-width: 52ch;
+}
+
 .feature__icon {
   display: grid;
   place-items: center;
@@ -266,6 +335,10 @@
   color: var(--accent);
   background: var(--surface-strong);
   border-radius: var(--r-md);
+}
+.feature--lead .feature__icon {
+  width: 56px;
+  height: 56px;
 }
 .feature__title {
   margin-top: var(--space-4);
