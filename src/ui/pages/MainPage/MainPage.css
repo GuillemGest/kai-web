@@ -42,6 +42,9 @@
    ========================================================================== */
 .hero {
   border-bottom: 1px solid var(--border);
+  min-height: calc(100dvh - var(--header-h));
+  display: flex;
+  align-items: center;
 }
 .hero__inner {
   max-width: var(--content-max);
@@ -51,6 +54,7 @@
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   align-items: center;
   gap: clamp(var(--space-6), 6vw, var(--space-8));
+  width: 100%;
 }
 
 .hero__copy {
@@ -85,9 +89,10 @@
 .hero__media {
   margin: 0;
   min-width: 0;
+  align-self: stretch;
   /* Fondo de marca: si el vídeo falta o falla, el hueco se ve intencional. */
   position: relative;
-  aspect-ratio: 16 / 10;
+  min-height: 100%;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   overflow: hidden;
