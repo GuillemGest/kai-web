@@ -132,12 +132,13 @@
   align-items: center;
   gap: var(--space-3);
 }
-.trusted__label {
+.trusted__label_left {
   font: var(--type-ui);
   font-weight: 700;
   color: var(--fg-muted);
   letter-spacing: 0.02em;
-  text-align: center;
+  text-align: left;
+   align-items: left;
 }
 .trusted__logos {
   display: flex;
@@ -154,7 +155,7 @@
 /* Logos a color y a plena opacidad: uso legítimo de la marca original, sin
    recolorear (recolorear un logo de marca puede infringir sus normas de uso). */
 .trusted__logo {
-  height: 44px;
+  height: 40px;
   width: auto;
   object-fit: contain;
 }

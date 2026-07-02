@@ -78,9 +78,9 @@ export function MainPage() {
         </div>
       </section>
 
-      <section className="trusted" aria-label={trustedBy.title}>
+      {/* <section className="trusted" aria-label={trustedBy.title}>
         <div className="trusted__row" data-reveal>
-          <span className="trusted__label">{trustedBy.title}</span>
+          <span className="trusted__label_left">{trustedBy.title}</span>
           <ul className="trusted__logos">
             {trustedBy.logos.map((logo) => (
               <li key={logo.src} className="trusted__item">
@@ -95,7 +95,7 @@ export function MainPage() {
             ))}
           </ul>
         </div>
-      </section>
+      </section> */}
 
       <section className="demo">
         <div className="demo__inner">
