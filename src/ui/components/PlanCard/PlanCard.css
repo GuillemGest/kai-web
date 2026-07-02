@@ -38,7 +38,8 @@
 .plan-card__price {
   display: flex;
   align-items: baseline;
-  gap: var(--space-1);
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
 }
 .plan-card__amount {
   font-size: var(--fs-h2);
@@ -46,9 +47,27 @@
   line-height: 1;
   letter-spacing: -0.02em;
 }
+.plan-card__amount-original {
+  color: var(--fg-muted);
+  font: var(--type-ui);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  flex-basis: 100%;
+}
 .plan-card__period {
   color: var(--fg-muted);
   font: var(--type-ui);
+  font-weight: 400;
+}
+.plan-card__discount {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-2);
+  background: var(--accent);
+  color: var(--bg);
+  font: var(--type-secondary);
+  border-radius: var(--r-full);
+  margin-left: var(--space-1);
 }
 
 .plan-card__features {

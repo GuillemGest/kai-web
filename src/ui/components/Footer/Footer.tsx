@@ -1,41 +1,23 @@
 import { Link } from 'react-router-dom'
+import { useLocale } from '../../../i18n/LocaleContext'
+import { FOOTER_CONTENT } from './content'
 import './Footer.css'
 
-const COLUMNS = [
-  {
-    title: 'Producto',
-    links: [
-      { to: '/', label: 'Producto' },
-      { to: '/descargar', label: 'Descargar' },
-      { to: '/planes', label: 'Planes' },
-    ],
-  },
-  {
-    title: 'Recursos',
-    links: [
-      { to: '/recursos', label: 'Recursos' },
-      { to: '/cuenta', label: 'Mi cuenta' },
-    ],
-  },
-  {
-    title: 'Compañía',
-    links: [{ to: '/empresa', label: 'Sobre KAI' }],
-  },
-]
-
 export function Footer() {
+  const { locale } = useLocale()
+  const { tagline, legalTemplate, columns } = FOOTER_CONTENT[locale]
+  const legal = legalTemplate.replace('{year}', String(new Date().getFullYear()))
+
   return (
     <footer className="footer">
       <div className="footer__inner">
         <div className="footer__brand">
           <span className="footer__logo">KAI</span>
-          <p className="footer__tagline">
-            El asistente de IA para encontrar y exportar los momentos clave de tus vídeos.
-          </p>
+          <p className="footer__tagline">{tagline}</p>
         </div>
 
         <div className="footer__cols">
-          {COLUMNS.map((col) => (
+          {columns.map((col) => (
             <div key={col.title} className="footer__col">
               <h3 className="footer__col-title">{col.title}</h3>
               {col.links.map((link) => (
@@ -49,7 +31,7 @@ export function Footer() {
       </div>
 
       <div className="footer__bottom">
-        <span>© {new Date().getFullYear()} KAI · Gestmusic — Amplify</span>
+        <span>{legal}</span>
       </div>
     </footer>
   )

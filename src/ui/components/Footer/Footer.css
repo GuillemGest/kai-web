@@ -51,6 +51,7 @@
 
 .footer__link {
   font: var(--type-ui);
+  font-weight: 500;
   color: var(--fg-muted);
   transition: color 0.15s ease;
 }

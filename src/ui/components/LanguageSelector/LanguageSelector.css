@@ -1,0 +1,105 @@
+.lang {
+  position: relative;
+  display: inline-flex;
+}
+
+.lang__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 0 var(--space-2);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--fg);
+  font: var(--type-ui);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.lang__trigger:hover {
+  background: var(--surface);
+  border-color: var(--fg-muted);
+}
+.lang__trigger:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lang__code {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.lang__chev {
+  opacity: 0.65;
+}
+
+.lang__menu {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  min-width: 168px;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  z-index: 20;
+}
+
+.lang__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm, 6px);
+  color: var(--fg);
+  font: var(--type-ui);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.lang__option:hover,
+.lang__option:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+.lang__option--active {
+  color: var(--accent);
+}
+
+.lang__option-short {
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  min-width: 24px;
+}
+
+.lang__option-long {
+  flex: 1;
+  color: var(--fg-muted);
+}
+.lang__option--active .lang__option-long {
+  color: var(--accent);
+}
+
+/* Variante para el drawer móvil: full width, sin borde, alineación coherente con la nav. */
+.lang--block {
+  display: block;
+}
+.lang--block .lang__trigger {
+  width: 100%;
+  justify-content: space-between;
+  height: 44px;
+}
+.lang--block .lang__menu {
+  position: static;
+  margin-top: var(--space-1);
+  box-shadow: none;
+}

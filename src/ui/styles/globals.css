@@ -294,6 +294,27 @@ h3 {
 }
 
 /* ==========================================================================
+   Justificado de párrafos largos (leads, bodies, intros, respuestas FAQ)
+   ========================================================================== */
+.page__lead,
+.hero__lead,
+.demo__lead,
+.feature__body,
+.cta__lead,
+.shop__lead,
+.company__lead,
+.company__mission-body p,
+.company__partners-intro,
+.download__lead,
+.resources__lead,
+.resources__body,
+.guide__intro,
+.faq__a {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* ==========================================================================
    Reduced motion: alternativa instantánea para toda animación/transición
    ========================================================================== */
 @media (prefers-reduced-motion: reduce) {

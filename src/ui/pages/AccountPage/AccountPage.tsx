@@ -4,17 +4,12 @@ import type { User } from '../../../modules/auth/domain/User'
 import { billingUseCases } from '../../../modules/billing/application/factory'
 import type { Subscription } from '../../../modules/billing/domain/Subscription'
 import { Button } from '../../components/Button/Button'
+import { useLocale } from '../../../i18n/LocaleContext'
+import { ACCOUNT_PAGE_CONTENT } from './content'
 import './AccountPage.css'
 
-const STATUS_LABEL: Record<Subscription['status'], string> = {
-  active: 'Activa',
-  canceled: 'Cancelada',
-  past_due: 'Pago pendiente',
-  none: 'Sin suscripción',
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('es-ES', {
+function formatDate(iso: string, localeTag: string): string {
+  return new Date(iso).toLocaleDateString(localeTag, {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
@@ -22,6 +17,9 @@ function formatDate(iso: string): string {
 }
 
 export function AccountPage() {
+  const { locale } = useLocale()
+  const { locale: localeTag, title, notLoggedIn, profile, subscription: subCopy } =
+    ACCOUNT_PAGE_CONTENT[locale]
   const [user, setUser] = useState<User | null>(null)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
 
@@ -37,56 +35,56 @@ export function AccountPage() {
   if (!user) {
     return (
       <div className="page">
-        <h1 className="page__title">Mi cuenta</h1>
-        <p className="page__lead">No has iniciado sesión.</p>
+        <h1 className="page__title">{title}</h1>
+        <p className="page__lead">{notLoggedIn}</p>
       </div>
     )
   }
 
   return (
     <div className="page">
-      <h1 className="page__title">Mi cuenta</h1>
+      <h1 className="page__title">{title}</h1>
 
       <section className="page__section">
-        <h2 className="section-title">Perfil</h2>
+        <h2 className="section-title">{profile.title}</h2>
         <div className="account-card">
           <div className="account-row">
-            <span className="account-row__label">Nombre</span>
+            <span className="account-row__label">{profile.nameLabel}</span>
             <span>{user.name}</span>
           </div>
           <div className="account-row">
-            <span className="account-row__label">Email</span>
+            <span className="account-row__label">{profile.emailLabel}</span>
             <span>{user.email}</span>
           </div>
         </div>
       </section>
 
       <section className="page__section">
-        <h2 className="section-title">Suscripción</h2>
+        <h2 className="section-title">{subCopy.title}</h2>
         <div className="account-card">
           {subscription ? (
             <>
               <div className="account-row">
-                <span className="account-row__label">Estado</span>
+                <span className="account-row__label">{subCopy.statusLabel}</span>
                 <span className={subscription.isActive ? 'status status--active' : 'status'}>
-                  {STATUS_LABEL[subscription.status]}
+                  {subCopy.statusLabels[subscription.status]}
                 </span>
               </div>
               <div className="account-row">
-                <span className="account-row__label">Plan</span>
+                <span className="account-row__label">{subCopy.planLabel}</span>
                 <span>{subscription.planId}</span>
               </div>
               <div className="account-row">
-                <span className="account-row__label">Renueva el</span>
-                <span>{formatDate(subscription.currentPeriodEnd)}</span>
+                <span className="account-row__label">{subCopy.renewsAtLabel}</span>
+                <span>{formatDate(subscription.currentPeriodEnd, localeTag)}</span>
               </div>
             </>
           ) : (
-            <p className="page__lead">No tienes ninguna suscripción activa.</p>
+            <p className="page__lead">{subCopy.empty}</p>
           )}
         </div>
         <div className="account-actions">
-          <Button variant="secondary">Gestionar pago</Button>
+          <Button variant="secondary">{subCopy.manageButton}</Button>
         </div>
       </section>
     </div>

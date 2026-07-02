@@ -77,6 +77,73 @@
 }
 
 /* ==========================================================================
+   Billing period toggle
+   ========================================================================== */
+.billing-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  margin: 0 auto var(--space-5);
+  width: fit-content;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+}
+.billing-toggle__option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  color: var(--fg-muted);
+  border: none;
+  border-radius: var(--r-full);
+  font: var(--type-action);
+  cursor: pointer;
+  transition: background-color 0.2s var(--ease-out-quart), color 0.2s var(--ease-out-quart);
+}
+.billing-toggle__option:hover {
+  color: var(--fg);
+}
+.billing-toggle__option--active {
+  background: var(--accent);
+  color: var(--bg);
+}
+.billing-toggle__yearly-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.billing-toggle__savings {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(35%, -55%) rotate(20deg);
+  transform-origin: center;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  background: rgba(244, 162, 97, 0.4);
+  color: rgba(255, 255, 255, 0.75);
+  font: var(--type-secondary);
+  font-weight: 700;
+  white-space: nowrap;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 2;
+  transition: background-color 0.2s var(--ease-out-quart), color 0.2s var(--ease-out-quart);
+}
+.billing-toggle__yearly-wrap:has(.billing-toggle__option--active) .billing-toggle__savings {
+  background: var(--warning);
+  color: var(--bg);
+  box-shadow: 0 4px 14px rgba(244, 162, 97, 0.5);
+}
+@media (max-width: 480px) {
+  .billing-toggle__savings {
+    display: none;
+  }
+}
+
+/* ==========================================================================
    Grid de planes — el destacado manda; entrada con stagger
    ========================================================================== */
 .plans-grid {
@@ -169,6 +236,7 @@
   gap: var(--space-2);
   color: var(--fg-muted);
   font: var(--type-ui);
+  font-weight: 400;
 }
 .shop__reassurance-item svg {
   color: var(--accent);

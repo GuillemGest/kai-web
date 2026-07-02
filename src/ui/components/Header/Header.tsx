@@ -1,26 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
-import { NavLink, Link, useLocation } from 'react-router-dom'
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { Button } from '../Button/Button'
+import { LanguageSelector } from '../LanguageSelector/LanguageSelector'
+import { useLocale } from '../../../i18n/LocaleContext'
+import { authUseCases } from '../../../modules/auth/application/factory'
+import { HEADER_CONTENT } from './content'
 import './Header.css'
-
-const NAV = [
-  { to: '/', label: 'Producto', end: true },
-  { to: '/planes', label: 'Planes' },
-  { to: '/recursos', label: 'Recursos' },
-  { to: '/empresa', label: 'Quiénes somos' },
-]
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `header__link ${isActive ? 'header__link--active' : ''}`
 
 export function Header() {
+  const { locale } = useLocale()
+  const content = HEADER_CONTENT[locale]
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
-  // Estado de scroll: ancla el header sticky con una sombra al separarse del top.
+  async function handleTrialClick() {
+    const user = await authUseCases.getCurrentUser.execute()
+    navigate(user ? '/planes' : '/login')
+  }
+
   useEffect(() => {
     let frame = 0
     const onScroll = () => {
@@ -35,7 +39,6 @@ export function Header() {
     }
   }, [])
 
-  // Sincroniza el <dialog> nativo con el estado (modal: trae foco atrapado + backdrop).
   useEffect(() => {
     const dialog = dialogRef.current
     if (!dialog) return
@@ -43,7 +46,6 @@ export function Header() {
     if (!menuOpen && dialog.open) dialog.close()
   }, [menuOpen])
 
-  // Cierra el menú al navegar a otra ruta.
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
@@ -51,12 +53,12 @@ export function Header() {
   return (
     <header className={`header ${scrolled ? 'header--scrolled' : ''}`}>
       <div className="header__inner">
-        <Link to="/" className="header__logo" aria-label="KAI — inicio">
+        <Link to="/" className="header__logo" aria-label={content.logoAriaLabel}>
           <img src="/logo.svg" alt="KAI" className="header__logo-img" />
         </Link>
 
-        <nav className="header__nav" aria-label="Principal">
-          {NAV.map((item) => (
+        <nav className="header__nav" aria-label={content.navAriaLabel}>
+          {content.nav.map((item) => (
             <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
               {item.label}
             </NavLink>
@@ -64,18 +66,22 @@ export function Header() {
         </nav>
 
         <div className="header__actions">
+          <LanguageSelector
+            triggerAriaLabel={content.languageSelector.triggerAriaLabel}
+            menuAriaLabel={content.languageSelector.menuAriaLabel}
+          />
           <Link to="/login">
-            <Button variant="ghost">Iniciar sesión</Button>
+            <Button variant="ghost">{content.actions.loginLabel}</Button>
           </Link>
-          <Link to="/planes">
-            <Button variant="primary">Empezar</Button>
-          </Link>
+          <Button variant="primary" onClick={handleTrialClick}>
+            {content.actions.ctaLabel}
+          </Button>
         </div>
 
         <button
           type="button"
           className="header__menu-btn"
-          aria-label="Abrir menú"
+          aria-label={content.openMenuLabel}
           aria-expanded={menuOpen}
           aria-haspopup="dialog"
           onClick={() => setMenuOpen(true)}
@@ -87,7 +93,7 @@ export function Header() {
       <dialog
         ref={dialogRef}
         className="header__drawer"
-        aria-label="Menú de navegación"
+        aria-label={content.drawerAriaLabel}
         onClose={() => setMenuOpen(false)}
         onClick={(e) => {
           if (e.target === dialogRef.current) setMenuOpen(false)
@@ -101,15 +107,15 @@ export function Header() {
             <button
               type="button"
               className="header__menu-btn"
-              aria-label="Cerrar menú"
+              aria-label={content.closeMenuLabel}
               onClick={() => setMenuOpen(false)}
             >
               <X size={24} strokeWidth={2} aria-hidden />
             </button>
           </div>
 
-          <nav className="header__drawer-nav" aria-label="Principal móvil">
-            {NAV.map((item) => (
+          <nav className="header__drawer-nav" aria-label={content.navMobileAriaLabel}>
+            {content.nav.map((item) => (
               <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
                 {item.label}
               </NavLink>
@@ -117,16 +123,24 @@ export function Header() {
           </nav>
 
           <div className="header__drawer-actions">
+            <LanguageSelector
+              variant="block"
+              triggerAriaLabel={content.languageSelector.triggerAriaLabel}
+              menuAriaLabel={content.languageSelector.menuAriaLabel}
+            />
             <Link to="/login">
               <Button variant="ghost" size="large" className="header__drawer-cta">
-                Iniciar sesión
+                {content.actions.loginLabel}
               </Button>
             </Link>
-            <Link to="/planes">
-              <Button variant="primary" size="large" className="header__drawer-cta">
-                Empezar
-              </Button>
-            </Link>
+            <Button
+              variant="primary"
+              size="large"
+              className="header__drawer-cta"
+              onClick={handleTrialClick}
+            >
+              {content.actions.ctaLabel}
+            </Button>
           </div>
         </div>
       </dialog>

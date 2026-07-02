@@ -246,7 +246,7 @@
   height: 40px;
   flex-shrink: 0;
   color: var(--accent);
-  background: var(--surface-strong);
+  background: transparent;
   border-radius: var(--r-sm);
   transition: color 0.25s var(--ease-out-expo), background-color 0.25s var(--ease-out-expo);
 }
@@ -261,6 +261,7 @@
 }
 .demo__clip-label {
   font: var(--type-ui);
+  font-weight: 500;
   color: var(--fg);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -329,7 +330,7 @@
   font-size: var(--fs-h3);
 }
 .feature--lead .feature__body {
-  max-width: 52ch;
+  max-width: none;
 }
 
 .feature__icon {
@@ -338,7 +339,7 @@
   width: 48px;
   height: 48px;
   color: var(--accent);
-  background: var(--surface-strong);
+  background: transparent;
   border-radius: var(--r-md);
 }
 .feature--lead .feature__icon {

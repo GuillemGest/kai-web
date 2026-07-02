@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AlertCircle } from 'lucide-react'
 import { authUseCases } from '../../../modules/auth/application/factory'
 import { Button } from '../../components/Button/Button'
+import { useLocale } from '../../../i18n/LocaleContext'
+import { LOGIN_PAGE_CONTENT } from './content'
 import './LoginPage.css'
 
+const POST_LOGIN_URL = 'https://kai.amplifysoft.io/es/chat'
+
 export function LoginPage() {
-  const navigate = useNavigate()
+  const { locale } = useLocale()
+  const { brand, form } = LOGIN_PAGE_CONTENT[locale]
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -27,9 +31,9 @@ export function LoginPage() {
     setSubmitting(true)
     try {
       await authUseCases.login.execute(email, password)
-      navigate('/cuenta')
+      window.location.href = POST_LOGIN_URL
     } catch {
-      setError('Credenciales incorrectas. Inténtalo de nuevo.')
+      setError(form.errorInvalidCredentials)
     } finally {
       setSubmitting(false)
     }
@@ -43,39 +47,38 @@ export function LoginPage() {
           <video
             ref={videoRef}
             className="login__video"
-            src="/demo.mp4"
+            src={brand.videoSrc}
             muted
             loop
             playsInline
             preload="metadata"
-            aria-label="Demostración de KAI localizando momentos clave en vídeo"
+            aria-label={brand.videoAlt}
           />
         </figure>
 
         <div className="login__quote">
           <p className="login__quote-text">
-            Encuentra los <em>momentos clave</em> sin revisar horas de metraje.
+            {brand.quoteLead}
+            <em>{brand.quoteEmphasis}</em>
+            {brand.quoteTail}
           </p>
-          <p className="login__quote-meta">
-            KAI indexa tu material, entiende búsquedas en lenguaje natural y exporta
-            las selecciones directamente a tu editor.
-          </p>
+          <p className="login__quote-meta">{brand.quoteMeta}</p>
         </div>
       </div>
 
       {/* Panel derecho — formulario */}
       <div className="login__form-panel">
         <form className="login__form" onSubmit={handleSubmit} noValidate>
-          <h1 className="login__heading">Iniciar sesión</h1>
-          <p className="login__sub">Accede a tu cuenta para continuar.</p>
+          <h1 className="login__heading">{form.heading}</h1>
+          <p className="login__sub">{form.subheading}</p>
 
           <div className="login__fields">
             <label className="login__field">
-              <span className="login__label">Email</span>
+              <span className="login__label">{form.emailLabel}</span>
               <input
                 type="email"
                 className="login__input"
-                placeholder="tu@email.com"
+                placeholder={form.emailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -85,11 +88,11 @@ export function LoginPage() {
             </label>
 
             <label className="login__field">
-              <span className="login__label">Contraseña</span>
+              <span className="login__label">{form.passwordLabel}</span>
               <input
                 type="password"
                 className="login__input"
-                placeholder="••••••••"
+                placeholder={form.passwordPlaceholder}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
@@ -113,10 +116,10 @@ export function LoginPage() {
             className="login__submit"
             disabled={submitting}
           >
-            {submitting ? 'Entrando…' : 'Entrar'}
+            {submitting ? form.submitLoading : form.submitIdle}
           </Button>
 
-          <p className="login__hint">Prototipo: cualquier credencial inicia sesión.</p>
+          <p className="login__hint">{form.prototypeHint}</p>
         </form>
       </div>
     </div>

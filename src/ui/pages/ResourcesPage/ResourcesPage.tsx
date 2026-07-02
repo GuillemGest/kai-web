@@ -5,13 +5,10 @@ import { resourceUseCases } from '../../../modules/resources/application/factory
 import type { Resource } from '../../../modules/resources/domain/Resource'
 import { Button } from '../../components/Button/Button'
 import { useScrollReveal } from '../../hooks/useScrollReveal'
-import { resourcesPageContent } from './resourcesPage.content'
-import { GUIDES } from './guides.content'
+import { useLocale } from '../../../i18n/LocaleContext'
+import { RESOURCES_PAGE_CONTENT, GUIDES_BY_LOCALE, RESOURCE_TRANSLATIONS } from './content'
+import { Resource as ResourceEntity } from '../../../modules/resources/domain/Resource'
 import './ResourcesPage.css'
-
-const SUPPORT_EMAIL = 'soporte@kai.app'
-
-const { head, cta, guides } = resourcesPageContent
 
 /** Slug estable para anclar cada categoría desde el índice lateral. */
 function categoryAnchor(category: string): string {
@@ -34,6 +31,10 @@ function matchesQuery(resource: Resource, query: string): boolean {
 }
 
 export function ResourcesPage() {
+  const { locale } = useLocale()
+  const { supportEmail, head, status, index, empty, cta, guides } = RESOURCES_PAGE_CONTENT[locale]
+  const localeGuides = GUIDES_BY_LOCALE[locale]
+  const translations = RESOURCE_TRANSLATIONS[locale]
   const [resources, setResources] = useState<Resource[] | null>(null)
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
@@ -49,9 +50,20 @@ export function ResourcesPage() {
     }
   }, [])
 
+  const localizedResources = useMemo(() => {
+    if (!resources) return null
+    return resources.map((resource) => {
+      const t = translations[resource.id]
+      if (!t) return resource
+      return new ResourceEntity(resource.id, resource.slug, t.title, t.body, t.category)
+    })
+  }, [resources, translations])
+
   const groups = useMemo(() => {
-    if (!resources) return []
-    const filtered = resources.filter((resource) => matchesQuery(resource, deferredQuery.trim()))
+    if (!localizedResources) return []
+    const filtered = localizedResources.filter((resource) =>
+      matchesQuery(resource, deferredQuery.trim()),
+    )
     const byCategory = new Map<string, Resource[]>()
     for (const resource of filtered) {
       const list = byCategory.get(resource.category) ?? []
@@ -63,7 +75,7 @@ export function ResourcesPage() {
       anchor: categoryAnchor(category),
       items,
     }))
-  }, [resources, deferredQuery])
+  }, [localizedResources, deferredQuery])
 
   const totalMatches = groups.reduce((sum, group) => sum + group.items.length, 0)
   const isLoading = resources === null
@@ -107,18 +119,26 @@ export function ResourcesPage() {
           </div>
           <p className="resources__search-status" role="status" aria-live="polite">
             {isLoading
-              ? 'Cargando recursos…'
+              ? status.loading
               : query.trim()
-                ? `${totalMatches} ${totalMatches === 1 ? 'resultado' : 'resultados'} para «${query.trim()}»`
-                : `${totalMatches} ${totalMatches === 1 ? 'recurso' : 'recursos'} disponibles`}
+                ? (totalMatches === 1
+                    ? status.resultsWithQuerySingularTemplate
+                    : status.resultsWithQueryPluralTemplate
+                  )
+                    .replace('{count}', String(totalMatches))
+                    .replace('{query}', query.trim())
+                : (totalMatches === 1
+                    ? status.resultsIdleSingularTemplate
+                    : status.resultsIdlePluralTemplate
+                  ).replace('{count}', String(totalMatches))}
           </p>
         </div>
       </header>
 
       <div className="resources__body">
         {!isLoading && groups.length > 1 && (
-          <nav className="resources__index" aria-label="Categorías">
-            <p className="resources__index-label">Categorías</p>
+          <nav className="resources__index" aria-label={index.ariaLabel}>
+            <p className="resources__index-label">{index.label}</p>
             <ul className="resources__index-list">
               {groups.map((group) => (
                 <li key={group.anchor}>
@@ -148,16 +168,16 @@ export function ResourcesPage() {
           {isEmpty && (
             <div className="resources__empty">
               <Search size={28} strokeWidth={1.5} className="resources__empty-icon" aria-hidden />
-              <h2 className="resources__empty-title">Sin resultados para «{query.trim()}»</h2>
-              <p className="resources__empty-body">
-                Prueba con otra palabra o escríbenos y te ayudamos con tu caso concreto.
-              </p>
+              <h2 className="resources__empty-title">
+                {empty.titleTemplate.replace('{query}', query.trim())}
+              </h2>
+              <p className="resources__empty-body">{empty.body}</p>
               <div className="resources__empty-actions">
                 <Button variant="ghost" onClick={() => setQuery('')}>
-                  Limpiar búsqueda
+                  {empty.clearButton}
                 </Button>
-                <a href={`mailto:${SUPPORT_EMAIL}`}>
-                  <Button variant="secondary">Escribir a soporte</Button>
+                <a href={`mailto:${supportEmail}`}>
+                  <Button variant="secondary">{empty.contactButton}</Button>
                 </a>
               </div>
             </div>
@@ -188,7 +208,7 @@ export function ResourcesPage() {
         </div>
       </div>
 
-      {GUIDES.length > 0 && (
+      {localeGuides.length > 0 && (
         <section className="resources__guides" aria-labelledby="guides-title">
           <div className="resources__guides-head" data-reveal>
             <span className="resources__badge">
@@ -201,7 +221,7 @@ export function ResourcesPage() {
           </div>
 
           <div className="resources__guide-list">
-            {GUIDES.map((guide, index) => (
+            {localeGuides.map((guide, index) => (
               <Link
                 key={guide.slug}
                 to={`/recursos/guias/${guide.slug}`}
@@ -229,7 +249,7 @@ export function ResourcesPage() {
         <div className="resources__cta-inner" data-reveal>
           <h2 className="resources__cta-title">{cta.title}</h2>
           <p className="resources__cta-lead">{cta.lead}</p>
-          <a href={`mailto:${SUPPORT_EMAIL}`}>
+          <a href={`mailto:${supportEmail}`}>
             <Button variant="primary" size="large">
               {cta.button}
             </Button>

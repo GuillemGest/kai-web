@@ -144,6 +144,9 @@
   border-radius: var(--r-md);
   font: var(--type-ui);
   color: var(--fg-muted);
+  text-align: left;
+  text-align-last: left;
+  hyphens: manual;
   transition: color 0.15s var(--ease-out-quart),
     background-color 0.15s var(--ease-out-quart);
 }

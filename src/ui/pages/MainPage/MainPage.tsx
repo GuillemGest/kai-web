@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Wand2, Download, Search, Play } from 'lucide-react'
+import { Sparkles, Wand2, Search, Play } from 'lucide-react'
 import { Button } from '../../components/Button/Button'
 import { LogoMarquee } from '../../components/LogoMarquee/LogoMarquee'
 import { useScrollReveal } from '../../hooks/useScrollReveal'
-import { mainPageContent } from './mainPage.content'
+import { useLocale } from '../../../i18n/LocaleContext'
+import { MAIN_PAGE_CONTENT } from './content'
 import './MainPage.css'
 
-const { hero, trustedBy, demo, features, faq, cta } = mainPageContent
-
 // Iconos asociados por posición a las features del documento de contenido.
-const FEATURE_ICONS = [Sparkles, Wand2, Download]
+const FEATURE_ICONS = [Sparkles, Wand2, Search]
 
 export function MainPage() {
+  const { locale } = useLocale()
+  const { hero, trustedBy, demo, features, faq, cta } = MAIN_PAGE_CONTENT[locale]
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoFailed, setVideoFailed] = useState(false)
 
@@ -44,11 +45,6 @@ export function MainPage() {
               <Link to="/planes">
                 <Button variant="primary" size="large">
                   {hero.primaryCta}
-                </Button>
-              </Link>
-              <Link to="/descargar">
-                <Button variant="ghost" size="large">
-                  {hero.secondaryCta}
                 </Button>
               </Link>
             </div>
@@ -162,11 +158,6 @@ export function MainPage() {
             <Link to="/planes">
               <Button variant="primary" size="large">
                 {cta.primaryCta}
-              </Button>
-            </Link>
-            <Link to="/descargar">
-              <Button variant="ghost" size="large">
-                {cta.secondaryCta}
               </Button>
             </Link>
           </div>

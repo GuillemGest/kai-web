@@ -28,18 +28,11 @@ const RESOURCES: ResourcePrimitive[] = [
     id: 'login-required',
     slug: 'necesito-iniciar-sesion-para-usar-kai',
     title: '¿Necesito iniciar sesión para usar KAI?',
-    body: 'Sí. Para acceder al plugin, gestionar tu plan y descargar los recursos disponibles, necesitas una cuenta activa en la web de KAI. El acceso puede depender del plan, la licencia o la configuración acordada para tu producción.',
+    body: 'Sí. Para gestionar tu plan y acceder a los recursos disponibles, necesitas una cuenta activa en la web de KAI. El acceso puede depender del plan, la licencia o la configuración acordada para tu producción.',
     category: 'Primeros pasos',
   },
 
   // — Instalación y requisitos —
-  {
-    id: 'download-plugin',
-    slug: 'donde-descargo-el-plugin',
-    title: '¿Dónde descargo el plugin?',
-    body: 'El plugin se descarga desde tu cuenta de KAI, una vez iniciada la sesión y con un plan activo. Si tu acceso forma parte de una producción o equipo, confirma con la persona responsable qué licencia debes utilizar.',
-    category: 'Instalación y requisitos',
-  },
   {
     id: 'check-compatibility',
     slug: 'como-se-si-mi-entorno-es-compatible',
@@ -54,20 +47,13 @@ const RESOURCES: ResourcePrimitive[] = [
     body: 'KAI está pensado para trabajar con material audiovisual profesional, pero los formatos, códecs y configuraciones concretas deben validarse según cada producción. Si tienes un flujo técnico específico, consulta la compatibilidad antes de indexar grandes volúmenes de material.',
     category: 'Instalación y requisitos',
   },
-  {
-    id: 'update-plugin',
-    slug: 'como-actualizo-el-plugin',
-    title: '¿Cómo actualizo el plugin?',
-    body: 'Cuando haya una actualización disponible, utiliza el canal indicado en tu cuenta o por el equipo de KAI. En producciones activas, conviene coordinar cualquier actualización con el equipo técnico para evitar cambios inesperados en el flujo de edición.',
-    category: 'Instalación y requisitos',
-  },
 
   // — Cuenta y planes —
   {
     id: 'access-account',
     slug: 'como-accedo-a-mi-cuenta',
     title: '¿Cómo accedo a mi cuenta?',
-    body: 'Inicia sesión desde la web de KAI con el correo asociado a tu cuenta o a tu equipo. Desde ahí podrás revisar tu acceso, tu plan y las opciones disponibles para descargar el plugin.',
+    body: 'Inicia sesión desde la web de KAI con el correo asociado a tu cuenta o a tu equipo. Desde ahí podrás revisar tu acceso, tu plan y las opciones disponibles para tu producción.',
     category: 'Cuenta y planes',
   },
   {
