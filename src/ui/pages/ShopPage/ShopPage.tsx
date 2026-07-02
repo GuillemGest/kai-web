@@ -187,7 +187,7 @@ export function ShopPage() {
         </h2>
         <div className="shop__faq-list" data-reveal>
           {faq.items.map(({ q, a }) => (
-            <details key={q} className="faq">
+            <details key={q} name="shop-faq" className="faq">
               <summary className="faq__q">{q}</summary>
               <p className="faq__a">{a}</p>
             </details>

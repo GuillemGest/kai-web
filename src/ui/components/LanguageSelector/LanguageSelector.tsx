@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type CSSProperties } from 'react'
 import { Globe, Check, ChevronDown } from 'lucide-react'
 import { useLocale } from '../../../i18n/LocaleContext'
 import { LOCALES, LOCALE_LABELS, type Locale } from '../../../i18n/locales'
@@ -59,7 +59,7 @@ export function LanguageSelector({
 
       {open && (
         <ul id={menuId} role="listbox" aria-label={menuAriaLabel} className="lang__menu">
-          {LOCALES.map((code) => {
+          {LOCALES.map((code, i) => {
             const active = code === locale
             return (
               <li key={code} role="none">
@@ -68,6 +68,7 @@ export function LanguageSelector({
                   role="option"
                   aria-selected={active}
                   className={`lang__option ${active ? 'lang__option--active' : ''}`}
+                  style={{ '--lang-i': i } as CSSProperties}
                   onClick={() => handleSelect(code)}
                 >
                   <span className="lang__option-short">{LOCALE_LABELS[code].short}</span>

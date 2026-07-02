@@ -114,22 +114,49 @@
 }
 
 /* ==========================================================================
-   Trusted — prueba social: la cinta de logos justo tras el hero
+   Trusted — prueba social justo tras el hero. Tira estática (logos quietos, sin
+   marquee) con la misma superficie que .compat, para transmitir seriedad pro.
    ========================================================================== */
 .trusted {
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  padding: clamp(var(--space-6), 6vw, var(--space-8)) 0;
-  overflow: hidden;
 }
-.trusted__title {
+.trusted__row {
   max-width: var(--content-max);
-  margin: 0 auto clamp(var(--space-4), 4vw, var(--space-6));
-  padding: 0 var(--space-4);
-  font: var(--type-secondary);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4);
+  /* Apilado: título arriba centrado, marcas debajo. */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+.trusted__label {
+  font: var(--type-ui);
+  font-weight: 700;
   color: var(--fg-muted);
+  letter-spacing: 0.02em;
   text-align: center;
+}
+.trusted__logos {
+  display: flex;
+  align-items: center;
+  gap: clamp(var(--space-5), 5vw, var(--space-8));
+  flex-wrap: wrap;
+  justify-content: center;
+  list-style: none;
+}
+.trusted__item {
+  display: inline-flex;
+  align-items: center;
+}
+/* Logos a color y a plena opacidad: uso legítimo de la marca original, sin
+   recolorear (recolorear un logo de marca puede infringir sus normas de uso). */
+.trusted__logo {
+  height: 44px;
+  width: auto;
+  object-fit: contain;
 }
 
 /* ==========================================================================
@@ -266,6 +293,84 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ==========================================================================
+   Compatibilidad — tira full-bleed sutil bajo el demo. Sección propia a ancho
+   completo (no truco de 100vw/transform: eso choca con el reveal). Dos grupos:
+   SO compatibles (macOS/Windows) e integración en Premiere.
+   ========================================================================== */
+.compat {
+  /* Full-bleed real: como <section> ocupa ya el 100% del ancho de página. */
+  background: rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.compat__row {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4) var(--space-6);
+  flex-wrap: wrap;
+}
+.compat__group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+/* Separador vertical entre los dos grupos; se oculta al hacer wrap en móvil. */
+.compat__sep {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+}
+.compat__label {
+  font: var(--type-secondary);
+  /* Anula el line-height del rol para que el texto se centre por su caja real
+     junto a los logos (evita el clásico desajuste baseline vs. imagen). */
+  line-height: 1;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.compat__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-ui);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+/* Logos como bloque: elimina el hueco de baseline de los elementos inline y
+   deja que el centrado flex del grupo alinee icono y texto por su eje central. */
+.compat__item svg,
+.compat__logo {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+.compat__item svg {
+  opacity: 0.85;
+}
+/* Ajuste óptico: la manzana asienta un pelín baja; subirla 2px la equilibra. */
+.compat__icon--apple {
+  transform: translateY(-2px);
+}
+/* Premiere: el destino de integración, marcado con algo más de presencia. */
+.compat__item--pr {
+  color: var(--fg);
+}
+
+@media (max-width: 560px) {
+  .compat__sep {
+    display: none;
+  }
 }
 
 /* ==========================================================================

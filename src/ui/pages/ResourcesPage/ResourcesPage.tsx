@@ -196,7 +196,11 @@ export function ResourcesPage() {
                 <h2 className="resources__group-title">{group.category}</h2>
                 <div className="resources__faqs">
                   {group.items.map((resource) => (
-                    <details key={resource.id} className="faq">
+                    <details
+                      key={resource.id}
+                      name={`resources-${group.anchor}`}
+                      className="faq"
+                    >
                       <summary className="faq__q">{resource.title}</summary>
                       <p className="faq__a">{resource.body}</p>
                     </details>

@@ -13,11 +13,19 @@ export const mainPageContent = {
   },
 
   trustedBy: {
-    title: 'Trusted by',
+    title: 'Trusted by leading brands:',
     logos: [
       { src: 'logoCompany/gestmusicLogo.png', alt: 'Gestmusic' },
       { src: 'logoCompany/tv3Logo.png', alt: 'TV3' },
     ],
+  },
+
+  compat: {
+    // Platform names = brands: not translated. Only the labels.
+    osLabel: 'Works on',
+    os: ['macOS', 'Windows'],
+    integrationLabel: 'Runs inside',
+    integrationApp: 'Adobe Premiere Pro',
   },
 
   demo: {

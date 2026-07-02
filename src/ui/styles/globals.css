@@ -190,9 +190,16 @@ h3 {
 }
 .faq__q::after {
   content: '+';
-  font-size: 22px;
+  /* Caja cuadrada: el glifo se centra por flex, así el rotate gira sobre el
+     centro real y la cruz/aspa queda alineada tanto abierta como cerrada. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
   font-weight: 400;
-  line-height: 1;
+  line-height: 0;
   color: var(--accent);
   flex-shrink: 0;
   transition: transform 0.25s var(--ease-out-expo);

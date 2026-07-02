@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import { Button } from '../Button/Button'
@@ -115,8 +115,14 @@ export function Header() {
           </div>
 
           <nav className="header__drawer-nav" aria-label={content.navMobileAriaLabel}>
-            {content.nav.map((item) => (
-              <NavLink key={item.to} to={item.to} end={item.end} className={linkClass}>
+            {content.nav.map((item, i) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={linkClass}
+                style={{ '--drawer-i': i } as CSSProperties}
+              >
                 {item.label}
               </NavLink>
             ))}

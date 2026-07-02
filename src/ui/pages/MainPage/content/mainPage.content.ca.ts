@@ -13,11 +13,19 @@ export const mainPageContent = {
   },
 
   trustedBy: {
-    title: 'Confien en KAI',
+    title: 'Marques líders confien en nosaltres:',
     logos: [
       { src: '/logoCompany/gestmusicLogo.png', alt: 'Gestmusic' },
       { src: '/logoCompany/tv3Logo.png', alt: 'TV3' },
     ],
+  },
+
+  compat: {
+    // Noms de plataforma = marques: no es tradueixen. Només les etiquetes.
+    osLabel: 'Compatible amb',
+    os: ['macOS', 'Windows'],
+    integrationLabel: 'S’integra a',
+    integrationApp: 'Adobe Premiere Pro',
   },
 
   demo: {

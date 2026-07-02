@@ -16,11 +16,17 @@
   font: var(--type-ui);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition: background-color 0.15s var(--ease-out-quart),
+    border-color 0.15s var(--ease-out-quart),
+    transform 0.12s var(--ease-out-quart);
 }
 .lang__trigger:hover {
   background: var(--surface);
   border-color: var(--fg-muted);
+}
+/* Feedback táctil/click: hundido breve. */
+.lang__trigger:active {
+  transform: scale(0.97);
 }
 .lang__trigger:focus-visible {
   outline: 2px solid var(--accent);
@@ -34,6 +40,12 @@
 
 .lang__chev {
   opacity: 0.65;
+  transition: transform 0.24s var(--ease-out-expo), opacity 0.15s var(--ease-out-quart);
+}
+/* Estado de apertura señalado por el propio aria-expanded del trigger. */
+.lang__trigger[aria-expanded='true'] .lang__chev {
+  transform: rotate(180deg);
+  opacity: 1;
 }
 
 .lang__menu {
@@ -49,6 +61,43 @@
   border-radius: var(--r-md);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
   z-index: 20;
+  /* Nace desde la esquina del trigger (arriba-derecha). */
+  transform-origin: top right;
+}
+
+/* Entrada del menú: fade + leve subida + escala sutil. @starting-style aplica el
+   estado inicial al montar; el navegador anima hacia el estado final. Sin JS extra.
+   El menú se desmonta al cerrar (lógica en el componente), así que solo animamos la
+   entrada; la salida es instantánea, aceptable para un popover pequeño. */
+@media (prefers-reduced-motion: no-preference) {
+  .lang--inline .lang__menu {
+    transition: opacity 0.2s var(--ease-out-quart),
+      transform 0.24s var(--ease-out-expo);
+  }
+  @starting-style {
+    .lang--inline .lang__menu {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+    }
+  }
+
+  /* Los items entran escalonados tras el contenedor (lista real → stagger legítimo).
+     3 locales · 45ms = 135ms total, dentro de presupuesto. */
+  .lang--inline .lang__option {
+    animation: lang-option-in 0.28s var(--ease-out-expo) both;
+    animation-delay: calc(80ms + var(--lang-i, 0) * 45ms);
+  }
+}
+
+@keyframes lang-option-in {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .lang__option {
@@ -65,14 +114,33 @@
   font-weight: 500;
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.15s var(--ease-out-quart),
+    color 0.15s var(--ease-out-quart), transform 0.1s var(--ease-out-quart);
 }
 .lang__option:hover,
 .lang__option:focus-visible {
   background: var(--surface);
   outline: none;
 }
+.lang__option:active {
+  transform: scale(0.98);
+}
 .lang__option--active {
   color: var(--accent);
+}
+/* El check confirma la selección con una breve aparición. */
+.lang__option--active svg {
+  animation: lang-check-in 0.26s var(--ease-out-expo) both;
+}
+@keyframes lang-check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .lang__option-short {
@@ -102,4 +170,16 @@
   position: static;
   margin-top: var(--space-1);
   box-shadow: none;
+}
+/* En el drawer el menú se despliega en el flujo: fade simple, sin escala ni stagger
+   (encaja mejor con una lista estática dentro de la navegación). */
+@media (prefers-reduced-motion: no-preference) {
+  .lang--block .lang__menu {
+    transition: opacity 0.2s var(--ease-out-quart);
+  }
+  @starting-style {
+    .lang--block .lang__menu {
+      opacity: 0;
+    }
+  }
 }

@@ -49,16 +49,43 @@
 }
 
 .header__link {
+  position: relative;
   font: var(--type-ui);
   font-weight: 500;
   color: var(--fg-muted);
-  transition: color 0.15s ease;
+  transition: color 0.15s var(--ease-out-quart);
 }
 .header__link:hover {
   color: var(--fg);
 }
 .header__link--active {
   color: var(--accent);
+}
+
+/* Subrayado animado: crece desde el centro en hover y ancla el activo.
+   Solo para la nav inline (en el drawer los links usan fondo en :hover). */
+.header__nav .header__link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.22s var(--ease-out-expo);
+}
+.header__nav .header__link:hover::after,
+.header__nav .header__link--active::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header__nav .header__link::after {
+    transition: none;
+  }
 }
 
 .header__actions {
@@ -79,9 +106,14 @@
   border: none;
   border-radius: var(--r-md);
   color: var(--fg);
+  transition: background-color 0.15s var(--ease-out-quart),
+    transform 0.12s var(--ease-out-quart);
 }
 .header__menu-btn:hover {
   background: var(--surface);
+}
+.header__menu-btn:active {
+  transform: scale(0.92);
 }
 
 /* ==========================================================================
@@ -164,6 +196,25 @@
 }
 .header__drawer-nav .header__link:hover {
   background: var(--surface);
+}
+
+/* Al abrir el drawer, los links entran escalonados (lista real → stagger legítimo).
+   4 items · 50ms = 200ms tras el slide del panel; dentro de presupuesto. */
+@media (prefers-reduced-motion: no-preference) {
+  .header__drawer[open] .header__drawer-nav .header__link {
+    animation: header-drawer-item 0.34s var(--ease-out-expo) both;
+    animation-delay: calc(120ms + var(--drawer-i, 0) * 50ms);
+  }
+}
+@keyframes header-drawer-item {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .header__drawer-actions {
