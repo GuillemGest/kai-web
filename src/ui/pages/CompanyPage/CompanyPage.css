@@ -42,7 +42,7 @@
   color: var(--fg-muted);
   font-family: var(--font);
   font-size: var(--fs-lead);
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.6;
   text-wrap: pretty;
 }
@@ -74,7 +74,10 @@
 .company__mission-body p {
   max-width: 64ch;
   color: var(--fg-muted);
-  font: var(--type-body);
+  font-family: var(--font);
+  /* Mismo tamaño que el lead del hero: los 3 párrafos principales van igualados */
+  font-size: var(--fs-lead);
+  font-weight: 400;
   line-height: 1.65;
   text-wrap: pretty;
 }

@@ -1,33 +1,47 @@
 export const planTranslations = {
-  starter: {
-    name: 'Individual',
+  audioPro: {
+    name: 'KAI Audio Pro',
+    capacity: '250 GB or 100 h reference',
     features: [
-      '1 active project',
-      '2 h/month of video included',
-      'Natural-language search',
-      'Standard export',
-      'Email support',
+      'Cloud processing (shared resources)',
+      'Geared to audio-focused models',
+      '250 GB or 100 h reference',
+      'Fast access, no dedicated infrastructure',
     ],
   },
-  pro: {
-    name: 'Pro',
+  fullPro: {
+    name: 'KAI Full Pro',
+    capacity: '250 GB or 100 h reference',
     features: [
-      'Individual plan features',
-      'Unlimited projects',
-      '20 h/month of video included',
-      'Clip organisation',
-      'Advanced export',
-      'Priority support',
+      'Cloud processing (shared resources)',
+      'All engines: audio, video and advanced AI',
+      '250 GB or 100 h reference',
+      'Full entry point to the product',
     ],
   },
-  studio: {
-    name: 'Studio',
+  team: {
+    name: 'KAI Team',
+    capacity: '1 TB or 1,000 h reference',
     features: [
-      'Pro plan features',
-      'Extended video volume',
-      'Team collaboration',
-      'Integrations per project',
-      'Dedicated support',
+      'Cloud plan with per-team pricing',
+      'Dedicated cloud resources',
+      '1 TB or 1,000 h reference',
+      'Built for collaborative work',
+    ],
+  },
+  enterprise: {
+    name: 'KAI 24/7',
+    capacity: 'Per-production licence',
+    features: [
+      'Enterprise licence per production',
+      'On-premise deployment available',
+      'Security and compliance tailored to you',
+      'Operational continuity and adjusted support',
+    ],
+    // Indicative commercial references from the official document (not a fixed rate).
+    references: [
+      'Premium Reality Shows: €30,000 (avg ~3 months)',
+      'Small Reality Shows: €9,000 (avg ~1.5 months)',
     ],
   },
 } as const

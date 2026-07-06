@@ -41,5 +41,12 @@ export const resourcesPageContent = {
   guides: {
     title: 'Step-by-step guides',
     badge: 'Guides',
+    // Per-card guide metadata. `{count}` = number.
+    meta: {
+      stepsTemplate: '{count} steps',
+      minutesTemplate: '{count} min',
+      moreStepsTemplate: '+{count} more steps',
+      open: 'Open guide',
+    },
   },
 } as const

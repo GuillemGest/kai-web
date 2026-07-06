@@ -12,10 +12,29 @@ import './ShopPage.css'
 
 type LoadState = 'loading' | 'ready' | 'error'
 
-function localizePlan(plan: Plan, translations: Record<PlanId, { name: string; features: readonly string[] }>): Plan {
+function localizePlan(
+  plan: Plan,
+  translations: Record<PlanId, { name: string; capacity: string; features: readonly string[] }>,
+): Plan {
   const t = translations[plan.id as PlanId]
   if (!t) return plan
-  return Plan.fromPrimitive({ ...plan.toPrimitive(), name: t.name, features: [...t.features] })
+  return Plan.fromPrimitive({
+    ...plan.toPrimitive(),
+    name: t.name,
+    capacity: t.capacity,
+    features: [...t.features],
+  })
+}
+
+// Referencias comerciales orientativas del plan a medida (KAI 24/7).
+// Solo algunas entradas de las traducciones definen `references`, por eso se
+// accede de forma segura en lugar de exigirlo a todos los planes.
+function planReferences(
+  planId: string,
+  translations: Record<PlanId, { name: string; capacity: string; features: readonly string[] }>,
+): readonly string[] | undefined {
+  const entry = translations[planId as PlanId] as { references?: readonly string[] } | undefined
+  return entry?.references
 }
 
 const REASSURANCE_ICONS: Record<ShopReassuranceIcon, LucideIcon> = {
@@ -43,6 +62,12 @@ export function ShopPage() {
   const [state, setState] = useState<LoadState>('loading')
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly')
 
+  // `billingToggle` y `setBillingPeriod` solo los consume el toggle mensual/anual,
+  // desactivado temporalmente (ver JSX). Se mantienen referenciados para poder
+  // reincorporar el toggle sin reintroducir su cableado.
+  void billingToggle
+  void setBillingPeriod
+
   const localizedPlans = plans.map((p) => localizePlan(p, planTranslations))
 
   useEffect(() => {
@@ -61,6 +86,12 @@ export function ShopPage() {
   }, [])
 
   const handleSelect = (plan: Plan) => {
+    // Los planes a medida (KAI 24/7) no tienen checkout: derivan a contacto
+    // para solicitar presupuesto por producción.
+    if (plan.custom) {
+      navigate(empty.linkHref)
+      return
+    }
     navigate(`/login?plan=${plan.id}`)
   }
 
@@ -77,7 +108,7 @@ export function ShopPage() {
 
       {state === 'loading' && (
         <div className="plans-grid" aria-hidden>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <div key={i} className="plan-skeleton" />
           ))}
         </div>
@@ -107,6 +138,12 @@ export function ShopPage() {
 
       {state === 'ready' && localizedPlans.length > 0 && (
         <>
+          {/*
+            TOGGLE MENSUAL/ANUAL — desactivado temporalmente.
+            El pricing oficial (Market and Product Plan) solo define precios €/mes;
+            no contempla facturación anual ni descuento. Se deja comentado para
+            poder reincorporarlo rápidamente si en el futuro se añade tarifa anual.
+
           <div
             className="billing-toggle"
             role="radiogroup"
@@ -136,6 +173,7 @@ export function ShopPage() {
               </span>
             </div>
           </div>
+          */}
 
           <ul className="plans-grid">
             {localizedPlans.map((plan, i) => (
@@ -145,6 +183,7 @@ export function ShopPage() {
                   copy={planCard}
                   billingPeriod={billingPeriod}
                   yearlyDiscountPercent={yearlyDiscountPercent}
+                  references={planReferences(plan.id, planTranslations)}
                   onSelect={handleSelect}
                 />
               </li>

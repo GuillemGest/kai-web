@@ -9,11 +9,11 @@
    ========================================================================== */
 .shop__head {
   max-width: 640px;
-  margin-bottom: var(--space-7);
+  margin-bottom: clamp(var(--space-6), 5vw, var(--space-8));
 }
 .shop__title {
-  font-size: var(--fs-h1);
-  line-height: 1.05;
+  font-size: var(--fs-h2);
+  line-height: 1.08;
   letter-spacing: -0.02em;
   font-weight: 700;
   text-wrap: balance;
@@ -149,9 +149,18 @@
 .plans-grid {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
   align-items: stretch;
+  /* El grid de planes rompe el --content-max de la página para dar aire a las
+     cards (4 en fila resultaban estrechas a 1200px). Se ensancha solo aquí,
+     centrado respecto al viewport; el resto de secciones sigue a --content-max.
+     Full-bleed acotado: el grid se centra en el viewport (margin-inline: 50%
+     - 50vw lo lleva a sangre completa) y luego se limita a --plans-max con
+     padding lateral que nunca baja del gutter de la página. */
+  --plans-max: 1320px;
+  margin-inline: calc(50% - 50vw);
+  padding-inline: max(var(--space-4), calc(50vw - var(--plans-max) / 2));
 }
 .plans-grid__item {
   display: flex;
@@ -264,7 +273,18 @@
 /* ==========================================================================
    Responsive
    ========================================================================== */
-@media (max-width: 880px) {
+/* Tablet / laptop estrecho: 4 tarjetas en 2 columnas.
+   Se desactiva el full-bleed de desktop y se vuelve a centrar en --content-max. */
+@media (max-width: 1180px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 840px;
+    margin-inline: auto;
+    padding-inline: 0;
+  }
+}
+
+@media (max-width: 620px) {
   .plans-grid {
     grid-template-columns: 1fr;
     max-width: 420px;

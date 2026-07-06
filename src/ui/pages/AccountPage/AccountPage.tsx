@@ -6,6 +6,7 @@ import type { Subscription } from '../../../modules/billing/domain/Subscription'
 import { Button } from '../../components/Button/Button'
 import { useLocale } from '../../../i18n/LocaleContext'
 import { ACCOUNT_PAGE_CONTENT } from './content'
+import { PLAN_TRANSLATIONS, type PlanId } from '../ShopPage/content'
 import './AccountPage.css'
 
 function formatDate(iso: string, localeTag: string): string {
@@ -22,6 +23,12 @@ export function AccountPage() {
     ACCOUNT_PAGE_CONTENT[locale]
   const [user, setUser] = useState<User | null>(null)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
+
+  // Nombre legible del plan a partir de su id, reutilizando las traducciones de
+  // planes de ShopPage. Fallback al propio id si no hay coincidencia.
+  const planName = subscription
+    ? PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ?? subscription.planId
+    : null
 
   useEffect(() => {
     authUseCases.getCurrentUser.execute().then((currentUser) => {
@@ -72,7 +79,7 @@ export function AccountPage() {
               </div>
               <div className="account-row">
                 <span className="account-row__label">{subCopy.planLabel}</span>
-                <span>{subscription.planId}</span>
+                <span>{planName}</span>
               </div>
               <div className="account-row">
                 <span className="account-row__label">{subCopy.renewsAtLabel}</span>

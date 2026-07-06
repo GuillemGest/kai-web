@@ -4,7 +4,7 @@ import { Subscription, type SubscriptionPrimitive } from '../domain/Subscription
 const SUBSCRIPTION: SubscriptionPrimitive = {
   id: 'sub-1',
   userId: 'user-1',
-  planId: 'pro',
+  planId: 'fullPro',
   status: 'active',
   currentPeriodEnd: '2026-07-15T10:00:00.000Z',
   stripeSubscriptionId: null,

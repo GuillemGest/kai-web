@@ -3,10 +3,18 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-5);
+  padding: clamp(var(--space-5), 2.4vw, var(--space-6));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
+  transition: border-color 0.2s var(--ease-out-quart), background-color 0.2s var(--ease-out-quart),
+    transform 0.2s var(--ease-out-quart);
+}
+@media (hover: hover) {
+  .plan-card:hover {
+    border-color: var(--surface-strong);
+    background: var(--surface-2);
+  }
 }
 
 .plan-card--highlighted {
@@ -14,8 +22,30 @@
   background: var(--surface-2);
   box-shadow: 0 0 0 1px var(--accent);
 }
-@media (min-width: 881px) {
+@media (min-width: 1181px) {
   .plan-card--highlighted {
+    transform: scale(1.03);
+  }
+  @media (hover: hover) {
+    .plan-card--highlighted:hover {
+      transform: scale(1.03) translateY(-2px);
+    }
+    .plan-card:not(.plan-card--highlighted):hover {
+      transform: translateY(-2px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .plan-card {
+    transition: none;
+  }
+  /* Se anula solo el desplazamiento de hover; el scale del destacado es
+     identidad visual (jerarquía), no movimiento, así que se conserva. */
+  .plan-card:not(.plan-card--highlighted):hover {
+    transform: none;
+  }
+  .plan-card--highlighted:hover {
     transform: scale(1.03);
   }
 }
@@ -42,6 +72,9 @@
   gap: var(--space-1) var(--space-2);
 }
 .plan-card__amount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
   font-size: var(--fs-h2);
   font-weight: 700;
   line-height: 1;
@@ -58,6 +91,7 @@
   color: var(--fg-muted);
   font: var(--type-ui);
   font-weight: 400;
+  letter-spacing: normal;
 }
 .plan-card__discount {
   display: inline-flex;
@@ -70,12 +104,54 @@
   margin-left: var(--space-1);
 }
 
+.plan-card__from {
+  margin-top: calc(-1 * var(--space-1));
+  margin-bottom: calc(-1 * var(--space-2));
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.plan-card__amount--custom {
+  font-size: var(--fs-h3);
+  letter-spacing: -0.01em;
+}
+
+.plan-card__references {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+.plan-card__references-label {
+  font: var(--type-secondary);
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.plan-card__references-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.plan-card__references-item {
+  font: var(--type-secondary);
+  color: var(--fg);
+}
+
 .plan-card__features {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin: var(--space-2) 0;
+  margin: var(--space-1) 0 var(--space-2);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
   flex: 1;
 }
 .plan-card__feature {

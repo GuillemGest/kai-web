@@ -52,5 +52,12 @@ export const resourcesPageContent = {
   guides: {
     title: 'Guías paso a paso',
     badge: 'Guías',
+    // Metadatos de cada tarjeta de guía. `{count}` = número.
+    meta: {
+      stepsTemplate: '{count} pasos',
+      minutesTemplate: '{count} min',
+      moreStepsTemplate: '+{count} pasos más',
+      open: 'Abrir guía',
+    },
   },
 } as const

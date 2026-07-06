@@ -6,6 +6,10 @@ export const shopPageContent = {
     popularBadge: 'Most popular',
     pricePeriodMonth: '/mo',
     pricePeriodYear: '/yr',
+    priceFromPrefix: 'from',
+    customPriceLabel: 'Custom',
+    customCtaLabel: 'Request a quote',
+    referencesLabel: 'Indicative references',
     selectCtaTemplate: 'Choose {name}',
     discountBadgeTemplate: 'Save {percent}%',
   },
@@ -20,9 +24,9 @@ export const shopPageContent = {
   yearlyDiscountPercent: 20,
 
   head: {
-    title: 'Pick the plan that suits your pace',
-    lead: 'Monthly subscription to KAI with all its updates. Start small and move up when your video volume calls for it.',
-    notice: 'Prices are indicative; the final amount is confirmed at checkout.',
+    title: 'Layered pricing, from solo to full production',
+    lead: 'KAI combines recurring cloud subscriptions for users and teams with enterprise per-production licences. Start on a cloud plan and scale to KAI 24/7 when your production calls for it.',
+    notice: 'Pricing model v1. Indicative prices that we will keep refining with market feedback.',
   },
 
   error: {
@@ -38,38 +42,35 @@ export const shopPageContent = {
   },
 
   reassurance: [
-    { iconName: 'ShieldCheck', text: 'No commitment, cancel anytime' },
-    { iconName: 'CreditCard', text: 'Monthly billing, no surprises' },
-    { iconName: 'Headset', text: 'Support by people, not bots' },
+    { iconName: 'CreditCard', text: 'Recurring cloud subscription for Pro/Solo and Team' },
+    { iconName: 'ShieldCheck', text: 'Tailored security and compliance on KAI 24/7' },
+    { iconName: 'Headset', text: 'Support scaled to each production' },
   ] as const,
 
   comparison: {
-    title: 'Compare all plan features',
-    lead: 'KAI offers plans for individual creators and teams to accelerate post and unleash their creativity.',
-    planColumns: ['Individual', 'Pro', 'Studio'],
+    title: 'Compare KAI tiers',
+    lead: 'From an individual cloud subscription to an enterprise per-production licence. Each tier fits the scale, the volume of footage and the operational demands.',
+    planColumns: ['Audio Pro', 'Full Pro', 'Team', 'KAI 24/7'],
     a11y: { included: 'Included', notIncluded: 'Not included' },
     sections: [
       {
-        title: 'Main features',
+        title: 'Model and deployment',
         rows: [
-          { label: 'Advanced transcription and speaker identification', values: [true, true, true] },
-          { label: 'Summaries and analysis', values: [true, true, true] },
-          { label: 'Instant AI rough cuts', values: [false, true, true] },
-          { label: 'Natural-language notes to guide edits', values: [false, true, true] },
-          { label: 'Monthly edits included', values: ['20', 'Unlimited', 'Unlimited'] },
-          { label: 'Monthly hours of ingested footage', values: ['2 h', '20 h', 'Unlimited'] },
+          { label: 'Model', values: ['Cloud subscription', 'Cloud subscription', 'Cloud subscription', 'Per-production licence'] },
+          { label: 'Cloud resources', values: ['Shared', 'Shared', 'Dedicated', 'Custom'] },
+          { label: 'On-premise deployment', values: [false, false, false, true] },
+          { label: 'Reference price', values: ['€59/mo', '€149/mo', '€299/mo', 'Custom'] },
         ],
       },
       {
-        title: 'Advanced features',
+        title: 'Capacity and engines',
         rows: [
-          { label: 'Multi-edits across all your footage', values: [false, true, true] },
-          { label: 'Team collaboration', values: [false, false, true] },
-          { label: 'AI customization', values: [false, true, true] },
-          { label: 'Support', values: ['Email', 'Priority', 'Dedicated'] },
-          { label: 'Security', values: [true, true, 'Enterprise'] },
-          { label: 'Team management', values: [false, false, true] },
-          { label: 'SSO', values: [false, false, true] },
+          { label: 'Reference capacity', values: ['250 GB · 100 h', '250 GB · 100 h', '1 TB · 1,000 h', 'Custom'] },
+          { label: 'Audio engine', values: [true, true, true, true] },
+          { label: 'Video and advanced AI', values: [false, true, true, true] },
+          { label: 'Collaborative work', values: [false, false, true, true] },
+          { label: 'Tailored security / compliance', values: [false, false, false, true] },
+          { label: 'Operational continuity', values: [false, false, false, true] },
         ],
       },
     ],
@@ -79,25 +80,26 @@ export const shopPageContent = {
     title: 'Frequently asked questions',
     items: [
       {
-        q: 'Can I change my plan later?',
-        a: 'Yes. You can move up or down at any time from your account; the change is prorated on the next invoice.',
+        q: 'What is the difference between Audio Pro and Full Pro?',
+        a: 'Both are entry cloud plans with a 250 GB or 100 h reference. Audio Pro (from €59/mo) is geared to audio-focused models; Full Pro (from €149/mo) unlocks all engines: audio, video and advanced AI.',
       },
       {
-        q: 'Is there a commitment or annual contract?',
-        a: 'No. All plans are monthly and you can cancel whenever you want. You keep access until the end of the paid period.',
+        q: 'Who is KAI Team for?',
+        a: 'For small or mid-sized teams that need more capacity and reliability. It is a per-team cloud plan (€299/mo reference) with 1 TB or 1,000 h and dedicated cloud resources for better performance and predictability.',
       },
       {
-        q: 'Do the prices include VAT?',
-        a: 'Prices are shown without VAT. The applicable tax is calculated at checkout based on your country and billing details.',
+        q: 'How is KAI 24/7 priced?',
+        a: 'KAI 24/7 has no fixed rate: it is a custom per-production quote. The price depends on the number of cameras or signals, shooting days, ingest volume, features, integrations, support level and deployment constraints.',
       },
       {
-        q: 'What happens if I exceed the video hours in my plan?',
-        a: 'We warn you before you hit the limit. You can wait for the next cycle or upgrade instantly to keep working.',
+        q: 'What are the €30,000 and €9,000 references?',
+        a: 'They are indicative commercial references: Premium Reality Shows around €30,000 (avg ~3 months) and Small Reality Shows around €9,000 (avg ~1.5 months). Large productions are quoted on demand.',
       },
-      {
-        q: 'Do I need a card to get started?',
-        a: 'To subscribe, yes. The subscription enables AI search and export.',
-      },
+      // Question temporarily disabled (pending business decision on pricing v1).
+      // {
+      //   q: 'Is the pricing final?',
+      //   a: 'It is a pricing model v1. The pricing policy will keep being refined with market feedback to stay flexible and competitive across client profiles and geographies.',
+      // },
     ],
   },
 } as const

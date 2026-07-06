@@ -6,6 +6,10 @@ export const shopPageContent = {
     popularBadge: 'Més popular',
     pricePeriodMonth: '/mes',
     pricePeriodYear: '/any',
+    priceFromPrefix: 'des de',
+    customPriceLabel: 'A mida',
+    customCtaLabel: 'Demanar pressupost',
+    referencesLabel: 'Referències orientatives',
     selectCtaTemplate: 'Triar {name}',
     discountBadgeTemplate: 'Estalvia {percent}%',
   },
@@ -20,9 +24,9 @@ export const shopPageContent = {
   yearlyDiscountPercent: 20,
 
   head: {
-    title: 'Tria el pla que va amb el teu ritme',
-    lead: 'Subscripció mensual a KAI amb totes les seves actualitzacions. Comença petit i puja de pla quan el teu volum de vídeo ho demani.',
-    notice: 'Preus orientatius; l’import definitiu es confirma al checkout.',
+    title: 'Un pricing per capes, del solo a la gran producció',
+    lead: 'KAI combina subscripcions cloud recurrents per a usuaris i equips amb llicències enterprise per producció. Comença amb un pla cloud i escala a KAI 24/7 quan la teva producció ho demani.',
+    notice: 'Pricing model v1. Preus orientatius que continuarem refinant amb feedback de mercat.',
   },
 
   error: {
@@ -38,38 +42,35 @@ export const shopPageContent = {
   },
 
   reassurance: [
-    { iconName: 'ShieldCheck', text: 'Sense permanència, cancel·la quan vulguis' },
-    { iconName: 'CreditCard', text: 'Facturació mensual, sense sorpreses' },
-    { iconName: 'Headset', text: 'Suport per persones, no bots' },
+    { iconName: 'CreditCard', text: 'Subscripció cloud recurrent per a Pro/Solo i Team' },
+    { iconName: 'ShieldCheck', text: 'Seguretat i compliance a mida a KAI 24/7' },
+    { iconName: 'Headset', text: 'Suport ajustat a l’abast de cada producció' },
   ] as const,
 
   comparison: {
-    title: 'Compara totes les característiques',
-    lead: 'KAI ofereix plans per a creadors individuals i equips, per accelerar la postproducció sense friccions.',
-    planColumns: ['Individual', 'Pro', 'Studio'],
+    title: 'Compara els nivells de KAI',
+    lead: 'De la subscripció cloud individual a la llicència enterprise per producció. Cada nivell s’ajusta a l’escala, el volum de material i les exigències operatives.',
+    planColumns: ['Audio Pro', 'Full Pro', 'Team', 'KAI 24/7'],
     a11y: { included: 'Inclòs', notIncluded: 'No inclòs' },
     sections: [
       {
-        title: 'Funcions principals',
+        title: 'Model i desplegament',
         rows: [
-          { label: 'Transcripció avançada i identificació de parlants', values: [true, true, true] },
-          { label: 'Resums i anàlisi', values: [true, true, true] },
-          { label: 'Talls ràpids amb IA', values: [false, true, true] },
-          { label: 'Notes en llenguatge natural per guiar edicions', values: [false, true, true] },
-          { label: 'Edicions mensuals incloses', values: ['20', 'Il·limitades', 'Il·limitades'] },
-          { label: 'Hores de vídeo ingestades al mes', values: ['2 h', '20 h', 'Il·limitades'] },
+          { label: 'Modalitat', values: ['Subscripció cloud', 'Subscripció cloud', 'Subscripció cloud', 'Llicència per producció'] },
+          { label: 'Recursos cloud', values: ['Compartits', 'Compartits', 'Dedicats', 'A mida'] },
+          { label: 'Desplegament on-premise', values: [false, false, false, true] },
+          { label: 'Preu de referència', values: ['59 €/mes', '149 €/mes', '299 €/mes', 'A mida'] },
         ],
       },
       {
-        title: 'Funcions avançades',
+        title: 'Capacitat i motors',
         rows: [
-          { label: 'Multi-edicions a tot el material', values: [false, true, true] },
-          { label: 'Col·laboració en equip', values: [false, false, true] },
-          { label: 'Personalització d’IA', values: [false, true, true] },
-          { label: 'Suport', values: ['Email', 'Prioritari', 'Dedicat'] },
-          { label: 'Seguretat', values: [true, true, 'Enterprise'] },
-          { label: 'Gestió d’equips', values: [false, false, true] },
-          { label: 'SSO', values: [false, false, true] },
+          { label: 'Capacitat de referència', values: ['250 GB · 100 h', '250 GB · 100 h', '1 TB · 1.000 h', 'A mida'] },
+          { label: 'Motor d’àudio', values: [true, true, true, true] },
+          { label: 'Vídeo i IA avançada', values: [false, true, true, true] },
+          { label: 'Treball col·laboratiu', values: [false, false, true, true] },
+          { label: 'Seguretat / compliance a mida', values: [false, false, false, true] },
+          { label: 'Continuïtat operativa', values: [false, false, false, true] },
         ],
       },
     ],
@@ -79,25 +80,26 @@ export const shopPageContent = {
     title: 'Preguntes freqüents',
     items: [
       {
-        q: 'Puc canviar de pla més endavant?',
-        a: 'Sí. Pots pujar o baixar de pla en qualsevol moment des del teu compte; el canvi es prorrateja a la següent factura.',
+        q: 'Quina diferència hi ha entre Audio Pro i Full Pro?',
+        a: 'Tots dos són plans cloud d’entrada amb 250 GB o 100 h de referència. Audio Pro (des de 59 €/mes) s’orienta a models centrats en àudio; Full Pro (des de 149 €/mes) desbloqueja tots els motors: àudio, vídeo i IA avançada.',
       },
       {
-        q: 'Hi ha permanència o compromís anual?',
-        a: 'No. Tots els plans són mensuals i pots cancel·lar quan vulguis. Continues tenint accés fins al final del període pagat.',
+        q: 'Per a qui és KAI Team?',
+        a: 'Per a equips petits o mitjans que necessiten més capacitat i fiabilitat. És un pla cloud per equip (299 €/mes de referència) amb 1 TB o 1.000 h i recursos cloud dedicats per millorar rendiment i previsibilitat.',
       },
       {
-        q: 'Els preus inclouen IVA?',
-        a: 'Els preus es mostren sense IVA. L’impost aplicable es calcula al checkout segons el teu país i les teves dades de facturació.',
+        q: 'Com es calcula el preu de KAI 24/7?',
+        a: 'KAI 24/7 no té tarifa fixa: és una cotització a mida per producció. El preu depèn del nombre de càmeres o senyals, dies de rodatge, volum d’ingesta, funcionalitats, integracions, nivell de suport i restriccions de desplegament.',
       },
       {
-        q: 'Què passa si supero les hores de vídeo del meu pla?',
-        a: 'T’avisem abans d’arribar al límit. Pots esperar al següent cicle o pujar de pla a l’instant per continuar treballant.',
+        q: 'Què són les referències de 30.000 € i 9.000 €?',
+        a: 'Són referències comercials orientatives: Premium Reality Shows al voltant de 30.000 € (mitjana ~3 mesos) i Small Reality Shows al voltant de 9.000 € (mitjana ~1,5 mesos). Les grans produccions es pressuposten sota demanda.',
       },
-      {
-        q: 'Necessito targeta per començar?',
-        a: 'Per subscriure’t sí. La subscripció activa la cerca amb IA i l’exportació.',
-      },
+      // Pregunta desactivada temporalment (pendent de decisió de negoci sobre el pricing v1).
+      // {
+      //   q: 'El pricing és definitiu?',
+      //   a: 'És un pricing model v1. La política de preus continuarà refinant-se amb feedback de mercat per mantenir-se flexible i competitiva en diferents perfils de client i geografies.',
+      // },
     ],
   },
 } as const

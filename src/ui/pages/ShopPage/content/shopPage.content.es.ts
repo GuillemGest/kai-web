@@ -17,6 +17,10 @@ export const shopPageContent = {
     popularBadge: 'Más popular',
     pricePeriodMonth: '/mes',
     pricePeriodYear: '/año',
+    priceFromPrefix: 'desde',
+    customPriceLabel: 'A medida',
+    customCtaLabel: 'Solicitar presupuesto',
+    referencesLabel: 'Referencias orientativas',
     selectCtaTemplate: 'Elegir {name}',
     discountBadgeTemplate: 'Ahorra {percent}%',
   },
@@ -31,9 +35,9 @@ export const shopPageContent = {
   yearlyDiscountPercent: 20,
 
   head: {
-    title: 'Elige el plan que va con tu ritmo',
-    lead: 'Suscripción mensual a KAI con todas sus actualizaciones. Empieza pequeño y sube de plan cuando tu volumen de vídeo lo pida.',
-    notice: 'Precios orientativos; el importe definitivo se confirma en el checkout.',
+    title: 'Un pricing por capas, del solo a la gran producción',
+    lead: 'KAI combina suscripciones cloud recurrentes para usuarios y equipos con licencias enterprise por producción. Empieza con un plan cloud y escala a KAI 24/7 cuando tu producción lo pida.',
+    notice: 'Pricing model v1. Precios orientativos que seguiremos refinando con feedback de mercado.',
   },
 
   error: {
@@ -49,38 +53,35 @@ export const shopPageContent = {
   },
 
   reassurance: [
-    { iconName: 'ShieldCheck', text: 'Sin permanencia, cancela cuando quieras' },
-    { iconName: 'CreditCard', text: 'Facturación mensual, sin sorpresas' },
-    { iconName: 'Headset', text: 'Soporte por personas, no bots' },
+    { iconName: 'CreditCard', text: 'Suscripción cloud recurrente para Pro/Solo y Team' },
+    { iconName: 'ShieldCheck', text: 'Seguridad y compliance a medida en KAI 24/7' },
+    { iconName: 'Headset', text: 'Soporte ajustado al alcance de cada producción' },
   ] as const,
 
   comparison: {
-    title: 'Compara todas las características',
-    lead: 'KAI ofrece planes para creadores individuales y equipos, para acelerar la postproducción sin fricciones.',
-    planColumns: ['Individual', 'Pro', 'Studio'],
+    title: 'Compara los niveles de KAI',
+    lead: 'De la suscripción cloud individual a la licencia enterprise por producción. Cada nivel se ajusta a la escala, el volumen de material y las exigencias operativas.',
+    planColumns: ['Audio Pro', 'Full Pro', 'Team', 'KAI 24/7'],
     a11y: { included: 'Incluido', notIncluded: 'No incluido' },
     sections: [
       {
-        title: 'Funciones principales',
+        title: 'Modelo y despliegue',
         rows: [
-          { label: 'Transcripción avanzada e identificación de hablantes', values: [true, true, true] },
-          { label: 'Resúmenes y análisis', values: [true, true, true] },
-          { label: 'Cortes rápidos con IA', values: [false, true, true] },
-          { label: 'Notas en lenguaje natural para guiar edits', values: [false, true, true] },
-          { label: 'Ediciones mensuales incluidas', values: ['20', 'Ilimitadas', 'Ilimitadas'] },
-          { label: 'Horas de vídeo ingestadas al mes', values: ['2 h', '20 h', 'Ilimitadas'] },
+          { label: 'Modalidad', values: ['Suscripción cloud', 'Suscripción cloud', 'Suscripción cloud', 'Licencia por producción'] },
+          { label: 'Recursos cloud', values: ['Compartidos', 'Compartidos', 'Dedicados', 'A medida'] },
+          { label: 'Despliegue on-premise', values: [false, false, false, true] },
+          { label: 'Precio de referencia', values: ['59 €/mes', '149 €/mes', '299 €/mes', 'A medida'] },
         ],
       },
       {
-        title: 'Funciones avanzadas',
+        title: 'Capacidad y motores',
         rows: [
-          { label: 'Multi-edits en todo tu footage', values: [false, true, true] },
-          { label: 'Colaboración en equipo', values: [false, false, true] },
-          { label: 'Personalización de IA', values: [false, true, true] },
-          { label: 'Soporte', values: ['Email', 'Prioritario', 'Dedicado'] },
-          { label: 'Seguridad', values: [true, true, 'Enterprise'] },
-          { label: 'Gestión de equipos', values: [false, false, true] },
-          { label: 'SSO', values: [false, false, true] },
+          { label: 'Capacidad de referencia', values: ['250 GB · 100 h', '250 GB · 100 h', '1 TB · 1.000 h', 'A medida'] },
+          { label: 'Motor de audio', values: [true, true, true, true] },
+          { label: 'Vídeo e IA avanzada', values: [false, true, true, true] },
+          { label: 'Trabajo colaborativo', values: [false, false, true, true] },
+          { label: 'Seguridad / compliance a medida', values: [false, false, false, true] },
+          { label: 'Continuidad operativa', values: [false, false, false, true] },
         ],
       },
     ],
@@ -90,25 +91,26 @@ export const shopPageContent = {
     title: 'Preguntas frecuentes',
     items: [
       {
-        q: '¿Puedo cambiar de plan más adelante?',
-        a: 'Sí. Puedes subir o bajar de plan en cualquier momento desde tu cuenta; el cambio se prorratea en la siguiente factura.',
+        q: '¿Qué diferencia hay entre Audio Pro y Full Pro?',
+        a: 'Ambos son planes cloud de entrada con 250 GB o 100 h de referencia. Audio Pro (desde 59 €/mes) se orienta a modelos centrados en audio; Full Pro (desde 149 €/mes) desbloquea todos los motores: audio, vídeo e IA avanzada.',
       },
       {
-        q: '¿Hay permanencia o compromiso anual?',
-        a: 'No. Todos los planes son mensuales y puedes cancelar cuando quieras. Sigues teniendo acceso hasta el final del periodo pagado.',
+        q: '¿Para quién es KAI Team?',
+        a: 'Para equipos pequeños o medianos que necesitan más capacidad y fiabilidad. Es un plan cloud por equipo (299 €/mes de referencia) con 1 TB o 1.000 h y recursos cloud dedicados para mejorar rendimiento y previsibilidad.',
       },
       {
-        q: '¿Los precios incluyen IVA?',
-        a: 'Los precios se muestran sin IVA. El impuesto aplicable se calcula en el checkout según tu país y datos de facturación.',
+        q: '¿Cómo se calcula el precio de KAI 24/7?',
+        a: 'KAI 24/7 no tiene tarifa fija: es una cotización a medida por producción. El precio depende del número de cámaras o señales, días de rodaje, volumen de ingesta, funcionalidades, integraciones, nivel de soporte y restricciones de despliegue.',
       },
       {
-        q: '¿Qué pasa si supero las horas de vídeo de mi plan?',
-        a: 'Te avisamos antes de llegar al límite. Puedes esperar al siguiente ciclo o subir de plan al instante para seguir trabajando.',
+        q: '¿Qué son las referencias de 30.000 € y 9.000 €?',
+        a: 'Son referencias comerciales orientativas: Premium Reality Shows en torno a 30.000 € (media ~3 meses) y Small Reality Shows en torno a 9.000 € (media ~1,5 meses). Las grandes producciones se presupuestan bajo demanda.',
       },
-      {
-        q: '¿Necesito tarjeta para empezar?',
-        a: 'Para suscribirte sí. La suscripción activa la búsqueda con IA y la exportación.',
-      },
+      // Pregunta desactivada temporalmente (pendiente de decisión de negocio sobre el pricing v1).
+      // {
+      //   q: '¿El pricing es definitivo?',
+      //   a: 'Es un pricing model v1. La política de precios seguirá refinándose con feedback de mercado para mantener la oferta flexible y competitiva en distintos perfiles de cliente y geografías.',
+      // },
     ],
   },
 } as const

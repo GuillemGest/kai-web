@@ -88,7 +88,7 @@ export const resourceTranslations: Record<
   },
   'nle-integration': {
     title: 'Amb quins editors s’integra KAI?',
-    body: 'KAI està orientat a fluxos professionals d’edició no lineal i la seva integració inicial se centra a Adobe Premiere Pro mitjançant un panell natiu. Per a altres entorns NLE, la compatibilitat i el mètode d’exportació es revisen segons el flux de treball.',
+    body: 'KAI està orientat a fluxos professionals d’edició no lineal. La seva integració inicial se centra en Adobe Premiere Pro mitjançant un panell natiu, actualment l’únic entorn NLE compatible de manera nativa. Es tracta, però, del primer pas d’un full de ruta d’integracions en expansió: el nombre d’editors compatibles anirà creixent progressivament, incorporant nous entorns NLE segons les necessitats dels equips i l’evolució de cada flux de treball, amb la compatibilitat i el mètode d’exportació adaptats a cadascun.',
     category: 'Ús del plugin i integració NLE',
   },
   'what-exports-to-nle': {

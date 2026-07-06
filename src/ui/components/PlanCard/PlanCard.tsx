@@ -9,6 +9,10 @@ export interface PlanCardCopy {
   popularBadge: string
   pricePeriodMonth: string
   pricePeriodYear: string
+  priceFromPrefix: string
+  customPriceLabel: string
+  customCtaLabel: string
+  referencesLabel: string
   selectCtaTemplate: string
   discountBadgeTemplate: string
 }
@@ -18,15 +22,27 @@ interface PlanCardProps {
   copy: PlanCardCopy
   billingPeriod: BillingPeriod
   yearlyDiscountPercent: number
+  /** Referencias comerciales orientativas (solo planes a medida, p. ej. KAI 24/7). */
+  references?: readonly string[]
   onSelect?: (plan: Plan) => void
 }
 
-export function PlanCard({ plan, copy, billingPeriod, yearlyDiscountPercent, onSelect }: PlanCardProps) {
+export function PlanCard({
+  plan,
+  copy,
+  billingPeriod,
+  yearlyDiscountPercent,
+  references,
+  onSelect,
+}: PlanCardProps) {
   const currencySymbol = plan.currency === 'EUR' ? '€' : plan.currency
-  const yearlyFull = plan.priceMonth * 12
-  const yearlyDiscounted = Math.round(yearlyFull * (1 - yearlyDiscountPercent / 100))
   const isYearly = billingPeriod === 'yearly'
   const discountLabel = copy.discountBadgeTemplate.replace('{percent}', String(yearlyDiscountPercent))
+
+  // Plan de cotización a medida (sin precio fijo): p. ej. KAI 24/7.
+  const isCustom = plan.custom || plan.priceMonth === null
+  const yearlyFull = (plan.priceMonth ?? 0) * 12
+  const yearlyDiscounted = Math.round(yearlyFull * (1 - yearlyDiscountPercent / 100))
 
   return (
     <article className={`plan-card ${plan.highlighted ? 'plan-card--highlighted' : ''}`}>
@@ -34,27 +50,33 @@ export function PlanCard({ plan, copy, billingPeriod, yearlyDiscountPercent, onS
 
       <h3 className="plan-card__name">{plan.name}</h3>
 
-      <p className="plan-card__price">
-        {isYearly ? (
-          <>
-            <span className="plan-card__amount-original">
-              {yearlyFull} {currencySymbol}
-            </span>
-            <span className="plan-card__amount">
-              {yearlyDiscounted} {currencySymbol}
-            </span>
-            <span className="plan-card__period">{copy.pricePeriodYear}</span>
-            <span className="plan-card__discount">{discountLabel}</span>
-          </>
-        ) : (
-          <>
+      {!isCustom && <p className="plan-card__from">{copy.priceFromPrefix}</p>}
+
+      {isCustom ? (
+        <p className="plan-card__price">
+          <span className="plan-card__amount plan-card__amount--custom">{copy.customPriceLabel}</span>
+        </p>
+      ) : (
+        <p className="plan-card__price">
+          {isYearly ? (
+            <>
+              <span className="plan-card__amount-original">
+                {yearlyFull} {currencySymbol}
+              </span>
+              <span className="plan-card__amount">
+                {yearlyDiscounted} {currencySymbol}
+                <span className="plan-card__period">{copy.pricePeriodYear}</span>
+              </span>
+              <span className="plan-card__discount">{discountLabel}</span>
+            </>
+          ) : (
             <span className="plan-card__amount">
               {plan.priceMonth} {currencySymbol}
+              <span className="plan-card__period">{copy.pricePeriodMonth}</span>
             </span>
-            <span className="plan-card__period">{copy.pricePeriodMonth}</span>
-          </>
-        )}
-      </p>
+          )}
+        </p>
+      )}
 
       <ul className="plan-card__features">
         {plan.features.map((feature) => (
@@ -65,13 +87,26 @@ export function PlanCard({ plan, copy, billingPeriod, yearlyDiscountPercent, onS
         ))}
       </ul>
 
+      {isCustom && references && references.length > 0 && (
+        <div className="plan-card__references">
+          <p className="plan-card__references-label">{copy.referencesLabel}</p>
+          <ul className="plan-card__references-list">
+            {references.map((ref) => (
+              <li key={ref} className="plan-card__references-item">
+                {ref}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <Button
         variant={plan.highlighted ? 'primary' : 'secondary'}
         size="large"
         className="plan-card__cta"
         onClick={() => onSelect?.(plan)}
       >
-        {copy.selectCtaTemplate.replace('{name}', plan.name)}
+        {isCustom ? copy.customCtaLabel : copy.selectCtaTemplate.replace('{name}', plan.name)}
       </Button>
     </article>
   )

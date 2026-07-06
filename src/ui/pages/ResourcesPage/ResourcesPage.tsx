@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useId, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, LifeBuoy, BookOpen, ArrowRight } from 'lucide-react'
+import { Search, LifeBuoy, BookOpen, ArrowRight, Layers, Clock } from 'lucide-react'
 import { resourceUseCases } from '../../../modules/resources/application/factory'
 import type { Resource } from '../../../modules/resources/domain/Resource'
 import { Button } from '../../components/Button/Button'
@@ -9,6 +9,18 @@ import { useLocale } from '../../../i18n/LocaleContext'
 import { RESOURCES_PAGE_CONTENT, GUIDES_BY_LOCALE, RESOURCE_TRANSLATIONS } from './content'
 import { Resource as ResourceEntity } from '../../../modules/resources/domain/Resource'
 import './ResourcesPage.css'
+
+/** Nº de pasos que se muestran como adelanto en la tarjeta de guía. */
+const GUIDE_PREVIEW_STEPS = 3
+
+/**
+ * Estima los minutos de lectura/ejecución de una guía a partir de su nº de
+ * pasos (~40s por paso, mínimo 1). Determinista: no inventa un dato externo,
+ * lo deriva del contenido real para dar contexto de esfuerzo al usuario.
+ */
+function estimateGuideMinutes(stepCount: number): number {
+  return Math.max(1, Math.round((stepCount * 40) / 60))
+}
 
 /** Slug estable para anclar cada categoría desde el índice lateral. */
 function categoryAnchor(category: string): string {
@@ -33,6 +45,7 @@ function matchesQuery(resource: Resource, query: string): boolean {
 export function ResourcesPage() {
   const { locale } = useLocale()
   const { supportEmail, head, status, index, empty, cta, guides } = RESOURCES_PAGE_CONTENT[locale]
+  const meta = guides.meta
   const localeGuides = GUIDES_BY_LOCALE[locale]
   const translations = RESOURCE_TRANSLATIONS[locale]
   const [resources, setResources] = useState<Resource[] | null>(null)
@@ -83,9 +96,16 @@ export function ResourcesPage() {
 
   function scrollToCategory(anchor: string) {
     const target = document.getElementById(anchor)
-    const container = document.querySelector('.resources__content')
+    const container = document.querySelector<HTMLElement>('.resources__content')
     if (!target || !container) return
-    container.scrollTo({ top: target.offsetTop - 16, behavior: 'smooth' })
+    // offsetTop es relativo al offsetParent (no siempre el contenedor con scroll),
+    // así que calculamos la posición con rects: distancia del target al tope del scroll actual.
+    const top =
+      target.getBoundingClientRect().top -
+      container.getBoundingClientRect().top +
+      container.scrollTop -
+      16
+    container.scrollTo({ top, behavior: 'smooth' })
   }
 
   // Re-observa al aparecer/cambiar los grupos (datos async, filtrado, estados).
@@ -224,28 +244,69 @@ export function ResourcesPage() {
             </h2>
           </div>
 
-          <div className="resources__guide-list">
-            {localeGuides.map((guide, index) => (
-              <Link
-                key={guide.slug}
-                to={`/recursos/guias/${guide.slug}`}
-                className="resources__guide-card"
-                data-reveal
-                style={{ '--reveal-i': index } as CSSProperties}
-              >
-                <div className="resources__guide-card-text">
-                  <h3 className="resources__guide-card-title">{guide.title}</h3>
-                  <p className="resources__guide-card-intro">{guide.intro}</p>
-                </div>
-                <ArrowRight
-                  size={20}
-                  strokeWidth={2}
-                  className="resources__guide-card-arrow"
-                  aria-hidden
-                />
-              </Link>
-            ))}
-          </div>
+          <ol className="resources__guide-list">
+            {localeGuides.map((guide, index) => {
+              const stepCount = guide.steps.length
+              const minutes = estimateGuideMinutes(stepCount)
+              const previewSteps = guide.steps.slice(0, GUIDE_PREVIEW_STEPS)
+              const remaining = stepCount - previewSteps.length
+              return (
+                <li key={guide.slug} className="resources__guide-item">
+                  <Link
+                    to={`/recursos/guias/${guide.slug}`}
+                    className="resources__guide-card"
+                    data-reveal
+                    style={{ '--reveal-i': index } as CSSProperties}
+                    aria-label={`${guide.title} — ${meta.stepsTemplate.replace('{count}', String(stepCount))}`}
+                  >
+                    <div className="resources__guide-top">
+                      <span className="resources__guide-ordinal" aria-hidden>
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="resources__guide-meta">
+                        <Layers size={13} strokeWidth={2} aria-hidden />
+                        {meta.stepsTemplate.replace('{count}', String(stepCount))}
+                        <span className="resources__guide-meta-sep" aria-hidden>
+                          ·
+                        </span>
+                        <Clock size={13} strokeWidth={2} aria-hidden />
+                        {meta.minutesTemplate.replace('{count}', String(minutes))}
+                      </span>
+                    </div>
+
+                    <h3 className="resources__guide-card-title">{guide.title}</h3>
+                    <p className="resources__guide-card-intro">{guide.intro}</p>
+
+                    <ol className="resources__guide-steps" aria-hidden>
+                      {previewSteps.map((step, stepIndex) => (
+                        <li key={stepIndex} className="resources__guide-step">
+                          <span className="resources__guide-step-dot">{stepIndex + 1}</span>
+                          <span className="resources__guide-step-text">{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+
+                    <span className="resources__guide-foot">
+                      {remaining > 0 && (
+                        <span className="resources__guide-more">
+                          {meta.moreStepsTemplate.replace('{count}', String(remaining))}
+                        </span>
+                      )}
+                      <span className="resources__guide-open">
+                        {meta.open}
+                        <ArrowRight
+                          size={16}
+                          strokeWidth={2}
+                          className="resources__guide-arrow"
+                          aria-hidden
+                        />
+                      </span>
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ol>
         </section>
       )}
 
