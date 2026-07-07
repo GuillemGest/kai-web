@@ -11,8 +11,9 @@ export interface PlanCardCopy {
   pricePeriodYear: string
   priceFromPrefix: string
   customPriceLabel: string
+  freePriceLabel: string
   customCtaLabel: string
-  referencesLabel: string
+  freeCtaLabel: string
   selectCtaTemplate: string
   discountBadgeTemplate: string
 }
@@ -22,8 +23,6 @@ interface PlanCardProps {
   copy: PlanCardCopy
   billingPeriod: BillingPeriod
   yearlyDiscountPercent: number
-  /** Referencias comerciales orientativas (solo planes a medida, p. ej. KAI 24/7). */
-  references?: readonly string[]
   onSelect?: (plan: Plan) => void
 }
 
@@ -32,15 +31,16 @@ export function PlanCard({
   copy,
   billingPeriod,
   yearlyDiscountPercent,
-  references,
   onSelect,
 }: PlanCardProps) {
   const currencySymbol = plan.currency === 'EUR' ? '€' : plan.currency
   const isYearly = billingPeriod === 'yearly'
   const discountLabel = copy.discountBadgeTemplate.replace('{percent}', String(yearlyDiscountPercent))
 
-  // Plan de cotización a medida (sin precio fijo): p. ej. KAI 24/7.
+  // Plan de cotización a medida (sin precio fijo): p. ej. KAI Enterprise.
   const isCustom = plan.custom || plan.priceMonth === null
+  // Plan gratuito: precio 0 explícito. Se muestra "Gratis" en vez de "0 €/mes".
+  const isFree = !isCustom && plan.priceMonth === 0
   const yearlyFull = (plan.priceMonth ?? 0) * 12
   const yearlyDiscounted = Math.round(yearlyFull * (1 - yearlyDiscountPercent / 100))
 
@@ -50,11 +50,15 @@ export function PlanCard({
 
       <h3 className="plan-card__name">{plan.name}</h3>
 
-      {!isCustom && <p className="plan-card__from">{copy.priceFromPrefix}</p>}
+      {!isCustom && !isFree && <p className="plan-card__from">{copy.priceFromPrefix}</p>}
 
       {isCustom ? (
         <p className="plan-card__price">
           <span className="plan-card__amount plan-card__amount--custom">{copy.customPriceLabel}</span>
+        </p>
+      ) : isFree ? (
+        <p className="plan-card__price">
+          <span className="plan-card__amount plan-card__amount--free">{copy.freePriceLabel}</span>
         </p>
       ) : (
         <p className="plan-card__price">
@@ -87,26 +91,17 @@ export function PlanCard({
         ))}
       </ul>
 
-      {isCustom && references && references.length > 0 && (
-        <div className="plan-card__references">
-          <p className="plan-card__references-label">{copy.referencesLabel}</p>
-          <ul className="plan-card__references-list">
-            {references.map((ref) => (
-              <li key={ref} className="plan-card__references-item">
-                {ref}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <Button
         variant={plan.highlighted ? 'primary' : 'secondary'}
         size="large"
         className="plan-card__cta"
         onClick={() => onSelect?.(plan)}
       >
-        {isCustom ? copy.customCtaLabel : copy.selectCtaTemplate.replace('{name}', plan.name)}
+        {isCustom
+          ? copy.customCtaLabel
+          : isFree
+            ? copy.freeCtaLabel
+            : copy.selectCtaTemplate.replace('{name}', plan.name)}
       </Button>
     </article>
   )

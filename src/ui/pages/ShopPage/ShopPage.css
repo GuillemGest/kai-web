@@ -149,16 +149,16 @@
 .plans-grid {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: var(--space-4);
   align-items: stretch;
   /* El grid de planes rompe el --content-max de la página para dar aire a las
-     cards (4 en fila resultaban estrechas a 1200px). Se ensancha solo aquí,
+     cards (5 en fila resultaban estrechas a 1200px). Se ensancha solo aquí,
      centrado respecto al viewport; el resto de secciones sigue a --content-max.
      Full-bleed acotado: el grid se centra en el viewport (margin-inline: 50%
      - 50vw lo lleva a sangre completa) y luego se limita a --plans-max con
      padding lateral que nunca baja del gutter de la página. */
-  --plans-max: 1320px;
+  --plans-max: 1560px;
   margin-inline: calc(50% - 50vw);
   padding-inline: max(var(--space-4), calc(50vw - var(--plans-max) / 2));
 }
@@ -273,14 +273,22 @@
 /* ==========================================================================
    Responsive
    ========================================================================== */
-/* Tablet / laptop estrecho: 4 tarjetas en 2 columnas.
+/* Laptop / desktop estrecho: 5 tarjetas en 3 columnas (3 + 2).
    Se desactiva el full-bleed de desktop y se vuelve a centrar en --content-max. */
-@media (max-width: 1180px) {
+@media (max-width: 1320px) {
   .plans-grid {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 840px;
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1080px;
     margin-inline: auto;
     padding-inline: 0;
+  }
+}
+
+/* Tablet / laptop estrecho: 2 columnas. */
+@media (max-width: 900px) {
+  .plans-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 720px;
   }
 }
 

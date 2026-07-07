@@ -3,13 +3,11 @@
  */
 export const loginPageContent = {
   brand: {
-    videoSrc: '/demo.mp4',
-    videoAlt: 'Demostració de KAI localitzant moments clau en vídeo',
     quoteLead: 'Troba els ',
     quoteEmphasis: 'moments clau',
     quoteTail: ' sense revisar hores de metratge.',
     quoteMeta:
-      'KAI indexa el teu material, entén cerques en llenguatge natural i exporta les seleccions directament al teu editor.',
+      'KAI indexa el teu material, entén les teves cerques amb llenguatge natural i exporta les teves seleccions directament al teu editor.',
   },
 
   form: {

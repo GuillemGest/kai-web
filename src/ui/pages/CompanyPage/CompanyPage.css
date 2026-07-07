@@ -148,6 +148,7 @@
 }
 .company__partner-note {
   font: var(--type-secondary);
+  font-weight: 400;
   color: var(--fg-muted);
 }
 .company__partner-role {

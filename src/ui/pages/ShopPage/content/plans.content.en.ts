@@ -1,47 +1,53 @@
 export const planTranslations = {
+  free: {
+    name: 'KAI Free',
+    capacity: '2 GB or 1 h reference',
+    features: [
+      'Cloud processing on shared resources',
+      'No audio engine',
+      '2 GB or 1 h reference',
+      'No video uploads',
+      'No export to the editor',
+    ],
+  },
   audioPro: {
-    name: 'KAI Audio Pro',
+    name: 'KAI Audio Analysis',
     capacity: '250 GB or 100 h reference',
     features: [
-      'Cloud processing (shared resources)',
-      'Geared to audio-focused models',
+      'Cloud processing on shared resources',
+      'Built around audio-focused models',
       '250 GB or 100 h reference',
-      'Fast access, no dedicated infrastructure',
+      'Up and running fast, no infrastructure to set up',
     ],
   },
   fullPro: {
-    name: 'KAI Full Pro',
+    name: 'KAI Full',
     capacity: '250 GB or 100 h reference',
     features: [
-      'Cloud processing (shared resources)',
-      'All engines: audio, video and advanced AI',
+      'Cloud processing on shared resources',
+      'Every engine: audio, video and advanced AI',
       '250 GB or 100 h reference',
-      'Full entry point to the product',
+      'The full product, right from the start',
     ],
   },
   team: {
     name: 'KAI Team',
     capacity: '1 TB or 1,000 h reference',
     features: [
-      'Cloud plan with per-team pricing',
+      'Cloud plan priced per team',
       'Dedicated cloud resources',
       '1 TB or 1,000 h reference',
-      'Built for collaborative work',
+      'Made for working together',
     ],
   },
   enterprise: {
-    name: 'KAI 24/7',
+    name: 'KAI Enterprise',
     capacity: 'Per-production licence',
     features: [
-      'Enterprise licence per production',
-      'On-premise deployment available',
-      'Security and compliance tailored to you',
-      'Operational continuity and adjusted support',
-    ],
-    // Indicative commercial references from the official document (not a fixed rate).
-    references: [
-      'Premium Reality Shows: €30,000 (avg ~3 months)',
-      'Small Reality Shows: €9,000 (avg ~1.5 months)',
+      'Enterprise licence, one per production',
+      'On-premise deployment if you need it',
+      'Security and compliance shaped around you',
+      'Steady operation and support tuned to the job',
     ],
   },
 } as const

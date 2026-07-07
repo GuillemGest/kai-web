@@ -7,7 +7,7 @@ export const resourcesPageContent = {
   head: {
     badge: 'Centre de recursos',
     title: 'En què et podem ajudar?',
-    lead: 'Troba respostes ràpides sobre instal·lació, compte, plans, indexació, cerca en llenguatge natural i exportació a l’editor.',
+    lead: 'Respostes ràpides sobre instal·lació, compte, plans, indexació, cerca en llenguatge natural i exportació de clips al teu editor.',
     searchPlaceholder: 'Cerca: instal·lar, indexar, exportar, pla, NLE…',
     searchAriaLabel: 'Cercar al centre de recursos',
   },
@@ -27,14 +27,14 @@ export const resourcesPageContent = {
 
   empty: {
     titleTemplate: 'Sense resultats per «{query}»',
-    body: 'Prova amb una altra paraula o escriu-nos i t’ajudem amb el teu cas concret.',
+    body: 'Prova amb una altra paraula o escriu-nos i t’ajudarem amb el teu cas concret.',
     clearButton: 'Netejar cerca',
     contactButton: 'Escriure a suport',
   },
 
   cta: {
     title: 'Necessites ajuda amb la teva producció?',
-    lead: 'Explica’ns el teu cas i l’equip de KAI t’ajudarà a revisar la millor configuració per al teu flux de treball, el teu volum de material i el teu editor.',
+    lead: 'Explica’ns el teu cas i l’equip de KAI t’ajudarà a trobar la millor configuració per al teu flux de treball, el volum de material que gestiones i l’editor que utilitzes.',
     button: 'Contactar amb suport',
   },
 

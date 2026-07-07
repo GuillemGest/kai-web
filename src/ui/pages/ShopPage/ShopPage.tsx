@@ -26,17 +26,6 @@ function localizePlan(
   })
 }
 
-// Referencias comerciales orientativas del plan a medida (KAI 24/7).
-// Solo algunas entradas de las traducciones definen `references`, por eso se
-// accede de forma segura en lugar de exigirlo a todos los planes.
-function planReferences(
-  planId: string,
-  translations: Record<PlanId, { name: string; capacity: string; features: readonly string[] }>,
-): readonly string[] | undefined {
-  const entry = translations[planId as PlanId] as { references?: readonly string[] } | undefined
-  return entry?.references
-}
-
 const REASSURANCE_ICONS: Record<ShopReassuranceIcon, LucideIcon> = {
   ShieldCheck,
   CreditCard,
@@ -86,7 +75,7 @@ export function ShopPage() {
   }, [])
 
   const handleSelect = (plan: Plan) => {
-    // Los planes a medida (KAI 24/7) no tienen checkout: derivan a contacto
+    // Los planes a medida (KAI Enterprise) no tienen checkout: derivan a contacto
     // para solicitar presupuesto por producción.
     if (plan.custom) {
       navigate(empty.linkHref)
@@ -108,7 +97,7 @@ export function ShopPage() {
 
       {state === 'loading' && (
         <div className="plans-grid" aria-hidden>
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4].map((i) => (
             <div key={i} className="plan-skeleton" />
           ))}
         </div>
@@ -183,7 +172,6 @@ export function ShopPage() {
                   copy={planCard}
                   billingPeriod={billingPeriod}
                   yearlyDiscountPercent={yearlyDiscountPercent}
-                  references={planReferences(plan.id, planTranslations)}
                   onSelect={handleSelect}
                 />
               </li>

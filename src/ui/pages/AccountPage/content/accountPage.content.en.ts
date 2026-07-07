@@ -7,7 +7,7 @@ export const accountPageContent = {
   locale: 'en-GB',
 
   title: 'My account',
-  notLoggedIn: 'You are not signed in.',
+  notLoggedIn: 'You are not signed in yet.',
 
   profile: {
     title: 'Profile',

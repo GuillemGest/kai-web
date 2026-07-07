@@ -24,34 +24,43 @@
   animation: hero-rise 0.7s var(--ease-out-expo) both;
 }
 .hero__title {
-  animation-delay: 0.04s;
+  animation-delay: 0.08s;
 }
 .hero__lead {
-  animation-delay: 0.13s;
+  animation-delay: 0.16s;
 }
 .hero__actions {
-  animation-delay: 0.22s;
+  animation-delay: 0.24s;
 }
 .hero__media {
   animation-name: hero-media-in;
-  animation-delay: 0.18s;
+  animation-delay: 0.14s;
 }
 
 /* ==========================================================================
-   Hero — composición asimétrica: copy a la izquierda, media a la derecha
+   Hero — composición asimétrica: copy a la izquierda, media a la derecha.
+   El demo (16:9) es la prueba del ahorro; pesa más que el texto sin ahogarlo.
    ========================================================================== */
 .hero {
   border-bottom: 1px solid var(--border);
   min-height: calc(100dvh - var(--header-h));
   display: flex;
   align-items: center;
+  /* Glow de marca puntual (DESIGN.md): profundidad detrás del fold, no en cada
+     sección. Muy diluido, hacia el lado del media. */
+  background: radial-gradient(
+    80% 60% at 82% 30%,
+    color-mix(in srgb, var(--accent) 7%, transparent),
+    transparent 70%
+  );
 }
 .hero__inner {
   max-width: var(--content-max);
   margin: 0 auto;
-  padding: clamp(var(--space-7), 8vw, var(--space-9)) var(--space-4);
+  padding: clamp(var(--space-6), 7vw, var(--space-8)) var(--space-4);
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  /* El media (16:9, 1280×720) pesa un poco más que la copy para verse grande. */
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
   align-items: center;
   gap: clamp(var(--space-6), 6vw, var(--space-8));
   width: 100%;
@@ -60,17 +69,18 @@
 .hero__copy {
   min-width: 0;
 }
+
 .hero__title {
   font-size: var(--fs-h1);
-  line-height: 1.05;
+  line-height: 1.04;
   letter-spacing: -0.02em;
   font-weight: 700;
   text-wrap: balance;
-  max-width: 16ch;
+  max-width: 15ch;
 }
 .hero__lead {
   margin-top: var(--space-4);
-  max-width: 48ch;
+  max-width: 46ch;
   color: var(--fg-muted);
   font-family: var(--font);
   font-size: var(--fs-lead);
@@ -83,30 +93,85 @@
   margin-top: var(--space-6);
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-3);
 }
 
 .hero__media {
   margin: 0;
   min-width: 0;
-  align-self: stretch;
-  /* Fondo de marca: si el vídeo falta o falla, el hueco se ve intencional. */
+  align-self: center;
+  /* El vídeo es 1280×720 (16:9); reservar esa proporción llena el panel sin
+     recorte ni bandas y evita el layout shift (CLS) al cargar. */
   position: relative;
-  min-height: 100%;
+  aspect-ratio: 16 / 9;
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   overflow: hidden;
+  /* Fondo de marca: si el vídeo falta o falla, el hueco se ve intencional.
+     Sombra contenida (≤8px, sin borde+sombra ancha: no ghost-card). */
   background: radial-gradient(
       120% 120% at 70% 15%,
       color-mix(in srgb, var(--accent) 18%, var(--bg-elevated)),
       var(--bg-elevated) 60%
     );
+  box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.6);
 }
 .hero__video {
   display: block;
   width: 100%;
   height: 100%;
+  /* cover: panel y vídeo comparten 16:9 (1280×720), llena exacto sin recorte. */
   object-fit: cover;
+}
+
+/* Control play/pausa del demo: esquina inferior izquierda, sobre el vídeo.
+   El vídeo autoreproduce en silencio; el usuario debe poder pausarlo (a11y). */
+.hero__video-toggle {
+  position: absolute;
+  left: var(--space-3);
+  bottom: var(--space-3);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+  backdrop-filter: blur(8px);
+  color: var(--fg);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s var(--ease-out-quart),
+    transform 0.2s var(--ease-out-quart),
+    border-color 0.15s var(--ease-out-quart);
+}
+/* Visible al pasar por encima del media o al enfocar el control por teclado. */
+.hero__media:hover .hero__video-toggle,
+.hero__media:focus-within .hero__video-toggle {
+  opacity: 1;
+  transform: none;
+}
+.hero__video-toggle:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+}
+.hero__video-toggle:active {
+  transform: scale(0.94);
+}
+.hero__video-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  opacity: 1;
+}
+.hero__video-toggle svg {
+  /* El triángulo de play se ve descentrado; nudge óptico a la derecha. */
+  translate: 1px 0;
+}
+.hero__video-toggle[aria-pressed='true'] svg {
+  translate: 0 0;
 }
 /* Si el vídeo no carga, se oculta y queda el fondo de marca del figure. */
 .hero__video[hidden] {
@@ -134,7 +199,7 @@
 }
 .trusted__label_left {
   font: var(--type-ui);
-  font-weight: 700;
+  font-weight: 400;
   color: var(--fg-muted);
   letter-spacing: 0.02em;
   text-align: left;
@@ -532,6 +597,11 @@
    Responsive
    ========================================================================== */
 @media (max-width: 900px) {
+  .hero {
+    /* En apilado, el copy no debe quedar centrado con el media abajo grande:
+       alinear arriba y dar aire vertical. */
+    min-height: auto;
+  }
   .hero__inner {
     grid-template-columns: 1fr;
     gap: var(--space-6);
@@ -557,11 +627,26 @@
   }
 }
 
+/* En punteros gruesos (táctil) no hay hover: el control play/pausa siempre
+   visible para que sea accionable. */
+@media (hover: none) {
+  .hero__video-toggle {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Reduced motion: el vídeo del hero no autoreproduce (gestionado en JS, el poster
-   manda) y la entrada del hero aparece instantánea y visible (sin delays ni fill). */
+   manda) y la entrada del hero aparece instantánea y visible (sin delays ni fill).
+   El control play/pausa se muestra fijo (sin transición de entrada). */
 @media (prefers-reduced-motion: reduce) {
   .hero__copy > *,
   .hero__media {
     animation: none !important;
+  }
+  .hero__video-toggle {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

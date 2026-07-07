@@ -15,7 +15,7 @@ export const resourcesPageContent = {
   head: {
     badge: 'Centro de recursos',
     title: '¿En qué podemos ayudarte?',
-    lead: 'Encuentra respuestas rápidas sobre instalación, cuenta, planes, indexado, búsqueda en lenguaje natural y exportación al editor.',
+    lead: 'Respuestas rápidas sobre instalación, cuenta, planes, indexado, búsqueda en lenguaje natural y exportación de clips a tu editor.',
     searchPlaceholder: 'Busca: instalar, indexar, exportar, plan, NLE…',
     searchAriaLabel: 'Buscar en el centro de recursos',
   },
@@ -37,14 +37,14 @@ export const resourcesPageContent = {
   empty: {
     // `{query}` = término buscado.
     titleTemplate: 'Sin resultados para «{query}»',
-    body: 'Prueba con otra palabra o escríbenos y te ayudamos con tu caso concreto.',
+    body: 'Prueba con otra palabra o escríbenos y te ayudaremos con tu caso concreto.',
     clearButton: 'Limpiar búsqueda',
     contactButton: 'Escribir a soporte',
   },
 
   cta: {
     title: '¿Necesitas ayuda con tu producción?',
-    lead: 'Cuéntanos tu caso y el equipo de KAI te ayudará a revisar la mejor configuración para tu flujo de trabajo, tu volumen de material y tu editor.',
+    lead: 'Cuéntanos tu caso y el equipo de KAI te ayudará a encontrar la mejor configuración para tu flujo de trabajo, el volumen de material que gestionas y el editor que utilizas.',
     button: 'Contactar con soporte',
   },
 

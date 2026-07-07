@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import { useScrollReveal } from '../../hooks/useScrollReveal'
 import { useLocale } from '../../../i18n/LocaleContext'
+import { assetUrl } from '../../utils/assetUrl'
 import { COMPANY_PAGE_CONTENT } from './content'
 import './CompanyPage.css'
 
@@ -49,7 +50,7 @@ export function CompanyPage() {
               style={{ '--reveal-i': index } as CSSProperties}
             >
               <img
-                src={partner.logoSrc}
+                src={assetUrl(partner.logoSrc)}
                 alt={partners.logoAriaLabelTemplate.replace('{name}', partner.name)}
                 className="company__partner-logo"
                 loading="lazy"

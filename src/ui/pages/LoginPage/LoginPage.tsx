@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { authUseCases } from '../../../modules/auth/application/factory'
 import { Button } from '../../components/Button/Button'
@@ -15,15 +15,6 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-
-  useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
-    const motionOk = window.matchMedia('(prefers-reduced-motion: no-preference)').matches
-    if (motionOk) void video.play().catch(() => {})
-    else video.pause()
-  }, [])
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -43,19 +34,6 @@ export function LoginPage() {
     <div className="login">
       {/* Panel izquierdo — marca */}
       <div className="login__brand-panel">
-        <figure className="login__video-wrap">
-          <video
-            ref={videoRef}
-            className="login__video"
-            src={brand.videoSrc}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            aria-label={brand.videoAlt}
-          />
-        </figure>
-
         <div className="login__quote">
           <p className="login__quote-text">
             {brand.quoteLead}

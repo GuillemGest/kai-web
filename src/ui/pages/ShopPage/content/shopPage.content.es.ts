@@ -19,8 +19,9 @@ export const shopPageContent = {
     pricePeriodYear: '/año',
     priceFromPrefix: 'desde',
     customPriceLabel: 'A medida',
+    freePriceLabel: 'Gratis',
     customCtaLabel: 'Solicitar presupuesto',
-    referencesLabel: 'Referencias orientativas',
+    freeCtaLabel: 'Empezar gratis',
     selectCtaTemplate: 'Elegir {name}',
     discountBadgeTemplate: 'Ahorra {percent}%',
   },
@@ -35,9 +36,9 @@ export const shopPageContent = {
   yearlyDiscountPercent: 20,
 
   head: {
-    title: 'Un pricing por capas, del solo a la gran producción',
-    lead: 'KAI combina suscripciones cloud recurrentes para usuarios y equipos con licencias enterprise por producción. Empieza con un plan cloud y escala a KAI 24/7 cuando tu producción lo pida.',
-    notice: 'Pricing model v1. Precios orientativos que seguiremos refinando con feedback de mercado.',
+    title: 'Planes ajustados a cada proyecto',
+    lead: 'KAI junta suscripciones cloud recurrentes para usuarios y equipos con licencias por producción para el trabajo enterprise. Empieza con un plan cloud y sube a KAI Enterprise cuando una producción te lo pida.',
+    notice: 'Pricing model v1. Precios orientativos que seguiremos ajustando según el feedback del mercado.',
   },
 
   error: {
@@ -47,41 +48,43 @@ export const shopPageContent = {
 
   empty: {
     message: 'Aún no hay planes disponibles.',
-    hint: 'Escríbenos y te contamos las opciones que mejor encajan con tu producción.',
+    hint: 'Escríbenos y te indicaremos las opciones que mejor encajan con tu producción.',
     linkLabel: 'Hablar con nosotros',
     linkHref: '/recursos',
   },
 
   reassurance: [
     { iconName: 'CreditCard', text: 'Suscripción cloud recurrente para Pro/Solo y Team' },
-    { iconName: 'ShieldCheck', text: 'Seguridad y compliance a medida en KAI 24/7' },
-    { iconName: 'Headset', text: 'Soporte ajustado al alcance de cada producción' },
+    { iconName: 'ShieldCheck', text: 'Seguridad y compliance a medida en KAI Enterprise' },
+    { iconName: 'Headset', text: 'Soporte ajustado a cada producción' },
   ] as const,
 
   comparison: {
     title: 'Compara los niveles de KAI',
-    lead: 'De la suscripción cloud individual a la licencia enterprise por producción. Cada nivel se ajusta a la escala, el volumen de material y las exigencias operativas.',
-    planColumns: ['Audio Pro', 'Full Pro', 'Team', 'KAI 24/7'],
+    lead: 'De una suscripción cloud individual a una licencia enterprise por producción. Cada nivel se ajusta a la escala, el volumen de material y las exigencias del trabajo.',
+    planColumns: ['KAI Free', 'KAI Audio Analysis', 'KAI Full', 'KAI Team', 'KAI Enterprise'],
     a11y: { included: 'Incluido', notIncluded: 'No incluido' },
     sections: [
       {
         title: 'Modelo y despliegue',
         rows: [
-          { label: 'Modalidad', values: ['Suscripción cloud', 'Suscripción cloud', 'Suscripción cloud', 'Licencia por producción'] },
-          { label: 'Recursos cloud', values: ['Compartidos', 'Compartidos', 'Dedicados', 'A medida'] },
-          { label: 'Despliegue on-premise', values: [false, false, false, true] },
-          { label: 'Precio de referencia', values: ['59 €/mes', '149 €/mes', '299 €/mes', 'A medida'] },
+          { label: 'Modalidad', values: ['Cloud gratuito', 'Suscripción cloud', 'Suscripción cloud', 'Suscripción cloud', 'Licencia por producción'] },
+          { label: 'Recursos cloud', values: ['Compartidos', 'Compartidos', 'Compartidos', 'Dedicados', 'A medida'] },
+          { label: 'Despliegue on-premise', values: [false, false, false, false, true] },
+          { label: 'Precio de referencia', values: ['Gratis', '59 €/mes', '149 €/mes', '299 €/mes', 'A medida'] },
         ],
       },
       {
         title: 'Capacidad y motores',
         rows: [
-          { label: 'Capacidad de referencia', values: ['250 GB · 100 h', '250 GB · 100 h', '1 TB · 1.000 h', 'A medida'] },
-          { label: 'Motor de audio', values: [true, true, true, true] },
-          { label: 'Vídeo e IA avanzada', values: [false, true, true, true] },
-          { label: 'Trabajo colaborativo', values: [false, false, true, true] },
-          { label: 'Seguridad / compliance a medida', values: [false, false, false, true] },
-          { label: 'Continuidad operativa', values: [false, false, false, true] },
+          { label: 'Capacidad de referencia', values: ['2 GB · 1 h', '250 GB · 100 h', '250 GB · 100 h', '1 TB · 1.000 h', 'A medida'] },
+          { label: 'Subida de vídeo', values: [false, true, true, true, true] },
+          { label: 'Motor de audio', values: [false, true, true, true, true] },
+          { label: 'Vídeo e IA avanzada', values: [false, false, true, true, true] },
+          { label: 'Exportación al editor', values: [false, true, true, true, true] },
+          { label: 'Trabajo colaborativo', values: [false, false, false, true, true] },
+          { label: 'Seguridad / compliance a medida', values: [false, false, false, false, true] },
+          { label: 'Continuidad operativa', values: [false, false, false, false, true] },
         ],
       },
     ],
@@ -91,20 +94,16 @@ export const shopPageContent = {
     title: 'Preguntas frecuentes',
     items: [
       {
-        q: '¿Qué diferencia hay entre Audio Pro y Full Pro?',
-        a: 'Ambos son planes cloud de entrada con 250 GB o 100 h de referencia. Audio Pro (desde 59 €/mes) se orienta a modelos centrados en audio; Full Pro (desde 149 €/mes) desbloquea todos los motores: audio, vídeo e IA avanzada.',
+        q: '¿Qué diferencia hay entre KAI Audio Analysis y KAI Full?',
+        a: 'Ambos son planes cloud de entrada con 250 GB o 100 h de referencia. KAI Audio Analysis (desde 59 €/mes) se orienta a modelos centrados en audio, mientras que KAI Full (desde 149 €/mes) habilita todos los motores: audio, vídeo e IA avanzada.',
       },
       {
         q: '¿Para quién es KAI Team?',
-        a: 'Para equipos pequeños o medianos que necesitan más capacidad y fiabilidad. Es un plan cloud por equipo (299 €/mes de referencia) con 1 TB o 1.000 h y recursos cloud dedicados para mejorar rendimiento y previsibilidad.',
+        a: 'Para equipos pequeños y medianos que necesitan más capacidad y fiabilidad. Es un plan cloud por equipo (299 €/mes de referencia) con 1 TB o 1.000 h y recursos cloud dedicados, para mantener un rendimiento estable y previsible.',
       },
       {
-        q: '¿Cómo se calcula el precio de KAI 24/7?',
-        a: 'KAI 24/7 no tiene tarifa fija: es una cotización a medida por producción. El precio depende del número de cámaras o señales, días de rodaje, volumen de ingesta, funcionalidades, integraciones, nivel de soporte y restricciones de despliegue.',
-      },
-      {
-        q: '¿Qué son las referencias de 30.000 € y 9.000 €?',
-        a: 'Son referencias comerciales orientativas: Premium Reality Shows en torno a 30.000 € (media ~3 meses) y Small Reality Shows en torno a 9.000 € (media ~1,5 meses). Las grandes producciones se presupuestan bajo demanda.',
+        q: '¿Cómo se calcula el precio de KAI Enterprise?',
+        a: 'KAI Enterprise no tiene tarifa fija: se cotiza por producción. El precio depende del número de cámaras o señales, los días de rodaje, el volumen de ingesta, las funcionalidades e integraciones necesarias, el nivel de soporte y las restricciones de despliegue.',
       },
       // Pregunta desactivada temporalmente (pendiente de decisión de negocio sobre el pricing v1).
       // {

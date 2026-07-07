@@ -7,7 +7,7 @@ export const resourcesPageContent = {
   head: {
     badge: 'Resource centre',
     title: 'How can we help you?',
-    lead: 'Find quick answers about installation, account, plans, indexing, natural-language search and export to the editor.',
+    lead: 'Quick answers on installation, account, plans, indexing, natural-language search and exporting clips to your editor.',
     searchPlaceholder: 'Search: install, index, export, plan, NLE…',
     searchAriaLabel: 'Search the resource centre',
   },
@@ -27,14 +27,14 @@ export const resourcesPageContent = {
 
   empty: {
     titleTemplate: 'No results for «{query}»',
-    body: 'Try another word or write to us and we will help with your specific case.',
+    body: 'Try another word, or write to us and we will help with your specific case.',
     clearButton: 'Clear search',
     contactButton: 'Write to support',
   },
 
   cta: {
     title: 'Need help with your production?',
-    lead: 'Tell us about your case and the KAI team will help you review the best setup for your workflow, your material volume and your editor.',
+    lead: 'Tell us about your case and the KAI team will help you find the best setup for your workflow, the volume of material you handle and the editor you use.',
     button: 'Contact support',
   },
 

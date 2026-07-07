@@ -17,7 +17,7 @@ export const guidePageContent = {
 
   foot: {
     title: 'Stuck halfway?',
-    text: 'Tell us where you are and the KAI team will help with your specific workflow.',
+    text: 'Tell us where you got to and the KAI team will help with your specific workflow.',
     moreResourcesLabel: 'See more resources',
     contactLabel: 'Contact support',
   },

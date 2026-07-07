@@ -4,7 +4,7 @@ import { Menu, X } from 'lucide-react'
 import { Button } from '../Button/Button'
 import { LanguageSelector } from '../LanguageSelector/LanguageSelector'
 import { useLocale } from '../../../i18n/LocaleContext'
-import { authUseCases } from '../../../modules/auth/application/factory'
+import { assetUrl } from '../../utils/assetUrl'
 import { HEADER_CONTENT } from './content'
 import './Header.css'
 
@@ -20,9 +20,8 @@ export function Header() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
 
-  async function handleTrialClick() {
-    const user = await authUseCases.getCurrentUser.execute()
-    navigate(user ? '/planes' : '/login')
+  function handleTrialClick() {
+    navigate('/login')
   }
 
   useEffect(() => {
@@ -54,7 +53,7 @@ export function Header() {
     <header className={`header ${scrolled ? 'header--scrolled' : ''}`}>
       <div className="header__inner">
         <Link to="/" className="header__logo" aria-label={content.logoAriaLabel}>
-          <img src="/logo.svg" alt="KAI" className="header__logo-img" />
+          <img src={assetUrl('/logo.svg')} alt="KAI" className="header__logo-img" />
         </Link>
 
         <nav className="header__nav" aria-label={content.navAriaLabel}>
@@ -102,7 +101,7 @@ export function Header() {
         <div className="header__drawer-inner">
           <div className="header__drawer-top">
             <span className="header__logo">
-              <img src="/logo.svg" alt="KAI" className="header__logo-img" />
+              <img src={assetUrl('/logo.svg')} alt="KAI" className="header__logo-img" />
             </span>
             <button
               type="button"

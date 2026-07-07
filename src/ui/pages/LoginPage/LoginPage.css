@@ -14,7 +14,10 @@
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
+  /* Llena todo el espacio entre header y footer para que la franja
+     turquesa del panel de marca llegue hasta el fondo (footer negro). */
   min-height: calc(100dvh - var(--header-h));
+  height: 100%;
 }
 
 /* --------------------------------------------------------------------------
@@ -25,7 +28,11 @@
   flex-direction: column;
   justify-content: space-between;
   padding: clamp(var(--space-6), 6vw, var(--space-8));
-  background: var(--bg-elevated);
+  background: linear-gradient(
+    to right,
+    #231938 0 60%,
+    #2fa7ae 60% 100%
+  );
   border-right: 1px solid var(--border);
   animation: login-fade-up 0.5s var(--ease-out-expo) both;
 }
@@ -34,6 +41,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  
 }
 
 .login__logo {
@@ -47,30 +55,6 @@
   font-size: 1rem;
   letter-spacing: -0.01em;
   color: var(--fg);
-}
-
-/* --------------------------------------------------------------------------
-   Vídeo de demostración — entre logo y quote
-   -------------------------------------------------------------------------- */
-.login__video-wrap {
-  margin: var(--space-5) 0 0;
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: radial-gradient(
-    120% 120% at 60% 20%,
-    color-mix(in srgb, var(--accent) 14%, var(--bg-elevated)),
-    var(--bg-elevated) 65%
-  );
-  aspect-ratio: 16 / 9;
-  flex-shrink: 0;
-}
-
-.login__video {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .login__quote {
@@ -154,6 +138,7 @@
 
 .login__label {
   font: var(--type-ui);
+  font-weight: 400;
   color: var(--fg-muted);
 }
 
@@ -220,6 +205,7 @@
   margin-top: var(--space-4);
   color: var(--fg-disabled);
   font: var(--type-secondary);
+  font-weight: 400;
 }
 
 /* --------------------------------------------------------------------------
@@ -235,10 +221,6 @@
     border-bottom: 1px solid var(--border);
     padding: var(--space-5) var(--space-4);
     gap: var(--space-5);
-  }
-
-  .login__video-wrap {
-    max-height: 180px;
   }
 
   .login__quote {

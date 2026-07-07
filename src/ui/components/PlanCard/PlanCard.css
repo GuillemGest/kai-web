@@ -117,31 +117,8 @@
   font-size: var(--fs-h3);
   letter-spacing: -0.01em;
 }
-
-.plan-card__references {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-}
-.plan-card__references-label {
-  font: var(--type-secondary);
-  color: var(--fg-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.plan-card__references-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-.plan-card__references-item {
-  font: var(--type-secondary);
-  color: var(--fg);
+.plan-card__amount--free {
+  color: var(--accent);
 }
 
 .plan-card__features {

@@ -3,18 +3,16 @@
  */
 export const loginPageContent = {
   brand: {
-    videoSrc: '/demo.mp4',
-    videoAlt: 'Demo of KAI locating key moments in video',
     quoteLead: 'Find the ',
     quoteEmphasis: 'key moments',
     quoteTail: ' without reviewing hours of footage.',
     quoteMeta:
-      'KAI indexes your material, understands natural-language queries and exports selections straight to your editor.',
+      'KAI indexes your material, understands your queries in natural language and exports your selections straight into your editor.',
   },
 
   form: {
     heading: 'Sign in',
-    subheading: 'Access your account to continue.',
+    subheading: 'Sign in to your account to continue.',
     emailLabel: 'Email',
     emailPlaceholder: 'you@email.com',
     passwordLabel: 'Password',

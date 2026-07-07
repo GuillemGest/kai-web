@@ -10,14 +10,12 @@
  */
 export const loginPageContent = {
   brand: {
-    videoSrc: '/demo.mp4',
-    videoAlt: 'Demostración de KAI localizando momentos clave en vídeo',
     // El asterisco delimita el fragmento resaltado dentro del quote (em).
     quoteLead: 'Encuentra los ',
     quoteEmphasis: 'momentos clave',
     quoteTail: ' sin revisar horas de metraje.',
     quoteMeta:
-      'KAI indexa tu material, entiende búsquedas en lenguaje natural y exporta las selecciones directamente a tu editor.',
+      'KAI indexa tu material, entiende tus búsquedas con lenguaje natural y exporta tus selecciones directamente a tu editor.',
   },
 
   form: {

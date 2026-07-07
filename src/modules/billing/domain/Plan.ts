@@ -3,7 +3,7 @@ export interface PlanPrimitive {
   name: string
   /**
    * Precio mensual de referencia en la moneda indicada.
-   * `null` cuando el plan es de cotización a medida (p. ej. KAI 24/7),
+   * `null` cuando el plan es de cotización a medida (p. ej. KAI Enterprise),
    * donde no hay tarifa fija cerrada sino presupuesto por producción.
    */
   priceMonth: number | null

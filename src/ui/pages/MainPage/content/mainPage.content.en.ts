@@ -7,9 +7,11 @@ export const mainPageContent = {
     titleLead: 'Find the ',
     titleAccent: 'key moments',
     titleTail: ' without reviewing hours of footage',
-    lead: 'KAI indexes your raw footage, understands natural-language queries and exports your selections straight to your editor. Less manual logging. More time to decide, edit and tell better stories.',
+    lead: 'KAI indexes your raw footage, understands your queries in natural language and exports your selections straight into your editor. You spend less time logging by hand and gain more time to decide, cut and tell a better story.',
     primaryCta: 'See plans',
     videoAlt: 'KAI locating key moments inside a video timeline',
+    videoPause: 'Pause the demo',
+    videoPlay: 'Play the demo',
   },
 
   trustedBy: {
@@ -30,7 +32,7 @@ export const mainPageContent = {
 
   demo: {
     title: 'Describe what you are looking for. KAI finds the clips.',
-    lead: 'You do not have to go through hours of material or tag every take by hand. Type a query the way you would ask your team and KAI searches the indexed content to return the relevant fragments, ready to pick, order and edit.',
+    lead: 'You do not need to scrub through hours of material or tag every take by hand. Describe what you need in natural language and KAI searches the indexed content to return the relevant fragments, ready to pick, order and edit.',
     tag: 'Example search',
     query: 'the interview where they talk about the shoot',
     result: 'KAI finds 4 moments in 3.2 s',
@@ -47,15 +49,15 @@ export const mainPageContent = {
     items: [
       {
         title: 'Find the exact moment',
-        body: 'Search for scenes, phrases, topics or situations in natural language. KAI analyses the indexed footage and locates the relevant clips so you do not have to start from scratch.',
+        body: 'Search scenes, phrases, topics or situations in natural language. KAI analyses the indexed footage and locates the clips that fit, so you never start from a blank page.',
       },
       {
         title: 'Build your playlist',
-        body: 'Review results, drag clips, reorder them and fine-tune your selection in a space designed to move quickly from search to narrative structure.',
+        body: 'Review the results, drag clips, reorder them and refine your selection in a space designed to take you quickly from a search to a first narrative structure.',
       },
       {
         title: 'Send it to your editor',
-        body: 'Export your selections into the workflow where you already edit. KAI works as a plugin and connects the search stage with editing in your NLE.',
+        body: 'Export your selections into the tool you already edit in. KAI runs as a plugin, so the search you carried out here integrates directly into your NLE.',
       },
     ],
   },
@@ -65,38 +67,38 @@ export const mainPageContent = {
     items: [
       {
         q: 'What does KAI do exactly?',
-        a: 'KAI helps production and post-production teams work with large volumes of audiovisual material. First it indexes the raw content, then it lets you search moments in natural language and finally it exports the selections to the editor to continue with the edit.',
+        a: 'KAI helps production and post-production teams manage large volumes of footage. It first indexes the raw content, then lets you search for moments in natural language and finally exports your selections to the editor so you can continue the cut.',
       },
       {
         q: 'How is it different from an asset manager or a traditional editor?',
-        a: 'An asset manager helps you store and locate files. An editor lets you cut. KAI sits between the two: it understands the content of the material, lets you find specific narrative moments and turns the results into useful selections for editing. It does not replace your creative judgement; it removes the heavy lifting before you make decisions.',
+        a: 'An asset manager stores and locates files. An editor lets you cut. KAI sits between the two: it understands the actual content of the material, helps you find specific narrative moments and turns the results into selections ready to edit. Your creative judgement remains intact; KAI simply removes the more laborious work before you decide.',
       },
       {
         q: 'How do clips reach the editor?',
-        a: 'KAI is designed to integrate into professional editing workflows via plugin and selection export. The idea is that you search, review and organise clips in KAI and take that work directly to your NLE to continue editing without rebuilding the selection by hand. Integration details depend on the editing environment and are set during configuration.',
+        a: 'KAI integrates into professional editing workflows through a plugin and selection export. You search, review and organise clips in KAI, then take that work directly into your NLE to continue editing without rebuilding the selection by hand. The exact form of the handoff depends on your editing environment and is defined during setup.',
       },
       {
         q: 'What kind of material can KAI analyse?',
-        a: 'KAI is designed to work with raw audiovisual material, especially in high-volume productions such as unscripted formats, reality, interviews, documentaries, factual entertainment or multi-camera content. Specific formats, codecs and volumes are reviewed per production to ensure a stable and compatible workflow.',
+        a: 'KAI is designed for raw audiovisual material and is particularly valuable on high-volume productions: unscripted formats, reality, interviews, documentaries, factual entertainment or multi-camera shoots. Specific formats, codecs and volumes are reviewed production by production to ensure a stable workflow.',
       },
       {
         q: 'Can it handle productions with many hours of content?',
-        a: 'Yes, KAI was born precisely to solve the problem of working with large amounts of footage. It is designed to reduce the time spent reviewing, searching and organising material. Actual operational capacity depends on volume, infrastructure and the needs of each production, so the best usage model is agreed before starting.',
+        a: 'Yes. It is precisely the problem KAI was created to solve. Its purpose is to reduce the time spent reviewing, searching and organising footage. The effective capacity in each case depends on your volume, your infrastructure and the needs of the production, so we agree on the most suitable usage model before you start.',
       },
       {
         q: 'What about privacy and security of the material?',
-        a: 'A production’s audiovisual material is sensitive, and KAI is designed for professional environments where access control, traceability and security matter. Processing, storage and access conditions are defined per project and deployment type. For productions with specific requirements, the KAI team reviews the case before activating the service.',
+        a: 'A production’s footage is sensitive, and KAI is designed for professional environments where access control, traceability and security are priorities. We define how material is processed, stored and accessed per project and per deployment. If your production has specific requirements, the team reviews the case before activating the service.',
       },
       {
         q: 'Who is behind KAI and how can I get started?',
-        a: 'KAI is born at Gestmusic, part of Banijay, within the Amplify initiative and as a European innovation project backed by EIT Culture & Creativity, supported by the European Institute of Innovation and Technology. It also includes research from Fraunhofer IPK and an AI core developed by Ugiat Technologies. To get started, you can review the plans or contact the team to define a licence or subscription tailored to your production.',
+        a: 'KAI originates at Gestmusic (part of Banijay) and the Amplify initiative, and it is a European innovation project backed by EIT Culture & Creativity and the European Institute of Innovation and Technology. It also draws on research from Fraunhofer IPK and an AI core developed by Ugiat Technologies. To get started, review the plans or contact the team to define a licence or subscription that fits your production.',
       },
     ],
   },
 
   cta: {
     title: 'Turn your footage into a selection ready to edit',
-    lead: 'Subscribe and start searching your videos in natural language. KAI handles the heavy lifting so your team can focus on selecting, ordering and telling better stories.',
+    lead: 'Subscribe and start searching your videos in natural language. KAI takes on the most laborious work so your team can focus on what matters: selecting, ordering and telling a better story.',
     primaryCta: 'See plans',
   },
 } as const

@@ -1,5 +1,5 @@
 export const footerContent = {
-  tagline: 'El asistente de IA para encontrar y exportar los momentos clave de tus vídeos.',
+  tagline: 'El asistente de IA que encuentra los momentos clave de tus vídeos y los manda a tu editor.',
   legalTemplate: '© {year} KAI · Gestmusic — Amplify',
   columns: [
     {

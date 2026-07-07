@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import { Sparkles, Wand2, Search, Play } from 'lucide-react'
+import { Sparkles, Wand2, Search, Play, Pause } from 'lucide-react'
 import { Button } from '../../components/Button/Button'
 import { useScrollReveal } from '../../hooks/useScrollReveal'
 import { useLocale } from '../../../i18n/LocaleContext'
+import { assetUrl } from '../../utils/assetUrl'
 import { MAIN_PAGE_CONTENT } from './content'
 import './MainPage.css'
 
@@ -26,6 +27,7 @@ export function MainPage() {
   const { hero, trustedBy, compat, demo, features, faq, cta } = MAIN_PAGE_CONTENT[locale]
   const videoRef = useRef<HTMLVideoElement>(null)
   const [videoFailed, setVideoFailed] = useState(false)
+  const [isPlaying, setIsPlaying] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -37,6 +39,13 @@ export function MainPage() {
       video.pause()
     }
   }, [])
+
+  const toggleVideo = () => {
+    const video = videoRef.current
+    if (!video) return
+    if (video.paused) void video.play().catch(() => {})
+    else video.pause()
+  }
 
   useScrollReveal()
 
@@ -64,16 +73,34 @@ export function MainPage() {
             <video
               ref={videoRef}
               className="hero__video"
-              src="/demo.mp4"
-              poster="/images.jpg"
+              src={assetUrl('/demo.mp4')}
+              width={1280}
+              height={720}
               muted
               loop
               playsInline
               preload="metadata"
               hidden={videoFailed}
               onError={() => setVideoFailed(true)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
               aria-label={hero.videoAlt}
             />
+            {!videoFailed && (
+              <button
+                type="button"
+                className="hero__video-toggle"
+                onClick={toggleVideo}
+                aria-pressed={isPlaying}
+                aria-label={isPlaying ? hero.videoPause : hero.videoPlay}
+              >
+                {isPlaying ? (
+                  <Pause size={16} strokeWidth={2} aria-hidden />
+                ) : (
+                  <Play size={16} strokeWidth={2} aria-hidden />
+                )}
+              </button>
+            )}
           </figure>
         </div>
       </section>
@@ -147,7 +174,7 @@ export function MainPage() {
             <span className="compat__label">{compat.integrationLabel}</span>
             <span className="compat__item compat__item--pr">
               <img
-                src="/premiereLOGO.png"
+                src={assetUrl('/premiereLOGO.png')}
                 alt={compat.integrationApp}
                 className="compat__logo"
               />

@@ -177,6 +177,7 @@ h3 {
   gap: var(--space-4);
   padding: var(--space-4) 0;
   font: var(--type-action);
+  font-weight: 400;
   cursor: pointer;
   list-style: none;
   color: var(--fg);
