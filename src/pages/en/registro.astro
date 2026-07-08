@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { RegisterApp } from '../../ui/islands/RegisterApp'
+---
+
+<BaseLayout locale="en" title="Create account · KAI">
+  <RegisterApp client:only="react" locale="en" />
+</BaseLayout>

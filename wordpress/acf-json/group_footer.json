@@ -1,0 +1,34 @@
+{
+    "key": "group_kai_footer",
+    "title": "KAI — Footer",
+    "fields": [
+        {
+            "key": "field_kai_footer_tagline",
+            "label": "Tagline",
+            "name": "footer_tagline",
+            "type": "textarea",
+            "rows": 2
+        },
+        {
+            "key": "field_kai_footer_legal_template",
+            "label": "Texto legal (usa {year} para el año actual)",
+            "name": "footer_legal_template",
+            "type": "text"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_footer"
+            }
+        ]
+    ],
+    "menu_order": 2,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "Las columnas de enlaces (labels/URLs) no son editables desde WP en fase 1: viven en código."
+}

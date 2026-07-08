@@ -1,0 +1,66 @@
+---
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import type { Locale } from '../../i18n/locales'
+import './CompanyPage.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const { hero, mission, partners } = await repo.getCompanyPage(locale)
+---
+
+<div class="company">
+  <section class="company__hero">
+    <p class="company__kicker">{hero.kicker}</p>
+    <h1 class="company__title">
+      {hero.titleLead}
+      <span class="accent-text">{hero.titleAccent}</span>
+      {hero.titleTail}
+    </h1>
+    <p class="company__lead">{hero.lead}</p>
+  </section>
+
+  <section class="company__mission" aria-labelledby="mission-title">
+    <h2 id="mission-title" class="company__mission-title" data-reveal>
+      {mission.title}
+    </h2>
+    <div class="company__mission-body" data-reveal>
+      {mission.paragraphs.map((paragraph) => (
+        <p>{paragraph}</p>
+      ))}
+    </div>
+  </section>
+
+  <section class="company__partners" aria-labelledby="partners-title">
+    <div class="company__partners-head" data-reveal>
+      <h2 id="partners-title" class="company__partners-title">
+        {partners.title}
+      </h2>
+      <p class="company__partners-intro">{partners.intro}</p>
+    </div>
+
+    <ul class="company__partner-list">
+      {partners.items.map((partner, index) => (
+        <li class="company__partner" data-reveal style={{ '--reveal-i': index }}>
+          <img
+            src={partner.logoSrc}
+            alt={partners.logoAriaLabelTemplate.replace('{name}', partner.name)}
+            class="company__partner-logo"
+            loading="lazy"
+            decoding="async"
+          />
+          <div class="company__partner-text">
+            <h3 class="company__partner-name">
+              {partner.name}
+              <span class="company__partner-note">{partner.note}</span>
+            </h3>
+            <p class="company__partner-role">{partner.role}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  </section>
+</div>

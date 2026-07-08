@@ -1,0 +1,8 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro'
+import { LoginApp } from '../../ui/islands/LoginApp'
+---
+
+<BaseLayout locale="en" title="Log in · KAI">
+  <LoginApp client:only="react" locale="en" />
+</BaseLayout>

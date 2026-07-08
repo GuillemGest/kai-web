@@ -30,5 +30,7 @@ export const loginPageContent = {
     prototypeHint: 'Prototipo: cualquier credencial inicia sesión.',
     errorInvalidCredentials: 'Credenciales incorrectas. Inténtalo de nuevo.',
     redirectAfterLogin: '/cuenta',
+    registerPrompt: '¿No tienes cuenta?',
+    registerLink: 'Crear cuenta',
   },
 } as const

@@ -1,0 +1,169 @@
+---
+import { Sparkles, Wand2, Search, Play } from 'lucide-react'
+import { Button } from '../components/Button/Button'
+import { DemoVideo } from '../islands/DemoVideo'
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import type { Locale } from '../../i18n/locales'
+import './MainPage.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const { hero, compat, demo, features, faq, cta } = await repo.getMainPage(locale)
+
+// Iconos asociados por posicion a las features del documento de contenido.
+const FEATURE_ICONS = [Sparkles, Wand2, Search]
+const plansHref = getLocaleUrl('/planes', locale)
+---
+
+<section class="hero">
+  <div class="hero__inner">
+    <div class="hero__copy">
+      <h1 class="hero__title">
+        {hero.titleLead}
+        <span class="accent-text">{hero.titleAccent}</span>
+        {hero.titleTail}
+      </h1>
+      <p class="hero__lead">{hero.lead}</p>
+      <div class="hero__actions">
+        <a href={plansHref}>
+          <Button variant="primary" size="large">{hero.primaryCta}</Button>
+        </a>
+      </div>
+    </div>
+
+    <DemoVideo
+      client:visible
+      videoSrc="/demo.mp4"
+      videoAlt={hero.videoAlt}
+      videoPause={hero.videoPause}
+      videoPlay={hero.videoPlay}
+    />
+  </div>
+</section>
+
+<!--
+  <section class="trusted" aria-label={trustedBy.title}>
+    <div class="trusted__row" data-reveal>
+      <span class="trusted__label_left">{trustedBy.title}</span>
+      <ul class="trusted__logos">
+        {trustedBy.logos.map((logo) => (
+          <li class="trusted__item">
+            <img class="trusted__logo" src={logo.src} alt={logo.alt} loading="lazy" draggable="false" />
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+-->
+
+<section class="demo">
+  <div class="demo__inner">
+    <div class="demo__copy" data-reveal>
+      <h2 class="demo__title">{demo.title}</h2>
+      <p class="demo__lead">{demo.lead}</p>
+    </div>
+
+    <div class="demo__stage" data-reveal>
+      <span class="demo__tag">{demo.tag}</span>
+      <div class="demo__prompt">
+        <Search size={18} strokeWidth={2} className="demo__prompt-icon" aria-hidden />
+        <span class="demo__prompt-text">{demo.query}</span>
+      </div>
+
+      <p class="demo__hint">{demo.result}</p>
+
+      <ul class="demo__clips">
+        {demo.clips.map((clip) => (
+          <li class="demo__clip">
+            <span class="demo__clip-thumb" aria-hidden>
+              <Play size={16} strokeWidth={2} />
+            </span>
+            <span class="demo__clip-meta">
+              <span class="demo__clip-time">{clip.time}</span>
+              <span class="demo__clip-label">{clip.label}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="compat" aria-label={compat.osLabel}>
+  <div class="compat__row" data-reveal>
+    <div class="compat__group">
+      <span class="compat__label">{compat.osLabel}</span>
+      {compat.os.map((os, i) => (
+        <span class="compat__item" role="img" aria-label={os}>
+          {i === 0 ? (
+            <svg class="compat__icon--apple" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16.5 12.6c0-2 1.6-3 1.7-3-.9-1.4-2.4-1.6-2.9-1.6-1.2-.1-2.4.7-3 .7s-1.6-.7-2.6-.7c-1.3 0-2.6.8-3.2 2-1.4 2.4-.4 6 1 8 .7 1 1.4 2 2.4 2s1.3-.6 2.5-.6 1.5.6 2.6.6 1.6-1 2.3-1.9c.7-1 .9-2 .9-2.1 0-.1-1.9-.7-2-2.9zM14.7 6.6c.5-.7.9-1.6.8-2.6-.8 0-1.8.6-2.3 1.2-.5.6-1 1.5-.8 2.4.9.1 1.7-.4 2.3-1z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M3 5.5 10.5 4.4V11.5H3V5.5zM11.5 4.3 21 3v8.5h-9.5V4.3zM3 12.5h7.5v7.1L3 18.5v-6zM11.5 12.5H21V21l-9.5-1.3v-7.2z" />
+            </svg>
+          )}
+        </span>
+      ))}
+    </div>
+
+    <span class="compat__sep" aria-hidden></span>
+
+    <div class="compat__group">
+      <span class="compat__label">{compat.integrationLabel}</span>
+      <span class="compat__item compat__item--pr">
+        <img src="/premiereLOGO.png" alt={compat.integrationApp} class="compat__logo" />
+      </span>
+    </div>
+  </div>
+</section>
+
+<section class="page features-section">
+  <h2 class="features__heading" data-reveal>{features.heading}</h2>
+  <div class="features">
+    {features.items.map(({ title, body }, index) => {
+      const Icon = FEATURE_ICONS[index] ?? Sparkles
+      return (
+        <article
+          class={index === 0 ? 'feature feature--lead' : 'feature'}
+          data-reveal
+          style={{ '--reveal-i': index }}
+        >
+          <Icon size={index === 0 ? 28 : 24} strokeWidth={2} className="feature__icon" aria-hidden />
+          <h3 class="feature__title">{title}</h3>
+          <p class="feature__body">{body}</p>
+        </article>
+      )
+    })}
+  </div>
+</section>
+
+<section class="page main__faq">
+  <h2 class="faq-section__title" data-reveal>{faq.title}</h2>
+  <div class="faq-section__list" data-reveal>
+    {faq.items.map(({ q, a }) => (
+      <details name="faq" class="faq">
+        <summary class="faq__q">{q}</summary>
+        <p class="faq__a">{a}</p>
+      </details>
+    ))}
+  </div>
+</section>
+
+<section class="cta">
+  <div class="cta__inner" data-reveal>
+    <h2 class="cta__title">{cta.title}</h2>
+    <p class="cta__lead">{cta.lead}</p>
+    <div class="cta__actions">
+      <a href={plansHref}>
+        <Button variant="primary" size="large">{cta.primaryCta}</Button>
+      </a>
+    </div>
+  </div>
+</section>

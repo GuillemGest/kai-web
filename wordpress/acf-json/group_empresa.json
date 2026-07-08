@@ -1,0 +1,85 @@
+{
+    "key": "group_kai_empresa",
+    "title": "KAI — Empresa (chrome de la página)",
+    "fields": [
+        {
+            "key": "field_kai_company_hero_kicker",
+            "label": "Hero — Kicker",
+            "name": "company_hero_kicker",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_company_hero_title_lead",
+            "label": "Hero — Título (inicio)",
+            "name": "company_hero_title_lead",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_company_hero_title_accent",
+            "label": "Hero — Título (acento)",
+            "name": "company_hero_title_accent",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_company_hero_lead",
+            "label": "Hero — Lead",
+            "name": "company_hero_lead",
+            "type": "textarea",
+            "rows": 4
+        },
+        {
+            "key": "field_kai_company_mission_title",
+            "label": "Misión — Título",
+            "name": "company_mission_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_company_mission_paragraphs",
+            "label": "Misión — Párrafos (uno por línea)",
+            "name": "company_mission_paragraphs",
+            "type": "textarea",
+            "rows": 6
+        },
+        {
+            "key": "field_kai_company_partners_title",
+            "label": "Partners — Título",
+            "name": "company_partners_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_company_partners_intro",
+            "label": "Partners — Intro",
+            "name": "company_partners_intro",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_company_cta_title",
+            "label": "CTA — Título",
+            "name": "company_cta_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_company_cta_lead",
+            "label": "CTA — Lead",
+            "name": "company_cta_lead",
+            "type": "textarea",
+            "rows": 3
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_empresa"
+            }
+        ]
+    ],
+    "menu_order": 5,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "Los partners.items (5 logos con nombre/nota/rol) quedan fijos en código en fase 1."
+}

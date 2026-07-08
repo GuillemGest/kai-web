@@ -1,0 +1,36 @@
+{
+    "key": "group_kai_guide",
+    "title": "KAI — Guía (intro y pasos)",
+    "fields": [
+        {
+            "key": "field_kai_guide_intro",
+            "label": "Introducción",
+            "name": "intro",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_guide_steps",
+            "label": "Pasos (uno por línea)",
+            "name": "steps",
+            "type": "textarea",
+            "rows": 8,
+            "instructions": "Un paso por línea. Astro hace split('\\n') al leer este campo — no dejes líneas en blanco entre pasos."
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "guide"
+            }
+        ]
+    ],
+    "menu_order": 12,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "El slug del post es el slug de la URL (/recursos/guias/:slug)."
+}

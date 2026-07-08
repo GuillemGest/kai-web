@@ -1,5 +1,5 @@
 import { AuthSession } from '../domain/AuthSession'
-import { IAuthRepository } from '../domain/IAuthRepository'
+import type { IAuthRepository } from '../domain/IAuthRepository'
 import { User, type UserPrimitive } from '../domain/User'
 
 const MOCK_USER: UserPrimitive = {

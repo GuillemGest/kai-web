@@ -1,0 +1,150 @@
+{
+    "key": "group_kai_home",
+    "title": "KAI — Home (hero, demo, compat, features, faq, cta)",
+    "fields": [
+        {
+            "key": "field_kai_hero_title_lead",
+            "label": "Hero — Título (inicio)",
+            "name": "hero_title_lead",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_hero_title_accent",
+            "label": "Hero — Título (acento)",
+            "name": "hero_title_accent",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_hero_title_tail",
+            "label": "Hero — Título (final)",
+            "name": "hero_title_tail",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_hero_lead",
+            "label": "Hero — Lead",
+            "name": "hero_lead",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_hero_primary_cta",
+            "label": "Hero — CTA principal",
+            "name": "hero_primary_cta",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_hero_video_alt",
+            "label": "Hero — Alt del vídeo",
+            "name": "hero_video_alt",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_hero_video_pause",
+            "label": "Hero — Etiqueta pausar vídeo",
+            "name": "hero_video_pause",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_hero_video_play",
+            "label": "Hero — Etiqueta reproducir vídeo",
+            "name": "hero_video_play",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_compat_os_label",
+            "label": "Compat — Etiqueta SO",
+            "name": "compat_os_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_compat_integration_label",
+            "label": "Compat — Etiqueta integración",
+            "name": "compat_integration_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_compat_integration_app",
+            "label": "Compat — Nombre app integrada",
+            "name": "compat_integration_app",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_demo_title",
+            "label": "Demo — Título",
+            "name": "demo_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_demo_lead",
+            "label": "Demo — Lead",
+            "name": "demo_lead",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_demo_tag",
+            "label": "Demo — Tag",
+            "name": "demo_tag",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_demo_query",
+            "label": "Demo — Consulta de ejemplo",
+            "name": "demo_query",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_demo_result",
+            "label": "Demo — Texto de resultado",
+            "name": "demo_result",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_features_heading",
+            "label": "Features — Título de sección",
+            "name": "features_heading",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_faq_title",
+            "label": "FAQ — Título de sección",
+            "name": "faq_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_cta_title",
+            "label": "CTA final — Título",
+            "name": "cta_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_cta_lead",
+            "label": "CTA final — Lead",
+            "name": "cta_lead",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_cta_primary",
+            "label": "CTA final — Botón",
+            "name": "cta_primary",
+            "type": "text"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_home"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "Visible solo en la página con slug \"home\" (ver location rule por page en kai-content-types.php)."
+}

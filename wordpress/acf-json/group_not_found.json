@@ -1,0 +1,38 @@
+{
+    "key": "group_kai_not_found",
+    "title": "KAI — 404",
+    "fields": [
+        {
+            "key": "field_kai_notfound_title",
+            "label": "Título",
+            "name": "notfound_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_notfound_lead",
+            "label": "Lead",
+            "name": "notfound_lead",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_notfound_cta_label",
+            "label": "Botón — Volver al inicio",
+            "name": "notfound_cta_label",
+            "type": "text"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_not-found"
+            }
+        ]
+    ],
+    "menu_order": 6,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true
+}

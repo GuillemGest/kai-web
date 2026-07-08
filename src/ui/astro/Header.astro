@@ -1,0 +1,155 @@
+---
+import { Menu, X } from 'lucide-react'
+import { Button } from '../components/Button/Button'
+import { LanguageSelector } from '../islands/LanguageSelector'
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl, stripLocalePrefix } from '../../i18n/getLocaleUrl'
+import { LOCALES, type Locale } from '../../i18n/locales'
+import './Header.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const content = await repo.getHeader(locale)
+const currentPath = stripLocalePrefix(Astro.url.pathname, LOCALES)
+const loginHref = getLocaleUrl('/login', locale)
+
+function isNavActive(to: string, end: boolean): boolean {
+  return end ? currentPath === to : currentPath.startsWith(to) && to !== '/'
+}
+---
+
+<header class="header" id="site-header">
+  <div class="header__inner">
+    <a href={getLocaleUrl('/', locale)} class="header__logo" aria-label={content.logoAriaLabel}>
+      <img src="/logo.svg" alt="KAI" class="header__logo-img" />
+    </a>
+
+    <nav class="header__nav" aria-label={content.navAriaLabel}>
+      {content.nav.map((item) => {
+        const href = getLocaleUrl(item.to, locale)
+        const isActive = isNavActive(item.to, item.end)
+        return (
+          <a href={href} class={`header__link ${isActive ? 'header__link--active' : ''}`}>
+            {item.label}
+          </a>
+        )
+      })}
+    </nav>
+
+    <div class="header__actions">
+      <LanguageSelector
+        client:load
+        locale={locale}
+        currentPath={currentPath}
+        triggerAriaLabel={content.languageSelector.triggerAriaLabel}
+        menuAriaLabel={content.languageSelector.menuAriaLabel}
+      />
+      <a href={loginHref}>
+        <Button variant="ghost">{content.actions.loginLabel}</Button>
+      </a>
+      <a href={loginHref}>
+        <Button variant="primary">{content.actions.ctaLabel}</Button>
+      </a>
+    </div>
+
+    <button
+      type="button"
+      class="header__menu-btn"
+      aria-label={content.openMenuLabel}
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      id="header-menu-open"
+    >
+      <Menu size={24} strokeWidth={2} aria-hidden />
+    </button>
+  </div>
+
+  <dialog class="header__drawer" aria-label={content.drawerAriaLabel} id="header-drawer">
+    <div class="header__drawer-inner">
+      <div class="header__drawer-top">
+        <span class="header__logo">
+          <img src="/logo.svg" alt="KAI" class="header__logo-img" />
+        </span>
+        <button type="button" class="header__menu-btn" aria-label={content.closeMenuLabel} id="header-menu-close">
+          <X size={24} strokeWidth={2} aria-hidden />
+        </button>
+      </div>
+
+      <nav class="header__drawer-nav" aria-label={content.navMobileAriaLabel}>
+        {content.nav.map((item, i) => {
+          const href = getLocaleUrl(item.to, locale)
+          const isActive = isNavActive(item.to, item.end)
+          return (
+            <a
+              href={href}
+              class={`header__link ${isActive ? 'header__link--active' : ''}`}
+              style={{ '--drawer-i': i }}
+            >
+              {item.label}
+            </a>
+          )
+        })}
+      </nav>
+
+      <div class="header__drawer-actions">
+        <LanguageSelector
+          client:load
+          variant="block"
+          locale={locale}
+          currentPath={currentPath}
+          triggerAriaLabel={content.languageSelector.triggerAriaLabel}
+          menuAriaLabel={content.languageSelector.menuAriaLabel}
+        />
+        <a href={loginHref}>
+          <Button variant="ghost" size="large" className="header__drawer-cta">
+            {content.actions.loginLabel}
+          </Button>
+        </a>
+        <a href={loginHref}>
+          <Button variant="primary" size="large" className="header__drawer-cta">
+            {content.actions.ctaLabel}
+          </Button>
+        </a>
+      </div>
+    </div>
+  </dialog>
+</header>
+
+<script>
+  // Replica el comportamiento de Header.tsx: clase header--scrolled on scroll,
+  // y apertura/cierre del <dialog> nativo del menu movil.
+  const header = document.getElementById('site-header') as HTMLElement | null
+  const dialog = document.getElementById('header-drawer') as HTMLDialogElement | null
+  const openBtn = document.getElementById('header-menu-open')
+  const closeBtn = document.getElementById('header-menu-close')
+
+  let frame = 0
+  const onScroll = () => {
+    cancelAnimationFrame(frame)
+    frame = requestAnimationFrame(() => {
+      header?.classList.toggle('header--scrolled', window.scrollY > 4)
+    })
+  }
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+
+  function openMenu() {
+    if (dialog && !dialog.open) dialog.showModal()
+    openBtn?.setAttribute('aria-expanded', 'true')
+  }
+  function closeMenu() {
+    if (dialog?.open) dialog.close()
+    openBtn?.setAttribute('aria-expanded', 'false')
+  }
+
+  openBtn?.addEventListener('click', openMenu)
+  closeBtn?.addEventListener('click', closeMenu)
+  dialog?.addEventListener('close', () => openBtn?.setAttribute('aria-expanded', 'false'))
+  dialog?.addEventListener('click', (e) => {
+    if (e.target === dialog) closeMenu()
+  })
+</script>

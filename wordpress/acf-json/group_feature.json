@@ -1,0 +1,28 @@
+{
+    "key": "group_kai_feature",
+    "title": "KAI — Feature (cuerpo)",
+    "fields": [
+        {
+            "key": "field_kai_feature_body",
+            "label": "Cuerpo",
+            "name": "body",
+            "type": "textarea",
+            "rows": 3,
+            "instructions": "El título del post es el título de la feature. \"Orden\" 0 = feature destacada (lead)."
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "feature"
+            }
+        ]
+    ],
+    "menu_order": 11,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true
+}

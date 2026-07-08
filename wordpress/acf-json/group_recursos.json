@@ -1,0 +1,71 @@
+{
+    "key": "group_kai_recursos",
+    "title": "KAI — Recursos (chrome de la página)",
+    "fields": [
+        {
+            "key": "field_kai_resources_head_badge",
+            "label": "Cabecera — Badge",
+            "name": "resources_head_badge",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_resources_head_title",
+            "label": "Cabecera — Título",
+            "name": "resources_head_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_resources_head_lead",
+            "label": "Cabecera — Lead",
+            "name": "resources_head_lead",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_resources_head_search_placeholder",
+            "label": "Buscador — Placeholder",
+            "name": "resources_head_search_placeholder",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_resources_cta_title",
+            "label": "CTA — Título",
+            "name": "resources_cta_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_resources_cta_lead",
+            "label": "CTA — Lead",
+            "name": "resources_cta_lead",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_resources_cta_button",
+            "label": "CTA — Botón",
+            "name": "resources_cta_button",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_resources_guides_title",
+            "label": "Guías — Título de sección",
+            "name": "resources_guides_title",
+            "type": "text"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_recursos"
+            }
+        ]
+    ],
+    "menu_order": 4,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "Los recursos individuales y las guías viven en sus propios repositorios/CPT, no aquí."
+}

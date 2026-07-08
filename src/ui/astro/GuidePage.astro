@@ -1,0 +1,89 @@
+---
+import { ArrowLeft, LifeBuoy } from 'lucide-react'
+import { Button } from '../components/Button/Button'
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import type { Locale } from '../../i18n/locales'
+import './GuidePage.css'
+
+interface Props {
+  locale: Locale
+  slug: string
+}
+
+const { locale, slug } = Astro.props
+const repo = getContentRepository()
+const {
+  supportEmail,
+  resourcesHref,
+  breadcrumbAriaLabel,
+  backLabel,
+  kickerPrefix,
+  stepWordSingular,
+  stepWordPlural,
+  stepLabelTemplate,
+  stepTotalTemplate,
+  foot,
+} = await repo.getGuidePage(locale)
+const guide = await repo.getGuide(locale, slug)
+const resourcesUrl = getLocaleUrl(resourcesHref, locale)
+
+if (!guide) {
+  return Astro.redirect(resourcesUrl)
+}
+
+const stepCount = guide.steps.length
+const stepWord = stepCount === 1 ? stepWordSingular : stepWordPlural
+---
+
+<article class="guide">
+  <nav class="guide__nav" aria-label={breadcrumbAriaLabel}>
+    <a href={resourcesUrl} class="guide__back">
+      <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+      {backLabel}
+    </a>
+  </nav>
+
+  <header class="guide__head">
+    <p class="guide__kicker">
+      {kickerPrefix}{stepCount} {stepWord}
+    </p>
+    <h1 class="guide__title">{guide.title}</h1>
+    <p class="guide__intro">{guide.intro}</p>
+  </header>
+
+  <ol class="guide__steps">
+    {guide.steps.map((step, index) => (
+      <li class="guide__step" data-reveal style={{ '--reveal-i': index }}>
+        <span class="guide__step-num" aria-hidden>{index + 1}</span>
+        <div class="guide__step-body">
+          <span class="guide__step-label">
+            {stepLabelTemplate.replace('{n}', String(index + 1))}
+            <span class="guide__step-total">
+              {stepTotalTemplate.replace('{total}', String(stepCount))}
+            </span>
+          </span>
+          <p class="guide__step-text">{step}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+
+  <aside class="guide__foot" data-reveal>
+    <div class="guide__foot-copy">
+      <LifeBuoy size={20} strokeWidth={2} className="guide__foot-icon" aria-hidden />
+      <div>
+        <h2 class="guide__foot-title">{foot.title}</h2>
+        <p class="guide__foot-text">{foot.text}</p>
+      </div>
+    </div>
+    <div class="guide__foot-actions">
+      <a href={resourcesUrl}>
+        <Button variant="ghost">{foot.moreResourcesLabel}</Button>
+      </a>
+      <a href={`mailto:${supportEmail}`}>
+        <Button variant="secondary">{foot.contactLabel}</Button>
+      </a>
+    </div>
+  </aside>
+</article>

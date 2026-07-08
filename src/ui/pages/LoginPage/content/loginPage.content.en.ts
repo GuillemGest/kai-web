@@ -22,5 +22,7 @@ export const loginPageContent = {
     prototypeHint: 'Prototype: any credentials will sign you in.',
     errorInvalidCredentials: 'Wrong credentials. Please try again.',
     redirectAfterLogin: '/cuenta',
+    registerPrompt: "Don't have an account?",
+    registerLink: 'Create account',
   },
 } as const

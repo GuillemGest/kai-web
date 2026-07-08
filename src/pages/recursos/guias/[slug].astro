@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import GuidePage from '../../../ui/astro/GuidePage.astro'
+import { getContentRepository } from '../../../modules/content/application/getContentRepository'
+
+export async function getStaticPaths() {
+  const repo = getContentRepository()
+  const guides = await repo.getGuides('es')
+  return guides.map((guide) => ({ params: { slug: guide.slug } }))
+}
+
+const { slug } = Astro.params
+---
+
+<BaseLayout locale="es" title="Guía · KAI">
+  <GuidePage locale="es" slug={slug as string} />
+</BaseLayout>

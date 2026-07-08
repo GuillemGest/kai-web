@@ -1,0 +1,41 @@
+---
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import type { Locale } from '../../i18n/locales'
+import './Footer.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const { tagline, legalTemplate, columns } = await repo.getFooter(locale)
+const legal = legalTemplate.replace('{year}', String(new Date().getFullYear()))
+---
+
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <span class="footer__logo">KAI</span>
+      <p class="footer__tagline">{tagline}</p>
+    </div>
+
+    <div class="footer__cols">
+      {columns.map((col) => (
+        <div class="footer__col">
+          <h3 class="footer__col-title">{col.title}</h3>
+          {col.links.map((link) => (
+            <a href={getLocaleUrl(link.to, locale)} class="footer__link">
+              {link.label}
+            </a>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="footer__bottom">
+    <span>{legal}</span>
+  </div>
+</footer>

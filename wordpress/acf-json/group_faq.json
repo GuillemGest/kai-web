@@ -1,0 +1,28 @@
+{
+    "key": "group_kai_faq",
+    "title": "KAI — FAQ (respuesta)",
+    "fields": [
+        {
+            "key": "field_kai_faq_answer",
+            "label": "Respuesta",
+            "name": "answer",
+            "type": "textarea",
+            "rows": 4,
+            "instructions": "El título del post es la pregunta. Usa \"Orden\" (page-attributes) para fijar la posición en la lista."
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "faq"
+            }
+        ]
+    ],
+    "menu_order": 10,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true
+}

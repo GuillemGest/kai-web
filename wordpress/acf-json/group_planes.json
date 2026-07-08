@@ -1,0 +1,83 @@
+{
+    "key": "group_kai_planes",
+    "title": "KAI — Planes (chrome de la página)",
+    "fields": [
+        {
+            "key": "field_kai_plans_head_title",
+            "label": "Cabecera — Título",
+            "name": "plans_head_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_head_lead",
+            "label": "Cabecera — Lead",
+            "name": "plans_head_lead",
+            "type": "textarea",
+            "rows": 3
+        },
+        {
+            "key": "field_kai_plans_head_notice",
+            "label": "Cabecera — Aviso",
+            "name": "plans_head_notice",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_error_message",
+            "label": "Error — Mensaje",
+            "name": "plans_error_message",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_error_retry",
+            "label": "Error — Botón reintentar",
+            "name": "plans_error_retry",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_billing_toggle_label",
+            "label": "Toggle facturación — Etiqueta",
+            "name": "plans_billing_toggle_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_billing_monthly",
+            "label": "Toggle facturación — Mensual",
+            "name": "plans_billing_monthly",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_billing_yearly",
+            "label": "Toggle facturación — Anual",
+            "name": "plans_billing_yearly",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_comparison_title",
+            "label": "Comparativa — Título",
+            "name": "plans_comparison_title",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plans_comparison_lead",
+            "label": "Comparativa — Lead",
+            "name": "plans_comparison_lead",
+            "type": "textarea",
+            "rows": 2
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_planes"
+            }
+        ]
+    ],
+    "menu_order": 3,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "Los datos de cada plan (nombre, precio, features) viven en el CPT \"plan\", no aquí."
+}

@@ -1,0 +1,24 @@
+---
+import { Button } from '../components/Button/Button'
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import type { Locale } from '../../i18n/locales'
+import './NotFoundPage.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const { code, title, lead, ctaLabel, ctaHref } = await repo.getNotFoundPage(locale)
+---
+
+<div class="notfound">
+  <p class="notfound__code">{code}</p>
+  <h1 class="notfound__title">{title}</h1>
+  <p class="page__lead">{lead}</p>
+  <a href={getLocaleUrl(ctaHref, locale)} class="notfound__cta">
+    <Button variant="primary" size="large">{ctaLabel}</Button>
+  </a>
+</div>

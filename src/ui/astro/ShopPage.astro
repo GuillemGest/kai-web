@@ -1,0 +1,27 @@
+---
+import { ShopPlans } from '../islands/ShopPlans'
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import type { Locale } from '../../i18n/locales'
+import './ShopPage.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const shopContent = await repo.getShopPage(locale)
+const planTranslations = await repo.getPlans(locale)
+const { head } = shopContent
+const loginHref = getLocaleUrl('/login', locale)
+---
+
+<div class="shop">
+  <header class="shop__head">
+    <h1 class="shop__title">{head.title}</h1>
+    <p class="shop__lead">{head.lead}</p>
+  </header>
+
+  <ShopPlans client:load content={shopContent} planTranslations={planTranslations} loginHref={loginHref} />
+</div>

@@ -1,0 +1,57 @@
+{
+    "key": "group_kai_header",
+    "title": "KAI — Header (nav y acciones)",
+    "fields": [
+        {
+            "key": "field_kai_nav_product_label",
+            "label": "Nav — Producto",
+            "name": "nav_product_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_nav_plans_label",
+            "label": "Nav — Planes",
+            "name": "nav_plans_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_nav_resources_label",
+            "label": "Nav — Recursos",
+            "name": "nav_resources_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_nav_company_label",
+            "label": "Nav — Quiénes somos",
+            "name": "nav_company_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_action_login_label",
+            "label": "Acción — Iniciar sesión",
+            "name": "action_login_label",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_action_cta_label",
+            "label": "Acción — CTA prueba gratis",
+            "name": "action_cta_label",
+            "type": "text"
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "page",
+                "operator": "==",
+                "value": "kai_page_header"
+            }
+        ]
+    ],
+    "menu_order": 1,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "Las URLs de navegación (to) no son editables desde WP: viven en código."
+}

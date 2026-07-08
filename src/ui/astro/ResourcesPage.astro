@@ -1,0 +1,133 @@
+---
+import { LifeBuoy, BookOpen, ArrowRight, Layers, Clock } from 'lucide-react'
+import { Button } from '../components/Button/Button'
+import { ResourcesSearch } from '../islands/ResourcesSearch'
+import { getContentRepository } from '../../modules/content/application/getContentRepository'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import type { Locale } from '../../i18n/locales'
+import './ResourcesPage.css'
+
+interface Props {
+  locale: Locale
+}
+
+const { locale } = Astro.props
+const repo = getContentRepository()
+const resourcesPageContent = await repo.getResourcesPage(locale)
+const { categoryOrder, resources } = await repo.getResources(locale)
+const guides = await repo.getGuides(locale)
+const { supportEmail, head, guides: guidesCopy, cta } = resourcesPageContent
+const meta = guidesCopy.meta
+
+/** Nº de pasos que se muestran como adelanto en la tarjeta de guia. */
+const GUIDE_PREVIEW_STEPS = 3
+
+/**
+ * Estima los minutos de lectura/ejecucion de una guia a partir de su nº de
+ * pasos (~40s por paso, minimo 1).
+ */
+function estimateGuideMinutes(stepCount: number): number {
+  return Math.max(1, Math.round((stepCount * 40) / 60))
+}
+---
+
+<div class="resources">
+  <header class="resources__head">
+    <div class="resources__head-copy">
+      <span class="resources__badge">
+        <LifeBuoy size={16} strokeWidth={2} aria-hidden />
+        {head.badge}
+      </span>
+      <h1 class="resources__title">{head.title}</h1>
+      <p class="resources__lead">{head.lead}</p>
+
+      <ResourcesSearch
+        client:visible
+        content={resourcesPageContent}
+        resources={resources}
+        categoryOrder={categoryOrder}
+      />
+    </div>
+  </header>
+
+  {guides.length > 0 && (
+    <section class="resources__guides" aria-labelledby="guides-title">
+      <div class="resources__guides-head" data-reveal>
+        <span class="resources__badge">
+          <BookOpen size={16} strokeWidth={2} aria-hidden />
+          {guidesCopy.badge}
+        </span>
+        <h2 class="resources__guides-title" id="guides-title">
+          {guidesCopy.title}
+        </h2>
+      </div>
+
+      <ol class="resources__guide-list">
+        {guides.map((guide, index) => {
+          const stepCount = guide.steps.length
+          const minutes = estimateGuideMinutes(stepCount)
+          const previewSteps = guide.steps.slice(0, GUIDE_PREVIEW_STEPS)
+          const remaining = stepCount - previewSteps.length
+          return (
+            <li class="resources__guide-item">
+              <a
+                href={getLocaleUrl(`/recursos/guias/${guide.slug}`, locale)}
+                class="resources__guide-card"
+                data-reveal
+                style={{ '--reveal-i': index }}
+                aria-label={`${guide.title} — ${meta.stepsTemplate.replace('{count}', String(stepCount))}`}
+              >
+                <div class="resources__guide-top">
+                  <span class="resources__guide-ordinal" aria-hidden>
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <span class="resources__guide-meta">
+                    <Layers size={13} strokeWidth={2} aria-hidden />
+                    {meta.stepsTemplate.replace('{count}', String(stepCount))}
+                    <span class="resources__guide-meta-sep" aria-hidden>·</span>
+                    <Clock size={13} strokeWidth={2} aria-hidden />
+                    {meta.minutesTemplate.replace('{count}', String(minutes))}
+                  </span>
+                </div>
+
+                <h3 class="resources__guide-card-title">{guide.title}</h3>
+                <p class="resources__guide-card-intro">{guide.intro}</p>
+
+                <ol class="resources__guide-steps" aria-hidden>
+                  {previewSteps.map((step, stepIndex) => (
+                    <li class="resources__guide-step">
+                      <span class="resources__guide-step-dot">{stepIndex + 1}</span>
+                      <span class="resources__guide-step-text">{step}</span>
+                    </li>
+                  ))}
+                </ol>
+
+                <span class="resources__guide-foot">
+                  {remaining > 0 && (
+                    <span class="resources__guide-more">
+                      {meta.moreStepsTemplate.replace('{count}', String(remaining))}
+                    </span>
+                  )}
+                  <span class="resources__guide-open">
+                    {meta.open}
+                    <ArrowRight size={16} strokeWidth={2} className="resources__guide-arrow" aria-hidden />
+                  </span>
+                </span>
+              </a>
+            </li>
+          )
+        })}
+      </ol>
+    </section>
+  )}
+
+  <section class="resources__cta">
+    <div class="resources__cta-inner" data-reveal>
+      <h2 class="resources__cta-title">{cta.title}</h2>
+      <p class="resources__cta-lead">{cta.lead}</p>
+      <a href={`mailto:${supportEmail}`}>
+        <Button variant="primary" size="large">{cta.button}</Button>
+      </a>
+    </div>
+  </section>
+</div>

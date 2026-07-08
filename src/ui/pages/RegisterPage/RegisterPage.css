@@ -1,21 +1,19 @@
 /* ==========================================================================
-   LoginPage — split: panel izquierdo de marca + panel derecho de formulario.
-   Ocupa el espacio restante bajo el header (flex: 1 en PublicLayout__main).
+   RegisterPage — split: panel izquierdo de marca + panel derecho de formulario.
+   Mismo lenguaje visual que LoginPage; formulario más largo con grid 2 cols.
    ========================================================================== */
 
-@keyframes login-fade-up {
+@keyframes register-fade-up {
   from {
     opacity: 0;
     transform: translateY(10px);
   }
 }
 
-.login {
+.register {
   flex: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  /* Llena todo el espacio entre header y footer para que la franja
-     turquesa del panel de marca llegue hasta el fondo (footer negro). */
+  grid-template-columns: 1fr 1.2fr;
   min-height: calc(100dvh - var(--header-h));
   height: 100%;
 }
@@ -23,90 +21,65 @@
 /* --------------------------------------------------------------------------
    Panel izquierdo — marca, fondo elevado oscuro, quote del producto
    -------------------------------------------------------------------------- */
-.login__brand-panel {
+.register__brand-panel {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   padding: clamp(var(--space-6), 6vw, var(--space-8));
-  background: linear-gradient(
-    to right,
-    #231938 0 60%,
-    #2fa7ae 60% 100%
-  );
+  background: linear-gradient(to right, #231938 0 60%, #2fa7ae 60% 100%);
   border-right: 1px solid var(--border);
-  animation: login-fade-up 0.5s var(--ease-out-expo) both;
+  animation: register-fade-up 0.5s var(--ease-out-expo) both;
 }
 
-.login__brand {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  
-}
-
-.login__logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-
-.login__brand-name {
-  font-weight: 700;
-  font-size: 1rem;
-  letter-spacing: -0.01em;
-  color: var(--fg);
-}
-
-.login__quote {
-  flex: 1;
+.register__quote {
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding-bottom: var(--space-3);
-  padding-top: var(--space-5);
 }
 
-.login__quote-text {
+.register__quote-text {
   font-size: var(--fs-h3);
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: var(--fg);
   text-wrap: balance;
-  max-width: 22ch;
+  max-width: 24ch;
 }
 
-.login__quote-text em {
+.register__quote-text em {
   color: var(--accent);
   font-style: normal;
 }
 
-.login__quote-meta {
+.register__quote-meta {
   margin-top: var(--space-4);
   font: var(--type-body);
   color: var(--fg-muted);
-  max-width: 38ch;
+  max-width: 40ch;
   text-wrap: pretty;
 }
 
 /* --------------------------------------------------------------------------
-   Panel derecho — formulario sobre --bg (más claro que --bg-elevated)
+   Panel derecho — formulario, con scroll propio si excede el viewport
    -------------------------------------------------------------------------- */
-.login__form-panel {
+.register__form-panel {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: clamp(var(--space-6), 6vw, var(--space-8));
+  align-items: center;
+  overflow-y: auto;
+  padding: clamp(var(--space-6), 5vw, var(--space-8)) clamp(var(--space-5), 4vw, var(--space-7));
   background: var(--bg);
-  animation: login-fade-up 0.55s var(--ease-out-expo) 0.05s both;
+  animation: register-fade-up 0.55s var(--ease-out-expo) 0.05s both;
 }
 
-.login__form {
+.register__form {
   width: 100%;
-  max-width: 340px;
+  max-width: 460px;
+  margin: auto 0;
+  padding: var(--space-6) 0;
 }
 
-.login__heading {
+.register__heading {
   font-size: var(--fs-h3);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -114,7 +87,7 @@
   color: var(--fg);
 }
 
-.login__sub {
+.register__sub {
   margin-top: var(--space-2);
   color: var(--fg-muted);
   font: var(--type-body);
@@ -122,27 +95,62 @@
 }
 
 /* --------------------------------------------------------------------------
-   Campos
+   Secciones (fieldset)
    -------------------------------------------------------------------------- */
-.login__fields {
-  display: flex;
-  flex-direction: column;
+.register__section {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.register__section + .register__section {
+  margin-top: var(--space-6);
+}
+
+.register__section-title {
+  padding: 0;
+  font: var(--type-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--fg-muted);
+  margin-bottom: var(--space-3);
+}
+
+/* --------------------------------------------------------------------------
+   Grid de campos — 2 columnas en desktop, 1 en móvil
+   -------------------------------------------------------------------------- */
+.register__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
 }
 
-.login__field {
+.register__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-.login__label {
+.register__field--span2 {
+  grid-column: 1 / -1;
+}
+
+.register__label {
   font: var(--type-ui);
   font-weight: 400;
   color: var(--fg-muted);
 }
 
-.login__input {
+.register__required {
+  color: var(--accent);
+}
+
+.register__optional {
+  color: var(--fg-disabled);
+  font-weight: 400;
+}
+
+.register__input {
   height: 44px;
   padding: 0 var(--space-3);
   background: var(--surface);
@@ -150,37 +158,51 @@
   border-radius: var(--r-md);
   color: var(--fg);
   font: var(--type-body);
-  transition: border-color 0.15s var(--ease-out-quart),
+  transition:
+    border-color 0.15s var(--ease-out-quart),
     background-color 0.15s var(--ease-out-quart);
 }
 
-.login__input::placeholder {
+.register__input::placeholder {
   color: var(--fg-disabled);
 }
 
-.login__input:hover {
+.register__input:hover {
   border-color: var(--surface-strong);
 }
 
-.login__input:focus {
+.register__input:focus {
   outline: none;
   border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 6%, var(--surface));
 }
 
-.login__input:focus-visible {
+.register__input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.register__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23ffffff99' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  padding-right: var(--space-7);
+}
+
+.register__select option {
+  background: var(--bg-elevated);
+  color: var(--fg);
 }
 
 /* --------------------------------------------------------------------------
    Error
    -------------------------------------------------------------------------- */
-.login__error {
+.register__error {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-top: var(--space-4);
+  margin-top: var(--space-5);
   padding: var(--space-3);
   background: color-mix(in srgb, var(--error) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
@@ -190,18 +212,22 @@
 }
 
 /* --------------------------------------------------------------------------
-   Submit
+   Submit y enlaces auxiliares
    -------------------------------------------------------------------------- */
-.login__submit {
-  margin-top: var(--space-5);
+.register__submit {
+  margin-top: var(--space-6);
   width: 100%;
   height: 44px;
 }
 
-/* --------------------------------------------------------------------------
-   Enlace a registro
-   -------------------------------------------------------------------------- */
-.login__register-prompt {
+.register__required-hint {
+  margin-top: var(--space-3);
+  color: var(--fg-disabled);
+  font: var(--type-secondary);
+  font-weight: 400;
+}
+
+.register__login-prompt {
   margin-top: var(--space-5);
   padding-top: var(--space-5);
   border-top: 1px solid var(--border);
@@ -210,52 +236,59 @@
   text-align: center;
 }
 
-.login__register-link {
+.register__login-link {
   color: var(--accent);
   font-weight: 700;
   transition: opacity 0.15s var(--ease-out-quart);
 }
 
-.login__register-link:hover {
+.register__login-link:hover {
   opacity: 0.8;
 }
 
-/* --------------------------------------------------------------------------
-   Hint de prototipo
-   -------------------------------------------------------------------------- */
-.login__hint {
+.register__hint {
   margin-top: var(--space-4);
   color: var(--fg-disabled);
   font: var(--type-secondary);
   font-weight: 400;
+  text-align: center;
 }
 
 /* --------------------------------------------------------------------------
    Responsive — colapsa a una columna en móvil
    -------------------------------------------------------------------------- */
-@media (max-width: 720px) {
-  .login {
+@media (max-width: 860px) {
+  .register {
     grid-template-columns: 1fr;
   }
 
-  .login__brand-panel {
+  .register__brand-panel {
     border-right: none;
     border-bottom: 1px solid var(--border);
     padding: var(--space-5) var(--space-4);
-    gap: var(--space-5);
   }
 
-  .login__quote {
-    padding-bottom: 0;
-    padding-top: var(--space-4);
-  }
-
-  .login__quote-text {
+  .register__quote-text {
     font-size: var(--fs-sub);
+    max-width: none;
   }
 
-  .login__form-panel {
+  .register__quote-meta {
+    max-width: none;
+  }
+
+  .register__form-panel {
     padding: var(--space-6) var(--space-4);
+  }
+}
+
+@media (max-width: 560px) {
+  .register__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .register__field--span2 {
+    grid-column: auto;
   }
 }
 
@@ -263,8 +296,8 @@
    Reduced motion
    -------------------------------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
-  .login__brand-panel,
-  .login__form-panel {
+  .register__brand-panel,
+  .register__form-panel {
     animation: none;
   }
 }

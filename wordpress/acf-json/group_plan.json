@@ -1,0 +1,54 @@
+{
+    "key": "group_kai_plan",
+    "title": "KAI — Plan (capacidad, features, precio)",
+    "fields": [
+        {
+            "key": "field_kai_plan_capacity",
+            "label": "Capacidad de referencia",
+            "name": "capacity",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plan_features",
+            "label": "Features (una por línea)",
+            "name": "features",
+            "type": "textarea",
+            "rows": 6
+        },
+        {
+            "key": "field_kai_plan_price_monthly",
+            "label": "Precio mensual (referencia)",
+            "name": "price_monthly",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plan_price_yearly",
+            "label": "Precio anual (referencia)",
+            "name": "price_yearly",
+            "type": "text"
+        },
+        {
+            "key": "field_kai_plan_highlighted",
+            "label": "Destacado (badge \"Más popular\")",
+            "name": "highlighted",
+            "type": "true_false",
+            "ui": 1,
+            "default_value": 0
+        }
+    ],
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "plan"
+            }
+        ]
+    ],
+    "menu_order": 13,
+    "position": "normal",
+    "style": "default",
+    "show_in_rest": 1,
+    "active": true,
+    "description": "El título del post es el nombre del plan. Precio real de checkout sigue en modules/billing hasta que se decida unificar."
+}
