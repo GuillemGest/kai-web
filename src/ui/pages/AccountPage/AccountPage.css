@@ -1,16 +1,143 @@
-.account-card {
+/* ==========================================================================
+   Panel "Mi cuenta" — layout con navegación lateral + panel de contenido.
+   Identidad KAI: dark, accent cian solo en interacción, retícula de 8px,
+   elevación por opacidad (--surface). Sin ghost-cards ni radios sobredimensionados.
+   ========================================================================== */
+
+.account {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-4) var(--space-9);
+}
+
+.account__head {
+  grid-column: 1 / -1;
+}
+.account__title {
+  font-size: var(--fs-h2);
+  line-height: 1.1;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.account__subtitle {
+  margin-top: var(--space-2);
+  color: var(--fg-muted);
+  font: var(--type-body);
+  max-width: 60ch;
+  text-wrap: pretty;
+}
+
+/* --- Navegación lateral --------------------------------------------------- */
+.account__nav {
+  position: sticky;
+  top: calc(var(--header-h) + var(--space-4));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.account-tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--r-md);
+  background: transparent;
+  color: var(--fg-muted);
+  font: var(--type-ui);
+  text-align: left;
+  transition: color 0.16s var(--ease-out-quart), background-color 0.16s var(--ease-out-quart);
+}
+.account-tab:hover {
+  color: var(--fg);
+  background: var(--surface);
+}
+.account-tab__icon {
+  flex-shrink: 0;
+  color: currentColor;
+}
+.account-tab[aria-current='page'] {
+  color: var(--fg);
+  background: var(--surface-2);
+}
+.account-tab[aria-current='page'] .account-tab__icon {
+  color: var(--accent);
+}
+
+/* --- Panel de contenido --------------------------------------------------- */
+.account__panel {
+  min-width: 0;
+}
+.account-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  min-width: 0;
+}
+.account-view__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.account-view__title {
+  font-size: var(--fs-h3);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.account-view__desc {
+  margin-top: var(--space-1);
+  color: var(--fg-muted);
+  font: var(--type-body);
+  max-width: 56ch;
+  text-wrap: pretty;
+}
+
+/* Entrada suave al cambiar de sección (respeta reduced-motion vía globals). */
+@media (prefers-reduced-motion: no-preference) {
+  .account-view {
+    animation: account-view-in 0.4s var(--ease-out-expo) both;
+  }
+  @keyframes account-view-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+
+/* --- Panel / tarjeta base ------------------------------------------------- */
+.account-panel {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: var(--space-4) var(--space-5);
-  max-width: 560px;
+  overflow: clip;
+  /* Evita que un hijo ancho (tabla de facturas) estire el panel en el flex column. */
+  min-width: 0;
+}
+.account-panel__title {
+  padding: var(--space-3) var(--space-4);
+  font: var(--type-ui);
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
 }
 
+/* --- Filas clave/valor ---------------------------------------------------- */
 .account-row {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-3) 0;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   font: var(--type-body);
 }
 .account-row + .account-row {
@@ -19,12 +146,374 @@
 .account-row__label {
   color: var(--fg-muted);
 }
-
-.status--active {
-  color: var(--success);
-  font-weight: 700;
+.account-row__value {
+  text-align: right;
 }
 
+/* --- Barra de acciones ---------------------------------------------------- */
 .account-actions {
-  margin-top: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* --- Chip de estado ------------------------------------------------------- */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--r-full);
+  font: var(--type-secondary);
+  background: var(--surface-2);
+  color: var(--fg-muted);
+}
+.status-chip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: currentColor;
+}
+.status-chip--active {
+  color: var(--success);
+}
+.status-chip--warning {
+  color: var(--warning);
+}
+.status-chip--info {
+  color: var(--info);
+}
+.status-chip--neutral {
+  color: var(--fg-muted);
+}
+
+/* --- Plan actual (billing) ------------------------------------------------ */
+.plan-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.plan-summary__name {
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.plan-summary__meta {
+  margin-top: var(--space-1);
+  color: var(--fg-muted);
+  font: var(--type-body);
+}
+.plan-summary__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+/* --- Método de pago ------------------------------------------------------- */
+.payment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-4);
+}
+.payment__card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.payment__brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--fg);
+  font: var(--type-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.payment__digits {
+  font: var(--type-body);
+  font-variant-numeric: tabular-nums;
+}
+.payment__exp {
+  margin-top: 2px;
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 400;
+}
+
+/* --- Tabla de facturas ---------------------------------------------------- */
+.invoice-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--type-body);
+}
+.invoice-table th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font: var(--type-secondary);
+  font-weight: 700;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.invoice-table th.is-end,
+.invoice-table td.is-end {
+  text-align: right;
+}
+.invoice-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.invoice-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.invoice-table__num {
+  font-variant-numeric: tabular-nums;
+}
+.invoice-table__amount {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.invoice-download {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--fg-muted);
+  font: var(--type-ui);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: var(--space-1) var(--space-2);
+  transition: color 0.15s var(--ease-out-quart);
+}
+.invoice-download:hover {
+  color: var(--accent);
+}
+
+/* --- Equipo (administración) ---------------------------------------------- */
+.team-meter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4);
+}
+.team-meter__count {
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.team-meter__label {
+  color: var(--fg-muted);
+  font: var(--type-body);
+}
+.team-meter__bar {
+  flex: 1 1 160px;
+  height: 6px;
+  min-width: 120px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  overflow: clip;
+}
+.team-meter__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.member {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+.member + .member {
+  border-top: 1px solid var(--border);
+}
+.member__id {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.member__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  color: var(--fg);
+  font: var(--type-ui);
+  text-transform: uppercase;
+}
+.member__name {
+  font: var(--type-ui);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.member__email {
+  margin-top: 2px;
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.member__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  justify-self: end;
+}
+.member__role {
+  font: var(--type-ui);
+  color: var(--fg);
+}
+.member__joined {
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* --- Seguridad: sesiones -------------------------------------------------- */
+.session {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+.session + .session {
+  border-top: 1px solid var(--border);
+}
+.session__id {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.session__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--fg-muted);
+}
+.session__device {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font: var(--type-ui);
+}
+.session__meta {
+  margin-top: 2px;
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 400;
+}
+.session-revoke {
+  color: var(--fg-muted);
+  font: var(--type-ui);
+  background: none;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: var(--space-1) var(--space-2);
+  transition: color 0.15s var(--ease-out-quart);
+}
+.session-revoke:hover {
+  color: var(--error);
+}
+
+.account-empty {
+  padding: var(--space-5) var(--space-4);
+  color: var(--fg-muted);
+  font: var(--type-body);
+  text-align: center;
+}
+
+/* Estado "no logueado" centrado */
+.account-guard {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-9) var(--space-4);
+  text-align: center;
+}
+.account-guard__title {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.account-guard__lead {
+  margin-top: var(--space-3);
+  color: var(--fg-muted);
+  font: var(--type-body);
+}
+
+/* ==========================================================================
+   Responsive: bajo 860px el sidebar pasa a tira horizontal scrollable arriba.
+   ========================================================================== */
+@media (max-width: 860px) {
+  .account {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-4);
+    padding-top: var(--space-6);
+  }
+  .account__nav {
+    position: static;
+    top: auto;
+    flex-direction: row;
+    gap: var(--space-1);
+    overflow-x: auto;
+    padding-bottom: var(--space-2);
+    scrollbar-width: none;
+    /* Contiene el scroll horizontal en la propia tira, no en el body. */
+    max-width: 100%;
+  }
+  .account__nav::-webkit-scrollbar {
+    display: none;
+  }
+  .account-tab {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .member {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .member__meta {
+    justify-self: start;
+    gap: var(--space-3);
+  }
 }

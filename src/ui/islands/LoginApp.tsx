@@ -7,8 +7,6 @@ import type { Locale } from '../../i18n/locales'
 import { LOGIN_PAGE_CONTENT } from '../pages/LoginPage/content'
 import '../pages/LoginPage/LoginPage.css'
 
-const POST_LOGIN_URL = 'https://kai.amplifysoft.io/es/chat'
-
 interface LoginAppProps {
   locale: Locale
 }
@@ -26,10 +24,12 @@ export function LoginApp({ locale }: LoginAppProps) {
     setSubmitting(true)
     try {
       await authUseCases.login.execute(email, password)
-      window.location.href = POST_LOGIN_URL
+      // Cuenta válida: entra a la página de usuario.
+      window.location.href = getLocaleUrl(form.redirectAfterLogin, locale)
     } catch {
+      // Credenciales inválidas: mismo mensaje tanto si el email no existe como
+      // si la contraseña no coincide (no revelamos qué cuentas están registradas).
       setError(form.errorInvalidCredentials)
-    } finally {
       setSubmitting(false)
     }
   }

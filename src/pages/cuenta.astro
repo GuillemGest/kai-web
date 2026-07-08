@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro'
-import { AccountApp } from '../ui/islands/AccountApp'
+import { AccountShell } from '../ui/islands/AccountShell'
 ---
 
 <BaseLayout locale="es" title="Mi cuenta · KAI">
-  <AccountApp client:only="react" locale="es" />
+  <AccountShell client:only="react" locale="es" />
 </BaseLayout>

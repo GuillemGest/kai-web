@@ -19,7 +19,7 @@ export const loginPageContent = {
     passwordPlaceholder: '••••••••',
     submitIdle: 'Sign in',
     submitLoading: 'Signing in…',
-    prototypeHint: 'Prototype: any credentials will sign you in.',
+    prototypeHint: 'Prototype: use demo@kai.app / kai1234 to sign in.',
     errorInvalidCredentials: 'Wrong credentials. Please try again.',
     redirectAfterLogin: '/cuenta',
     registerPrompt: "Don't have an account?",

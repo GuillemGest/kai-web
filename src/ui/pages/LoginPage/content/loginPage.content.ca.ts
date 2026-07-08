@@ -19,7 +19,7 @@ export const loginPageContent = {
     passwordPlaceholder: '••••••••',
     submitIdle: 'Entrar',
     submitLoading: 'Entrant…',
-    prototypeHint: 'Prototip: qualsevol credencial inicia sessió.',
+    prototypeHint: 'Prototip: fes servir demo@kai.app / kai1234 per entrar.',
     errorInvalidCredentials: 'Credencials incorrectes. Torna-ho a provar.',
     redirectAfterLogin: '/cuenta',
     registerPrompt: 'No tens compte?',

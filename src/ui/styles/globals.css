@@ -280,6 +280,21 @@ h3 {
 }
 
 /* ==========================================================================
+   Solo lectores de pantalla: oculta visualmente sin sacar del árbol a11y.
+   ========================================================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
    Scrollbar custom — usado en cualquier contenedor con overflow-y: auto/scroll.
    Webkit: barra fina, colores del sistema de diseño.
    Firefox: scrollbar-width + scrollbar-color.
