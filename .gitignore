@@ -8,4 +8,3 @@ BASE_DE_DATOS.md
 
 # Vídeos pesados: no versionar en Git (superan el límite de 100MB de GitHub).
 # Servir desde CDN/storage externo en producción.
-public/demo.mp4
