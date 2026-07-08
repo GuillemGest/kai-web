@@ -211,7 +211,7 @@ export function MainPage() {
         </div>
       </section>
 
-      <section className="page faq-section">
+      <section className="page main__faq">
         <h2 className="faq-section__title" data-reveal>
           {faq.title}
         </h2>

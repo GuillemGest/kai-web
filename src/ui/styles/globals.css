@@ -133,6 +133,7 @@ h3 {
    Utilidades de página (reutilizables por todas las pages)
    ========================================================================== */
 .page {
+  width: 100%;
   max-width: var(--content-max);
   margin: 0 auto;
   padding: var(--space-8) var(--space-4);

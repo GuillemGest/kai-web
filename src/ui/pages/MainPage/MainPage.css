@@ -532,9 +532,9 @@
 /* ==========================================================================
    FAQ de producto — resuelve dudas antes del cierre
    ========================================================================== */
-.faq-section {
-  padding-top: var(--space-7);
-  padding-bottom: var(--space-8);
+.main__faq {
+  margin-top: var(--space-9);
+
 }
 .faq-section__title {
   font-size: var(--fs-h2);
@@ -543,7 +543,6 @@
   font-weight: 700;
   text-wrap: balance;
   margin-bottom: var(--space-5);
-  max-width: 24ch;
 }
 .faq-section__list {
   display: flex;
