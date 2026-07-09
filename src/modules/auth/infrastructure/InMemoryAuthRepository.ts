@@ -1,7 +1,8 @@
-import { AuthSession, type AuthSessionPrimitive } from '../domain/AuthSession'
-import type { IAuthRepository } from '../domain/IAuthRepository'
+import { AuthSession, type CachedSessionPrimitive } from '../domain/AuthSession'
+import type { IAuthRepository, LoginResult } from '../domain/IAuthRepository'
 import { InvalidCodeError } from '../domain/InvalidCodeError'
 import { InvalidCredentialsError } from '../domain/InvalidCredentialsError'
+import { Organization } from '../domain/Organization'
 import { User, type UserPrimitive } from '../domain/User'
 import accounts from './accounts.mock.json'
 
@@ -12,54 +13,71 @@ interface MockAccount extends UserPrimitive {
 
 const MOCK_ACCOUNTS = accounts as MockAccount[]
 
-/** Clave de la sesión persistida en el navegador. */
-const SESSION_KEY = 'kai.auth.session'
+/** Clave compartida con el HttpAuthRepository real (shared shape con frontend-kai). */
+const SESSION_KEY = 'cached_session'
 
 /** Código de verificación fijo del mock (solo prototipo/tests). */
 const MOCK_CODE = '123456'
 
 /**
- * Repositorio de auth de prototipo.
- *
- * Valida las credenciales contra un JSON de cuentas mockeadas
- * (`accounts.mock.json`) y persiste la sesión en `localStorage`, de modo que
- * sobreviva a recargas y navegación entre páginas. Se sustituirá por
- * SupabaseAuthRepository sin tocar use cases ni UI.
+ * Repositorio de auth de prototipo. Alineado con el mismo contrato que el
+ * `HttpAuthRepository`: `login` devuelve un `LoginResult` discriminado.
  */
 export class InMemoryAuthRepository implements IAuthRepository {
-  /** Email cuyas credenciales ya pasaron el paso 1 y esperan validar el código. */
+  /** Email cuyas credenciales pasaron el paso 1 y esperan validar el código. */
   private pendingEmail: string | null = null
+  /** Password del último login válido, para reenviar en validateCode como hace el backend real. */
+  private pendingPassword: string | null = null
 
-  async login(email: string, password: string): Promise<void> {
+  async login(
+    email: string,
+    password: string,
+    _organization?: string,
+  ): Promise<LoginResult> {
     const account = this.findAccount(email)
 
-    // Mismo error para "email no existe" y "contraseña incorrecta": no filtramos
-    // qué cuentas están registradas.
     if (!account || account.password !== password) {
       throw new InvalidCredentialsError()
     }
 
-    // Primer paso superado: simulamos el envío del código y dejamos el email
-    // pendiente de validación.
     this.pendingEmail = account.email.toLowerCase()
+    this.pendingPassword = password
+    return { kind: 'code_required' }
   }
 
-  async validateCode(email: string, code: string): Promise<AuthSession> {
+  async validateCode(
+    email: string,
+    code: string,
+    password: string,
+    organization?: string,
+  ): Promise<AuthSession> {
     const account = this.findAccount(email)
     const normalizedEmail = email.trim().toLowerCase()
 
-    if (!account || this.pendingEmail !== normalizedEmail || code !== MOCK_CODE) {
+    if (
+      !account ||
+      this.pendingEmail !== normalizedEmail ||
+      this.pendingPassword !== password ||
+      code !== MOCK_CODE
+    ) {
       throw new InvalidCodeError()
     }
 
     const { password: _password, ...userPrimitive } = account
-    const session = AuthSession.fromPrimitive({
-      user: userPrimitive,
-      token: `mock-token-${account.id}`,
-    })
+    const org = organization ? new Organization(organization, organization) : undefined
+    const session = new AuthSession(
+      User.fromPrimitive(userPrimitive),
+      `mock-token-${account.id}`,
+      org,
+    )
     this.pendingEmail = null
+    this.pendingPassword = null
     this.persist(session)
     return session
+  }
+
+  async setSsoCookie(_token: string): Promise<void> {
+    // No-op en mock.
   }
 
   private findAccount(email: string): MockAccount | undefined {
@@ -84,7 +102,14 @@ export class InMemoryAuthRepository implements IAuthRepository {
 
   private persist(session: AuthSession): void {
     if (typeof localStorage === 'undefined') return
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session.toPrimitive()))
+    // Mock: guardamos el shape completo (con user) para no depender de decodificar JWT.
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        ...session.toStoragePrimitive(),
+        __mockUser: session.user.toPrimitive(),
+      }),
+    )
   }
 
   private readSession(): AuthSession | null {
@@ -92,9 +117,23 @@ export class InMemoryAuthRepository implements IAuthRepository {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     try {
-      return AuthSession.fromPrimitive(JSON.parse(raw) as AuthSessionPrimitive)
+      const parsed = JSON.parse(raw) as CachedSessionPrimitive & {
+        __mockUser?: UserPrimitive
+      }
+      if (parsed.__mockUser) {
+        const org =
+          parsed.organizationId && parsed.organizationName
+            ? new Organization(parsed.organizationId, parsed.organizationName)
+            : undefined
+        return new AuthSession(
+          User.fromPrimitive(parsed.__mockUser),
+          parsed.token,
+          org,
+          parsed.organizationDatabaseId,
+        )
+      }
+      return AuthSession.fromStoragePrimitive(parsed)
     } catch {
-      // Sesión corrupta: la descartamos para no dejar al usuario en un estado inválido.
       localStorage.removeItem(SESSION_KEY)
       return null
     }

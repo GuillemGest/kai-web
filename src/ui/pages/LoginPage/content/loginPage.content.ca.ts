@@ -30,6 +30,13 @@ export const loginPageContent = {
     codeSubmitLoading: 'Verificant…',
     codeBack: 'Tornar',
     errorInvalidCode: 'Codi incorrecte. Torna-ho a provar.',
+    // Pas intermedi: selecció d'organització (multi-org).
+    orgSelectHeading: 'Tria una organització',
+    orgSelectSubheading: 'El teu compte pertany a diverses organitzacions. Selecciona amb quina vols entrar.',
+    orgSelectLabel: 'Organització',
+    orgSelectSubmitIdle: 'Continuar',
+    orgSelectSubmitLoading: 'Continuant…',
+    errorNoOrgSelected: 'Selecciona una organització per continuar.',
     redirectAfterLogin: '/cuenta',
     registerPrompt: 'No tens compte?',
     registerLink: 'Crear compte',
