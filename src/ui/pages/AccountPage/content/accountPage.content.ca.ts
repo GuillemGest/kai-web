@@ -13,6 +13,17 @@ export const accountPageContent = {
   notLoggedIn: 'No has iniciat sessió.',
   logoutButton: 'Tanca la sessió',
 
+  /**
+   * Avís de prova gratis iniciada. Es mostra en arribar al compte amb
+   * ?trial=started (després d’entrar des del chip "Prova gratis" de plans).
+   * Només aparença: de moment no es persisteix cap estat de prova.
+   */
+  trialBanner: {
+    title: 'La teva prova gratis ha començat',
+    text: 'Tens 15 dies per provar KAI sense cost. Descarrega el plugin i comença a trobar els teus millors moments.',
+    dismissLabel: 'Tanca l’avís',
+  },
+
   nav: {
     account: 'Compte',
     billing: 'Facturació',

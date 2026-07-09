@@ -30,6 +30,25 @@ export const shopPageContent = {
     notice: 'Pricing model v1. Preus orientatius que continuarem ajustant segons el feedback del mercat.',
   },
 
+  // Prova gratis: chip destacat a la capçalera. Porta al login arrossegant el
+  // pla gratuït (?plan=free); després d’entrar es mostra l’avís de prova
+  // iniciada a /cuenta. Visible sempre, amb sessió o sense.
+  freeTrial: {
+    label: 'Prova gratis',
+    hint: '15 dies · sense targeta',
+    href: '/login?plan=free',
+  },
+
+  // KAI Enterprise: presència discreta sota el grid per a qui no encaixa en cap
+  // pla tancat. Deriva a vendes per correu (cotització per producció).
+  enterpriseContact: {
+    label: 'KAI Enterprise',
+    text: 'Cap d’aquests plans encaixa amb la teva producció? Cotitzem una llicència enterprise a mida.',
+    ctaLabel: 'Parlar amb vendes',
+    email: 'ventas@kai.app',
+    emailSubject: 'Consulta KAI Enterprise',
+  },
+
   error: {
     message: 'No hem pogut carregar els plans.',
     retry: 'Reintentar',

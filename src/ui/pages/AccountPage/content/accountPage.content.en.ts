@@ -13,6 +13,17 @@ export const accountPageContent = {
   notLoggedIn: 'You are not signed in yet.',
   logoutButton: 'Sign out',
 
+  /**
+   * Free-trial-started notice. Shown when reaching the account with
+   * ?trial=started (after signing in from the "Free trial" chip on plans).
+   * Appearance only: no trial state is persisted for now.
+   */
+  trialBanner: {
+    title: 'Your free trial has started',
+    text: 'You have 15 days to try KAI at no cost. Download the plugin and start finding your best moments.',
+    dismissLabel: 'Dismiss notice',
+  },
+
   nav: {
     account: 'Account',
     billing: 'Billing',

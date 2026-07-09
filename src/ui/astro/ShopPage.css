@@ -8,8 +8,14 @@
    Encabezado
    ========================================================================== */
 .shop__head {
-  max-width: 640px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-5);
   margin-bottom: clamp(var(--space-6), 5vw, var(--space-8));
+}
+.shop__head-text {
+  max-width: 640px;
 }
 .shop__title {
   font-size: var(--fs-h2);
@@ -44,6 +50,147 @@
 .shop__notice svg {
   color: var(--accent);
   flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Chip "Prueba gratis" — CTA del encabezado (arriba a la derecha)
+   ========================================================================== */
+.shop__trial {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--fg);
+  background: rgba(76, 189, 202, 0.08);
+  border: 1px solid rgba(76, 189, 202, 0.35);
+  border-radius: var(--r-full);
+  transition: background-color 0.2s var(--ease-out-quart), border-color 0.2s var(--ease-out-quart),
+    transform 0.2s var(--ease-out-quart);
+}
+.shop__trial > svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+@media (hover: hover) {
+  .shop__trial:hover {
+    background: rgba(76, 189, 202, 0.16);
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .shop__trial:hover .shop__trial-arrow {
+    transform: translateX(3px);
+  }
+}
+.shop__trial:active {
+  transform: translateY(0);
+}
+.shop__trial-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.shop__trial-label {
+  font: var(--type-action);
+}
+.shop__trial-hint {
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 400;
+}
+.shop__trial-arrow {
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: transform 0.2s var(--ease-out-quart);
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop__trial,
+  .shop__trial-arrow {
+    transition: none;
+  }
+  .shop__trial:hover {
+    transform: none;
+  }
+  .shop__trial:hover .shop__trial-arrow {
+    transform: none;
+  }
+}
+/* En móvil el chip pasa a ocupar el ancho, bajo el texto del encabezado. */
+@media (max-width: 640px) {
+  .shop__head {
+    flex-direction: column;
+  }
+  .shop__trial {
+    align-self: stretch;
+    justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   Bloque discreto de KAI Enterprise — bajo el grid de planes
+   ========================================================================== */
+.shop__enterprise {
+  margin-top: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+.shop__enterprise-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--accent);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+}
+.shop__enterprise-body {
+  flex: 1;
+  min-width: 0;
+}
+.shop__enterprise-label {
+  font: var(--type-ui);
+  font-weight: 700;
+}
+.shop__enterprise-text {
+  margin-top: 2px;
+  color: var(--fg-muted);
+  font: var(--type-body);
+  max-width: 68ch;
+}
+.shop__enterprise-cta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent);
+  font: var(--type-action);
+  white-space: nowrap;
+  transition: gap 0.2s var(--ease-out-quart);
+}
+@media (hover: hover) {
+  .shop__enterprise-cta:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    gap: var(--space-2);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shop__enterprise-cta {
+    transition: none;
+  }
+}
+@media (max-width: 620px) {
+  .shop__enterprise {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* ==========================================================================

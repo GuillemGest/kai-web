@@ -1,8 +1,15 @@
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
+import node from '@astrojs/node'
 
 export default defineConfig({
   integrations: [react()],
+  // El sitio es estatico por defecto (todas las paginas de contenido se
+  // prerenderizan). Solo los endpoints de Stripe (/api/*) se ejecutan en el
+  // servidor: se marcan con `export const prerender = false` en cada archivo.
+  // El adapter Node atiende esas rutas on-demand.
+  output: 'static',
+  adapter: node({ mode: 'standalone' }),
   base: '/',
   i18n: {
     defaultLocale: 'es',

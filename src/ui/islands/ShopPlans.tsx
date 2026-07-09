@@ -1,9 +1,11 @@
 import { useEffect, useState, type CSSProperties } from 'react'
-import { ShieldCheck, CreditCard, Headset, type LucideIcon } from 'lucide-react'
+import { ShieldCheck, CreditCard, Headset, Building2, ArrowUpRight, type LucideIcon } from 'lucide-react'
 import { billingUseCases } from '../../modules/billing/application/factory'
+import { authUseCases } from '../../modules/auth/application/factory'
 import { Plan } from '../../modules/billing/domain/Plan'
 import { PlanCard, type BillingPeriod } from '../components/PlanCard/PlanCard'
 import { PlanComparison, type PlanComparisonContent } from '../components/PlanComparison/PlanComparison'
+import { startCheckout } from '../utils/startCheckout'
 import type { ShopPageContent, PlanTranslations, PlanId } from '../../modules/content/domain/types'
 
 type LoadState = 'loading' | 'ready' | 'error'
@@ -29,6 +31,13 @@ const REASSURANCE_ICONS: Record<ShopReassuranceIcon, LucideIcon> = {
   Headset,
 }
 
+// Planes visibles en el grid: solo los tres cloud "del medio". El gratuito
+// (free) sale como chip de prueba en el encabezado y el a medida (enterprise)
+// como bloque de contacto discreto bajo el grid, así que se filtran aquí.
+const GRID_PLAN_IDS: readonly PlanId[] = ['audioPro', 'fullPro', 'team']
+// Plan destacado del grid ("Más popular"): la puerta de entrada completa.
+const HIGHLIGHTED_PLAN_ID: PlanId = 'fullPro'
+
 interface ShopPlansProps {
   content: ShopPageContent
   planTranslations: PlanTranslations
@@ -36,14 +45,29 @@ interface ShopPlansProps {
 }
 
 export function ShopPlans({ content, planTranslations, loginHref }: ShopPlansProps) {
-  const { planCard, error, empty, reassurance, faq, comparison, yearlyDiscountPercent } = content
+  const { planCard, error, empty, reassurance, faq, comparison, yearlyDiscountPercent, enterpriseContact } =
+    content
+  const enterpriseMailto = `mailto:${enterpriseContact.email}?subject=${encodeURIComponent(
+    enterpriseContact.emailSubject,
+  )}`
   const [plans, setPlans] = useState<Plan[]>([])
   const [state, setState] = useState<LoadState>('loading')
   // El toggle mensual/anual esta desactivado temporalmente (ver comentario en el JSX
   // original de ShopPage.tsx): el pricing v1 solo define precios mensuales.
   const [billingPeriod] = useState<BillingPeriod>('monthly')
 
-  const localizedPlans = plans.map((p) => localizePlan(p, planTranslations))
+  // Solo los tres planes del medio, en orden, con el destacado forzado en
+  // presentación (el dominio los marca todos highlighted=false). El free y el
+  // enterprise no entran al grid: viven en el chip de prueba y en el bloque
+  // de contacto respectivamente.
+  const gridPlans = GRID_PLAN_IDS.map((id) => plans.find((p) => p.id === id)).filter(
+    (p): p is Plan => Boolean(p),
+  )
+  const localizedPlans = gridPlans.map((p) => {
+    const localized = localizePlan(p, planTranslations)
+    if (p.id !== HIGHLIGHTED_PLAN_ID) return localized
+    return Plan.fromPrimitive({ ...localized.toPrimitive(), highlighted: true })
+  })
 
   function loadPlans() {
     setState('loading')
@@ -71,21 +95,41 @@ export function ShopPlans({ content, planTranslations, loginHref }: ShopPlansPro
     }
   }, [])
 
-  function handleSelect(plan: Plan) {
+  async function handleSelect(plan: Plan) {
     // Los planes a medida (KAI Enterprise) no tienen checkout: derivan a contacto
     // para solicitar presupuesto por produccion.
     if (plan.custom) {
       window.location.href = empty.linkHref
       return
     }
-    window.location.href = `${loginHref}?plan=${plan.id}`
+
+    // Si ya hay sesion, vamos directos al checkout de Stripe. Si no, llevamos al
+    // login arrastrando el plan (?plan=<id>) para retomar la compra tras entrar.
+    const user = authUseCases.getCurrentUserSync.execute()
+    if (!user) {
+      window.location.href = `${loginHref}?plan=${plan.id}`
+      return
+    }
+
+    try {
+      await startCheckout({
+        planId: plan.id,
+        period: billingPeriod,
+        userId: user.id,
+        customerEmail: user.email,
+      })
+    } catch {
+      // El checkout no arranco (endpoint caido, plan sin precio...): reutilizamos
+      // el mismo aviso de error que la carga de planes.
+      setState('error')
+    }
   }
 
   return (
     <>
       {state === 'loading' && (
         <div className="plans-grid" aria-hidden>
-          {[0, 1, 2, 3, 4].map((i) => (
+          {[0, 1, 2].map((i) => (
             <div key={i} className="plan-skeleton" />
           ))}
         </div>
@@ -124,6 +168,22 @@ export function ShopPlans({ content, planTranslations, loginHref }: ShopPlansPro
             {empty.linkLabel}
           </a>
         </div>
+      )}
+
+      {state === 'ready' && localizedPlans.length > 0 && (
+        <aside className="shop__enterprise" data-reveal>
+          <span className="shop__enterprise-icon" aria-hidden>
+            <Building2 size={18} strokeWidth={2} />
+          </span>
+          <div className="shop__enterprise-body">
+            <p className="shop__enterprise-label">{enterpriseContact.label}</p>
+            <p className="shop__enterprise-text">{enterpriseContact.text}</p>
+          </div>
+          <a className="shop__enterprise-cta" href={enterpriseMailto}>
+            {enterpriseContact.ctaLabel}
+            <ArrowUpRight size={16} strokeWidth={2} aria-hidden />
+          </a>
+        </aside>
       )}
 
       {state === 'ready' && localizedPlans.length > 0 && (

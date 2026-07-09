@@ -41,6 +41,25 @@ export const shopPageContent = {
     notice: 'Pricing model v1. Precios orientativos que seguiremos ajustando según el feedback del mercado.',
   },
 
+  // Prueba gratis: chip destacado en el encabezado. Lleva al login arrastrando
+  // el plan gratuito (?plan=free); tras entrar se muestra el aviso de prueba
+  // iniciada en /cuenta. Visible siempre, con o sin sesión.
+  freeTrial: {
+    label: 'Prueba gratis',
+    hint: '15 días · sin tarjeta',
+    href: '/login?plan=free',
+  },
+
+  // KAI Enterprise: presencia discreta bajo el grid para quien no encaja en
+  // ningún plan cerrado. Deriva a ventas por correo (cotización por producción).
+  enterpriseContact: {
+    label: 'KAI Enterprise',
+    text: '¿Ninguno de estos planes encaja con tu producción? Cotizamos una licencia enterprise a medida.',
+    ctaLabel: 'Hablar con ventas',
+    email: 'ventas@kai.app',
+    emailSubject: 'Consulta KAI Enterprise',
+  },
+
   error: {
     message: 'No hemos podido cargar los planes.',
     retry: 'Reintentar',

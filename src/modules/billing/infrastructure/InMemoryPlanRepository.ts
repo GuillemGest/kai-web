@@ -2,6 +2,19 @@ import type { IPlanRepository } from '../domain/IPlanRepository'
 import { Plan, type PlanPrimitive } from '../domain/Plan'
 
 /**
+ * Los `price_...` de Stripe se leen de variables de entorno del servidor para
+ * no hardcodear IDs de infraestructura en el repositorio. En cliente estas
+ * variables son `undefined` (import.meta.env solo expone las `PUBLIC_*`), pero
+ * el checkout se resuelve siempre en el endpoint SSR, donde sí están disponibles.
+ * Configúralas en `.env` con los IDs que genere tu dashboard de Stripe (test).
+ */
+const env = import.meta.env
+function stripePrice(key: string): string | null {
+  const value = env[key]
+  return typeof value === 'string' && value.length > 0 ? value : null
+}
+
+/**
  * Planes oficiales de KAI según el Market and Product Plan (pricing model v1).
  *
  * Estructura por capas:
@@ -27,7 +40,9 @@ const PLANS: PlanPrimitive[] = [
       'Sin subida de vídeo',
       'Sin exportación al editor',
     ],
-    stripePriceId: null,
+    // Plan gratuito: no se cobra vía Stripe.
+    stripePriceIdMonthly: null,
+    stripePriceIdYearly: null,
     highlighted: false,
   },
   {
@@ -43,7 +58,8 @@ const PLANS: PlanPrimitive[] = [
       '250 GB o 100 h de referencia',
       'Ideal para modelos centrados en audio',
     ],
-    stripePriceId: null,
+    stripePriceIdMonthly: stripePrice('STRIPE_PRICE_AUDIOPRO_MONTHLY'),
+    stripePriceIdYearly: stripePrice('STRIPE_PRICE_AUDIOPRO_YEARLY'),
     highlighted: false,
   },
   {
@@ -59,7 +75,8 @@ const PLANS: PlanPrimitive[] = [
       '250 GB o 100 h de referencia',
       'Puerta de entrada completa al producto',
     ],
-    stripePriceId: null,
+    stripePriceIdMonthly: stripePrice('STRIPE_PRICE_FULLPRO_MONTHLY'),
+    stripePriceIdYearly: stripePrice('STRIPE_PRICE_FULLPRO_YEARLY'),
     highlighted: false,
   },
   {
@@ -75,7 +92,8 @@ const PLANS: PlanPrimitive[] = [
       '1 TB o 1.000 h de referencia',
       'Pensado para trabajo colaborativo',
     ],
-    stripePriceId: null,
+    stripePriceIdMonthly: stripePrice('STRIPE_PRICE_TEAM_MONTHLY'),
+    stripePriceIdYearly: stripePrice('STRIPE_PRICE_TEAM_YEARLY'),
     highlighted: false,
   },
   {
@@ -91,7 +109,9 @@ const PLANS: PlanPrimitive[] = [
       'Seguridad y compliance a medida',
       'Continuidad operativa y soporte ajustado',
     ],
-    stripePriceId: null,
+    // Plan a medida: cotización por producción, sin checkout de Stripe.
+    stripePriceIdMonthly: null,
+    stripePriceIdYearly: null,
     highlighted: false,
   },
 ]

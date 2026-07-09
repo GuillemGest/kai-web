@@ -1,4 +1,5 @@
 ---
+import { Sparkles, ArrowRight } from 'lucide-react'
 import { ShopPlans } from '../islands/ShopPlans'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
@@ -13,14 +14,29 @@ const { locale } = Astro.props
 const repo = getContentRepository()
 const shopContent = await repo.getShopPage(locale)
 const planTranslations = await repo.getPlans(locale)
-const { head } = shopContent
+const { head, freeTrial } = shopContent
 const loginHref = getLocaleUrl('/login', locale)
+// El chip de prueba arrastra el plan gratuito al login. Localizamos la ruta
+// base pero conservamos el query (?plan=free) que trae el content.
+const freeTrialHref = getLocaleUrl(freeTrial.href, locale)
 ---
 
 <div class="shop">
   <header class="shop__head">
-    <h1 class="shop__title">{head.title}</h1>
-    <p class="shop__lead">{head.lead}</p>
+    <div class="shop__head-text">
+      <h1 class="shop__title">{head.title}</h1>
+      <p class="shop__lead">{head.lead}</p>
+    </div>
+
+    {/* Prueba gratis: siempre visible, con o sin sesión. Lleva al login con el plan free. */}
+    <a class="shop__trial" href={freeTrialHref}>
+      <Sparkles size={16} strokeWidth={2} aria-hidden />
+      <span class="shop__trial-text">
+        <span class="shop__trial-label">{freeTrial.label}</span>
+        <span class="shop__trial-hint">{freeTrial.hint}</span>
+      </span>
+      <ArrowRight className="shop__trial-arrow" size={16} strokeWidth={2} aria-hidden />
+    </a>
   </header>
 
   <ShopPlans client:load content={shopContent} planTranslations={planTranslations} loginHref={loginHref} />

@@ -5,7 +5,17 @@ import { Button } from '../components/Button/Button'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOGIN_PAGE_CONTENT } from '../pages/LoginPage/content'
+import { startCheckout } from '../utils/startCheckout'
 import '../pages/LoginPage/LoginPage.css'
+
+/**
+ * Si el usuario llegó al login desde un plan (`?plan=<id>`), tras autenticarse
+ * se inicia el checkout de ese plan en lugar de ir a la página de cuenta.
+ */
+function pendingPlanId(): string | null {
+  if (typeof window === 'undefined') return null
+  return new URLSearchParams(window.location.search).get('plan')
+}
 
 interface LoginAppProps {
   locale: Locale
@@ -39,16 +49,52 @@ export function LoginApp({ locale }: LoginAppProps) {
     }
   }
 
-  // Paso 2: valida el código y, si es correcto, entra a la página de usuario.
+  // Continúa el flujo una vez hay sesión (login normal o mock):
+  //  - si venía un plan pendiente (?plan=<id>), inicia el checkout de Stripe,
+  //  - si no, entra a la página de usuario.
+  async function continueAfterAuth(userId: string, userEmail: string) {
+    const planId = pendingPlanId()
+    // Plan gratuito: no hay checkout de Stripe. Llevamos a la cuenta con un flag
+    // (?trial=started) que dispara el aviso de prueba iniciada. Solo apariencia:
+    // no se persiste ningún estado de prueba de momento.
+    if (planId === 'free') {
+      window.location.href = getLocaleUrl(`${form.redirectAfterLogin}?trial=started`, locale)
+      return
+    }
+    if (planId) {
+      // startCheckout redirige a Stripe; si lanza, lo gestiona quien llame.
+      await startCheckout({ planId, period: 'monthly', userId, customerEmail: userEmail })
+      return
+    }
+    window.location.href = getLocaleUrl(form.redirectAfterLogin, locale)
+  }
+
+  // Paso 2: valida el código y, si es correcto, continúa el flujo.
   async function handleCodeSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
     setSubmitting(true)
     try {
-      await authUseCases.validateLoginCode.execute(email, code)
-      window.location.href = getLocaleUrl(form.redirectAfterLogin, locale)
+      const session = await authUseCases.validateLoginCode.execute(email, code)
+      await continueAfterAuth(session.user.id, session.user.email)
     } catch {
       setError(form.errorInvalidCode)
+      setSubmitting(false)
+    }
+  }
+
+  // ⚠️ PROVISIONAL (solo desarrollo): entra con una sesión mock, saltándose
+  // credenciales y código, y continúa el flujo igual que un login real.
+  async function handleMockLogin() {
+    setError(null)
+    setSubmitting(true)
+    try {
+      const session = await authUseCases.loginMock()
+      await continueAfterAuth(session.user.id, session.user.email)
+    } catch (err) {
+      // Mostramos el error REAL (no el genérico de código) para poder depurar:
+      // el fallo casi siempre es del checkout de Stripe, no del login mock.
+      setError(err instanceof Error ? err.message : 'Error al entrar (mock).')
       setSubmitting(false)
     }
   }
@@ -126,6 +172,18 @@ export function LoginApp({ locale }: LoginAppProps) {
               disabled={submitting}
             >
               {submitting ? form.submitLoading : form.submitIdle}
+            </Button>
+
+            {/* ⚠️ PROVISIONAL (solo desarrollo): entra directo sin credenciales. */}
+            <Button
+              type="button"
+              variant="secondary"
+              size="large"
+              className="login__submit"
+              disabled={submitting}
+              onClick={handleMockLogin}
+            >
+              Entrar (mock)
             </Button>
 
             <p className="login__register-prompt">

@@ -20,6 +20,17 @@ export const accountPageContent = {
   notLoggedIn: 'No has iniciado sesión.',
   logoutButton: 'Cerrar sesión',
 
+  /**
+   * Aviso de prueba gratis iniciada. Se muestra al llegar a la cuenta con
+   * ?trial=started (tras entrar desde el chip "Prueba gratis" de planes).
+   * Solo apariencia: de momento no se persiste ningún estado de prueba.
+   */
+  trialBanner: {
+    title: 'Tu prueba gratis ha empezado',
+    text: 'Tienes 15 días para probar KAI sin coste. Descarga el plugin y empieza a encontrar tus mejores momentos.',
+    dismissLabel: 'Cerrar aviso',
+  },
+
   /** Etiquetas de la navegación lateral. El orden aquí fija el orden en el sidebar. */
   nav: {
     account: 'Cuenta',

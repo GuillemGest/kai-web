@@ -19,9 +19,17 @@ export interface PlanPrimitive {
    */
   custom: boolean
   features: string[]
-  stripePriceId: string | null
+  /**
+   * IDs de precio recurrente en Stripe (`price_...`), uno por periodo de
+   * facturación. `null` cuando el plan no se cobra vía Stripe (p. ej. KAI Free
+   * o KAI Enterprise a medida). Ambos deben referirse al MISMO producto.
+   */
+  stripePriceIdMonthly: string | null
+  stripePriceIdYearly: string | null
   highlighted: boolean
 }
+
+export type BillingPeriod = 'monthly' | 'yearly'
 
 export class Plan {
   constructor(
@@ -32,9 +40,26 @@ export class Plan {
     readonly capacity: string | null,
     readonly custom: boolean,
     readonly features: string[],
-    readonly stripePriceId: string | null,
+    readonly stripePriceIdMonthly: string | null,
+    readonly stripePriceIdYearly: string | null,
     readonly highlighted: boolean,
   ) {}
+
+  /**
+   * Indica si el plan es comprable vía Stripe Checkout: no es a medida y tiene
+   * al menos el precio mensual configurado. KAI Free/Enterprise devuelven false.
+   */
+  get isPurchasable(): boolean {
+    return !this.custom && this.stripePriceIdMonthly !== null
+  }
+
+  /**
+   * Devuelve el `price_...` de Stripe correspondiente al periodo indicado,
+   * o `null` si ese periodo no está configurado para el plan.
+   */
+  stripePriceIdFor(period: BillingPeriod): string | null {
+    return period === 'yearly' ? this.stripePriceIdYearly : this.stripePriceIdMonthly
+  }
 
   static fromPrimitive(data: PlanPrimitive): Plan {
     return new Plan(
@@ -45,7 +70,8 @@ export class Plan {
       data.capacity,
       data.custom,
       data.features,
-      data.stripePriceId,
+      data.stripePriceIdMonthly,
+      data.stripePriceIdYearly,
       data.highlighted,
     )
   }
@@ -59,7 +85,8 @@ export class Plan {
       capacity: this.capacity,
       custom: this.custom,
       features: this.features,
-      stripePriceId: this.stripePriceId,
+      stripePriceIdMonthly: this.stripePriceIdMonthly,
+      stripePriceIdYearly: this.stripePriceIdYearly,
       highlighted: this.highlighted,
     }
   }

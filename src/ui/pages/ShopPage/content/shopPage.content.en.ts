@@ -30,6 +30,25 @@ export const shopPageContent = {
     notice: 'Pricing model v1. Indicative prices that we will continue to refine based on market feedback.',
   },
 
+  // Free trial: highlighted chip in the header. Sends the visitor to login
+  // carrying the free plan (?plan=free); after signing in the trial-started
+  // notice shows in /cuenta. Always visible, signed in or not.
+  freeTrial: {
+    label: 'Free trial',
+    hint: '15 days · no card',
+    href: '/login?plan=free',
+  },
+
+  // KAI Enterprise: discreet presence below the grid for anyone who does not
+  // fit a fixed plan. Routes to sales by email (per-production quote).
+  enterpriseContact: {
+    label: 'KAI Enterprise',
+    text: 'None of these plans fit your production? We quote a tailored enterprise licence.',
+    ctaLabel: 'Talk to sales',
+    email: 'ventas@kai.app',
+    emailSubject: 'KAI Enterprise enquiry',
+  },
+
   error: {
     message: 'We could not load the plans.',
     retry: 'Retry',

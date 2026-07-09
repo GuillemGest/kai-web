@@ -5,10 +5,12 @@ import {
   Laptop,
   LogOut,
   Monitor,
+  PartyPopper,
   Shield,
   Smartphone,
   User as UserIcon,
   Users,
+  X,
 } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import type { User } from '../../modules/auth/domain/User'
@@ -81,12 +83,19 @@ function sectionFromHash(): SectionId {
   return SECTIONS.includes(hash) ? hash : 'account'
 }
 
+/** ¿Se llegó a la cuenta desde la prueba gratis (?trial=started)? Solo apariencia. */
+function trialStartedFromQuery(): boolean {
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('trial') === 'started'
+}
+
 // ===========================================================================
 export function AccountShell({ locale }: AccountShellProps) {
   const content: Content = ACCOUNT_PAGE_CONTENT[locale]
   const localeTag = content.locale
 
   const [section, setSection] = useState<SectionId>(sectionFromHash)
+  const [showTrialBanner, setShowTrialBanner] = useState(trialStartedFromQuery)
   const [user, setUser] = useState<User | null>(null)
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
@@ -138,6 +147,14 @@ export function AccountShell({ locale }: AccountShellProps) {
     }
   }
 
+  const dismissTrialBanner = () => {
+    setShowTrialBanner(false)
+    // Limpiamos ?trial=started de la URL para que no reaparezca al recargar.
+    const url = new URL(window.location.href)
+    url.searchParams.delete('trial')
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }
+
   const handleLogout = async () => {
     await authUseCases.logout.execute()
     // Sesión cerrada: volvemos a la home (donde el header ya mostrará "Iniciar sesión").
@@ -176,6 +193,26 @@ export function AccountShell({ locale }: AccountShellProps) {
           {content.logoutButton}
         </Button>
       </header>
+
+      {showTrialBanner && (
+        <div className="account-trial" role="status">
+          <span className="account-trial__icon" aria-hidden>
+            <PartyPopper size={20} strokeWidth={2} />
+          </span>
+          <div className="account-trial__body">
+            <p className="account-trial__title">{content.trialBanner.title}</p>
+            <p className="account-trial__text">{content.trialBanner.text}</p>
+          </div>
+          <button
+            type="button"
+            className="account-trial__close"
+            onClick={dismissTrialBanner}
+            aria-label={content.trialBanner.dismissLabel}
+          >
+            <X size={18} strokeWidth={2} aria-hidden />
+          </button>
+        </div>
+      )}
 
       <nav className="account__nav" aria-label={content.title}>
         {nav.map(({ id, label, Icon }) => (
