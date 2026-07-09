@@ -2,7 +2,7 @@
 import Header from '../ui/astro/Header.astro'
 import Footer from '../ui/astro/Footer.astro'
 import type { Locale } from '../i18n/locales'
-import { LOCALES, DEFAULT_LOCALE } from '../i18n/locales'
+import { LOCALES } from '../i18n/locales'
 import '../ui/styles/globals.css'
 import '../ui/layouts/PublicLayout.css'
 
@@ -28,7 +28,7 @@ const { locale, title = 'KAI' } = Astro.props
       rel="stylesheet"
     />
     {LOCALES.map((loc) => (
-      <link rel="alternate" hreflang={loc} href={loc === DEFAULT_LOCALE ? '/' : `/${loc}/`} />
+      <link rel="alternate" hreflang={loc} href={`/${loc}/`} />
     ))}
   </head>
   <body>
@@ -79,7 +79,8 @@ const { locale, title = 'KAI' } = Astro.props
           const path = window.location.pathname
           if (path.startsWith('/en') || path.startsWith('/ca')) return
 
-          const target = '/' + preferred + path
+          const bare = path.startsWith('/es') ? path.slice(3) || '/' : path
+          const target = '/' + preferred + bare
           window.location.replace(target)
         })()
       </script>

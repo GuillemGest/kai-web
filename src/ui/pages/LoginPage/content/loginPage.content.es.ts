@@ -38,6 +38,13 @@ export const loginPageContent = {
     codeSubmitLoading: 'Verificando…',
     codeBack: 'Volver',
     errorInvalidCode: 'Código incorrecto. Inténtalo de nuevo.',
+    // Paso intermedio: selección de organización (multi-org).
+    orgSelectHeading: 'Elige una organización',
+    orgSelectSubheading: 'Tu cuenta pertenece a varias organizaciones. Selecciona con cuál quieres entrar.',
+    orgSelectLabel: 'Organización',
+    orgSelectSubmitIdle: 'Continuar',
+    orgSelectSubmitLoading: 'Continuando…',
+    errorNoOrgSelected: 'Selecciona una organización para continuar.',
     redirectAfterLogin: '/cuenta',
     registerPrompt: '¿No tienes cuenta?',
     registerLink: 'Crear cuenta',

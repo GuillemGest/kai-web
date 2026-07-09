@@ -1,7 +1,8 @@
-import { AuthSession, type AuthSessionPrimitive } from '../domain/AuthSession'
-import type { IAuthRepository } from '../domain/IAuthRepository'
+import { AuthSession, type CachedSessionPrimitive } from '../domain/AuthSession'
+import type { IAuthRepository, LoginResult } from '../domain/IAuthRepository'
 import { InvalidCodeError } from '../domain/InvalidCodeError'
 import { InvalidCredentialsError } from '../domain/InvalidCredentialsError'
+import { Organization, type OrganizationPrimitive } from '../domain/Organization'
 import { User } from '../domain/User'
 
 /**
@@ -9,91 +10,125 @@ import { User } from '../domain/User'
  *
  * En el navegador usamos la ruta relativa `/auth-api`, servida por el proxy de
  * desarrollo de Vite (ver `astro.config.mjs`), para evitar el preflight CORS
- * contra el dominio del backend. Fuera del navegador (SSR, scripts) llamamos al
- * dominio absoluto, donde CORS no aplica.
+ * contra el dominio del backend. Fuera del navegador llamamos al dominio
+ * absoluto, donde CORS no aplica.
  */
 const API_BASE =
   typeof window !== 'undefined'
     ? '/auth-api'
     : 'https://authentication.amplifysoft.io/api'
 
-/** Clave de la sesión persistida en el navegador. */
-const SESSION_KEY = 'kai.auth.session'
-
 /**
- * Respuesta del primer paso. El backend responde `200 OK` incluso cuando las
- * credenciales son inválidas, indicando el fallo con `success: false`; por eso
- * hay que mirar el body, no solo el status HTTP.
+ * Clave compartida con frontend-kai para permitir handoff SSO en el ecosistema
+ * Amplify cuando ambas apps sirven en el mismo origin.
  */
-interface LoginResponse {
+const SESSION_KEY = 'cached_session'
+
+/** Marcador que el backend usa cuando exige elegir organización. */
+const SELECT_ORG_MARKER = 'SELECT_ORGANIZATION'
+
+interface LoginBackendResponse {
+  success: boolean
+  message?: string
+  payload?: OrganizationPrimitive[] | unknown
+}
+
+interface ValidateBackendResponse {
   success: boolean
   message?: string
 }
 
 /**
- * Forma esperada de la respuesta al validar el código (segundo paso).
+ * Repositorio de auth contra el backend real (Amplify).
  *
- * Es una suposición razonable hasta confirmar la respuesta real del backend;
- * si difiere, solo hay que ajustar {@link HttpAuthRepository.toSession}.
- */
-interface ValidateResponse {
-  token: string
-  user: {
-    id: string
-    email: string
-    name: string
-    createdAt: string
-  }
-}
-
-/**
- * Repositorio de auth contra el backend real (Amplify), con login en dos pasos:
+ * Contrato:
+ *  1. `POST /login/{email}` body `{ password, organization? }` →
+ *     `{ success, message, payload? }`. Ramas: credenciales inválidas,
+ *     SELECT_ORGANIZATION, JWT directo, o código 2FA enviado.
+ *  2. `POST /login/{email}/validate/{code}` body `{ password, organization? }` →
+ *     `{ success, message: <JWT> }`.
+ *  3. `GET /login/set/cookie` con `Authorization: Bearer <JWT>` (best-effort SSO).
  *
- *  1. `login(email, password)` → `POST /login/{email}` con `{ password }`.
- *     Valida credenciales y dispara el envío del código; no devuelve sesión.
- *  2. `validateCode(email, code)` → `POST /login/{email}/validate/{code}`.
- *     Valida el código y devuelve la sesión, que se persiste en `localStorage`.
- *
- * Implementa {@link IAuthRepository}, por lo que use cases y UI no cambian.
+ * El backend responde 200 aun cuando la operación falla; hay que mirar `success`.
  */
 export class HttpAuthRepository implements IAuthRepository {
-  async login(email: string, password: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/login/${email}`, {
+  async login(
+    email: string,
+    password: string,
+    organization?: string,
+  ): Promise<LoginResult> {
+    const res = await fetch(`${API_BASE}/login/${encodeURIComponent(email)}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
+      credentials: 'include',
+      body: JSON.stringify({ password, organization }),
     })
 
-    // Un status HTTP de error (5xx, etc.) es un fallo de infraestructura.
-    if (!res.ok) {
-      throw new Error(`Login failed (${res.status})`)
+    if (!res.ok) throw new Error(`Login failed (${res.status})`)
+
+    const data = (await res.json()) as LoginBackendResponse
+    if (!data.success) throw new InvalidCredentialsError()
+
+    const message = data.message ?? ''
+
+    if (message === SELECT_ORG_MARKER) {
+      const orgs = Array.isArray(data.payload)
+        ? (data.payload as OrganizationPrimitive[]).map(Organization.fromPrimitive)
+        : []
+      return { kind: 'select_org', orgs }
     }
 
-    // El backend responde 200 aun con credenciales inválidas: el resultado real
-    // está en `success`. Si es false, son credenciales incorrectas.
-    const data = (await res.json()) as LoginResponse
-    if (!data.success) {
-      throw new InvalidCredentialsError()
+    if (isJwt(message)) {
+      const session = this.buildSession(message, organization)
+      this.persist(session)
+      return { kind: 'session', session }
     }
+
+    return { kind: 'code_required' }
   }
 
-  async validateCode(email: string, code: string): Promise<AuthSession> {
-    const res = await fetch(`${API_BASE}/login/${email}/validate/${code}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    })
+  async validateCode(
+    email: string,
+    code: string,
+    password: string,
+    organization?: string,
+  ): Promise<AuthSession> {
+    const res = await fetch(
+      `${API_BASE}/login/${encodeURIComponent(email)}/validate/${encodeURIComponent(code)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ password, organization }),
+      },
+    )
 
     if (!res.ok) {
-      if (res.status === 401 || res.status === 403) {
-        throw new InvalidCodeError()
-      }
+      if (res.status === 401 || res.status === 403) throw new InvalidCodeError()
       throw new Error(`Code validation failed (${res.status})`)
     }
 
-    const data = (await res.json()) as ValidateResponse
-    const session = this.toSession(data)
+    const data = (await res.json()) as ValidateBackendResponse
+    if (!data.success || !data.message || !isJwt(data.message)) {
+      throw new InvalidCodeError()
+    }
+
+    const session = this.buildSession(data.message, organization)
     this.persist(session)
     return session
+  }
+
+  async setSsoCookie(token: string): Promise<void> {
+    try {
+      await fetch(`${API_BASE}/login/set/cookie`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+      })
+    } catch (err) {
+      // Best-effort: la ausencia de cookie SSO no impide continuar la sesión.
+      console.warn('setSsoCookie failed', err)
+    }
   }
 
   async logout(): Promise<void> {
@@ -111,17 +146,17 @@ export class HttpAuthRepository implements IAuthRepository {
     return session ? session.user : null
   }
 
-  /**
-   * Mapea la respuesta del backend a nuestro dominio. Único punto a tocar si la
-   * forma real de la respuesta difiere de {@link ValidateResponse}.
-   */
-  private toSession(data: ValidateResponse): AuthSession {
-    return AuthSession.fromPrimitive({ user: data.user, token: data.token })
+  private buildSession(token: string, organizationId?: string): AuthSession {
+    const user = User.fromJwt(token)
+    const organization = organizationId
+      ? new Organization(organizationId, organizationId)
+      : undefined
+    return new AuthSession(user, token, organization)
   }
 
   private persist(session: AuthSession): void {
     if (typeof localStorage === 'undefined') return
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session.toPrimitive()))
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session.toStoragePrimitive()))
   }
 
   private readSession(): AuthSession | null {
@@ -129,11 +164,17 @@ export class HttpAuthRepository implements IAuthRepository {
     const raw = localStorage.getItem(SESSION_KEY)
     if (!raw) return null
     try {
-      return AuthSession.fromPrimitive(JSON.parse(raw) as AuthSessionPrimitive)
+      return AuthSession.fromStoragePrimitive(
+        JSON.parse(raw) as CachedSessionPrimitive,
+      )
     } catch {
-      // Sesión corrupta: la descartamos para no dejar un estado inválido.
+      // Sesión corrupta o token inválido: descartamos.
       localStorage.removeItem(SESSION_KEY)
       return null
     }
   }
+}
+
+function isJwt(value: string): boolean {
+  return typeof value === 'string' && value.split('.').length === 3
 }

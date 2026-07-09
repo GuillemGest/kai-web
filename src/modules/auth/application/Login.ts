@@ -1,14 +1,14 @@
-import type { IAuthRepository } from '../domain/IAuthRepository'
+import type { IAuthRepository, LoginResult } from '../domain/IAuthRepository'
 
 /**
- * Primer paso del login (2FA): valida credenciales y dispara el envío del
- * código de verificación. No devuelve sesión; ese es el cometido de
- * {@link ValidateLoginCode}.
+ * Primer paso del login: valida credenciales contra el backend Amplify.
+ * Devuelve un discriminated union según la rama tomada por el backend
+ * (código 2FA enviado, selección de organización o sesión directa).
  */
 export class Login {
   constructor(private readonly repository: IAuthRepository) {}
 
-  execute(email: string, password: string): Promise<void> {
-    return this.repository.login(email, password)
+  execute(email: string, password: string, organization?: string): Promise<LoginResult> {
+    return this.repository.login(email, password, organization)
   }
 }

@@ -1,26 +1,46 @@
 import type { AuthSession } from './AuthSession'
+import type { Organization } from './Organization'
 import type { User } from './User'
+
+/**
+ * Resultado del primer paso del login. El backend Amplify puede responder de
+ * tres formas distintas ante credenciales válidas:
+ *  - `code_required`: se ha enviado un código 2FA por email/SMS.
+ *  - `select_org`: el usuario pertenece a varias organizaciones; hay que elegir
+ *    y volver a llamar a `login` con la organización seleccionada.
+ *  - `session`: sin 2FA; el backend devuelve JWT directamente.
+ */
+export type LoginResult =
+  | { kind: 'code_required' }
+  | { kind: 'select_org'; orgs: Organization[] }
+  | { kind: 'session'; session: AuthSession }
 
 export interface IAuthRepository {
   /**
-   * Primer paso del login (2FA): valida las credenciales y dispara el envío del
-   * código de verificación al usuario. No devuelve sesión todavía; la sesión
-   * solo se obtiene tras validar el código con {@link validateCode}.
+   * Primer paso del login: valida credenciales. Puede devolver estado de "envío
+   * de código 2FA", "selección de organización" o sesión ya autenticada.
    */
-  login(email: string, password: string): Promise<void>
+  login(email: string, password: string, organization?: string): Promise<LoginResult>
   /**
    * Segundo paso del login (2FA): valida el código recibido y, si es correcto,
-   * devuelve la sesión autenticada.
+   * devuelve la sesión autenticada. Reenvía password y organization al backend.
    */
-  validateCode(email: string, code: string): Promise<AuthSession>
+  validateCode(
+    email: string,
+    code: string,
+    password: string,
+    organization?: string,
+  ): Promise<AuthSession>
+  /**
+   * Best-effort: pide al backend que emita una cookie HttpOnly de SSO. Falla
+   * silenciosamente si el navegador/servidor no permite establecerla.
+   */
+  setSsoCookie(token: string): Promise<void>
   logout(): Promise<void>
   getCurrentUser(): Promise<User | null>
   /**
-   * Variante síncrona de {@link getCurrentUser}: devuelve el usuario en curso
-   * sin esperar a una promesa. Pensada para el primer render en cliente (evita
-   * el flash "invitado → cuenta"). El origen de la sesión (localStorage hoy)
-   * queda encapsulado aquí; un backend con red no podría ofrecerla y devolvería
-   * `null` hasta resolver por la vía async.
+   * Variante síncrona: devuelve el usuario en curso sin await, pensada para el
+   * primer render en cliente (evita el flash "invitado → cuenta").
    */
   getCurrentUserSync(): User | null
 }

@@ -30,6 +30,13 @@ export const loginPageContent = {
     codeSubmitLoading: 'Verifying…',
     codeBack: 'Back',
     errorInvalidCode: 'Wrong code. Please try again.',
+    // Intermediate step: organization selection (multi-org accounts).
+    orgSelectHeading: 'Choose an organization',
+    orgSelectSubheading: 'Your account belongs to multiple organizations. Pick which one you want to sign in with.',
+    orgSelectLabel: 'Organization',
+    orgSelectSubmitIdle: 'Continue',
+    orgSelectSubmitLoading: 'Continuing…',
+    errorNoOrgSelected: 'Please select an organization to continue.',
     redirectAfterLogin: '/cuenta',
     registerPrompt: "Don't have an account?",
     registerLink: 'Create account',

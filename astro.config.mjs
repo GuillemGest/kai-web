@@ -14,7 +14,16 @@ export default defineConfig({
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en', 'ca'],
-    routing: { prefixDefaultLocale: false },
+    routing: { prefixDefaultLocale: true },
+  },
+  redirects: {
+    '/': '/es/',
+    '/planes': '/es/planes',
+    '/cuenta': '/es/cuenta',
+    '/empresa': '/es/empresa',
+    '/login': '/es/login',
+    '/registro': '/es/registro',
+    '/recursos': '/es/recursos',
   },
   vite: {
     server: {
