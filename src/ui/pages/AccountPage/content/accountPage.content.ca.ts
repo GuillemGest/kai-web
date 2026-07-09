@@ -11,6 +11,7 @@ export const accountPageContent = {
   title: 'El meu compte',
   subtitle: 'Gestiona el teu perfil, la subscripció, l’equip i la seguretat.',
   notLoggedIn: 'No has iniciat sessió.',
+  logoutButton: 'Tanca la sessió',
 
   nav: {
     account: 'Compte',

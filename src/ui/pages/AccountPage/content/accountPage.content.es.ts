@@ -18,6 +18,7 @@ export const accountPageContent = {
   title: 'Mi cuenta',
   subtitle: 'Gestiona tu perfil, tu suscripción, tu equipo y tu seguridad.',
   notLoggedIn: 'No has iniciado sesión.',
+  logoutButton: 'Cerrar sesión',
 
   /** Etiquetas de la navegación lateral. El orden aquí fija el orden en el sidebar. */
   nav: {

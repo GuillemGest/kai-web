@@ -11,6 +11,7 @@ export const accountPageContent = {
   title: 'My account',
   subtitle: 'Manage your profile, subscription, team and security.',
   notLoggedIn: 'You are not signed in yet.',
+  logoutButton: 'Sign out',
 
   nav: {
     account: 'Account',

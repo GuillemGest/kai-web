@@ -14,6 +14,7 @@ export const headerContent = {
   actions: {
     loginLabel: 'Sign in',
     ctaLabel: 'Start free trial',
+    accountLabel: 'My account',
   },
   languageSelector: {
     triggerAriaLabel: 'Change language',
