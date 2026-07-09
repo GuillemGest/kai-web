@@ -1,0 +1,26 @@
+---
+import BaseLayout from '../../../../layouts/BaseLayout.astro'
+import GuidePage from '../../../../ui/astro/GuidePage.astro'
+import { getContentRepository } from '../../../../modules/content/application/getContentRepository'
+import { PAGE_TITLES } from '../../../../i18n/titles'
+import type { Locale } from '../../../../i18n/locales'
+
+export async function getStaticPaths() {
+  const repo = getContentRepository()
+  const locales: Locale[] = ['es', 'en', 'ca']
+  const entries = await Promise.all(
+    locales.map(async (lang) => {
+      const guides = await repo.getGuides(lang)
+      return guides.map((guide) => ({ params: { lang, slug: guide.slug } }))
+    }),
+  )
+  return entries.flat()
+}
+
+const lang = Astro.params.lang as Locale
+const { slug } = Astro.params
+---
+
+<BaseLayout locale={lang} title={PAGE_TITLES.guide[lang]}>
+  <GuidePage locale={lang} slug={slug as string} />
+</BaseLayout>
