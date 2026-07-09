@@ -1,7 +1,7 @@
 ---
 import { Menu, X } from 'lucide-react'
-import { Button } from '../components/Button/Button'
 import { LanguageSelector } from '../islands/LanguageSelector'
+import { HeaderActions } from '../islands/HeaderActions'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl, stripLocalePrefix } from '../../i18n/getLocaleUrl'
 import { LOCALES, type Locale } from '../../i18n/locales'
@@ -15,7 +15,6 @@ const { locale } = Astro.props
 const repo = getContentRepository()
 const content = await repo.getHeader(locale)
 const currentPath = stripLocalePrefix(Astro.url.pathname, LOCALES)
-const loginHref = getLocaleUrl('/login', locale)
 
 function isNavActive(to: string, end: boolean): boolean {
   return end ? currentPath === to : currentPath.startsWith(to) && to !== '/'
@@ -48,12 +47,14 @@ function isNavActive(to: string, end: boolean): boolean {
         triggerAriaLabel={content.languageSelector.triggerAriaLabel}
         menuAriaLabel={content.languageSelector.menuAriaLabel}
       />
-      <a href={loginHref}>
-        <Button variant="ghost">{content.actions.loginLabel}</Button>
-      </a>
-      <a href={loginHref}>
-        <Button variant="primary">{content.actions.ctaLabel}</Button>
-      </a>
+      <HeaderActions
+        client:only="react"
+        locale={locale}
+        currentPath={currentPath}
+        loginLabel={content.actions.loginLabel}
+        ctaLabel={content.actions.ctaLabel}
+        accountLabel={content.actions.accountLabel}
+      />
     </div>
 
     <button
@@ -104,16 +105,15 @@ function isNavActive(to: string, end: boolean): boolean {
           triggerAriaLabel={content.languageSelector.triggerAriaLabel}
           menuAriaLabel={content.languageSelector.menuAriaLabel}
         />
-        <a href={loginHref}>
-          <Button variant="ghost" size="large" className="header__drawer-cta">
-            {content.actions.loginLabel}
-          </Button>
-        </a>
-        <a href={loginHref}>
-          <Button variant="primary" size="large" className="header__drawer-cta">
-            {content.actions.ctaLabel}
-          </Button>
-        </a>
+        <HeaderActions
+          client:only="react"
+          variant="block"
+          locale={locale}
+          currentPath={currentPath}
+          loginLabel={content.actions.loginLabel}
+          ctaLabel={content.actions.ctaLabel}
+          accountLabel={content.actions.accountLabel}
+        />
       </div>
     </div>
   </dialog>

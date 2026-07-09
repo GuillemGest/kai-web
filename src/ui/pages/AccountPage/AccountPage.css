@@ -17,6 +17,21 @@
 
 .account__head {
   grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+}
+.account__head-text {
+  min-width: 0;
+}
+.account__logout {
+  flex-shrink: 0;
+  color: var(--fg-muted);
+}
+.account__logout:hover {
+  color: var(--error);
 }
 .account__title {
   font-size: var(--fs-h2);

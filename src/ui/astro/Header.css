@@ -94,6 +94,18 @@
   gap: var(--space-2);
 }
 
+/* Botón "Mi cuenta" en la página de cuenta: se ilumina con el accent (borde +
+   tinte + icono/texto), marcando que estás en esa sección. El accent es solo
+   para estado/interacción, coherente con el sistema de diseño KAI. */
+.header__account-btn.is-active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+.header__account-btn.is-active:hover {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
 /* Botón hamburguesa — solo móvil. Touch target 44x44. */
 .header__menu-btn {
   display: none;

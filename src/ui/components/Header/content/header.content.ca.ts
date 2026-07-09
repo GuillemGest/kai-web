@@ -14,6 +14,7 @@ export const headerContent = {
   actions: {
     loginLabel: 'Iniciar sessió',
     ctaLabel: 'Prova gratuïta',
+    accountLabel: 'El meu compte',
   },
   languageSelector: {
     triggerAriaLabel: 'Canviar idioma',

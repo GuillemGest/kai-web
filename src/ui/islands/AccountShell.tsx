@@ -3,6 +3,7 @@ import {
   CreditCard,
   Download,
   Laptop,
+  LogOut,
   Monitor,
   Shield,
   Smartphone,
@@ -20,6 +21,7 @@ import { teamUseCases } from '../../modules/team/application/factory'
 import type { Team } from '../../modules/team/domain/Team'
 import type { TeamMember } from '../../modules/team/domain/TeamMember'
 import { Button } from '../components/Button/Button'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOCALE_LABELS } from '../../i18n/locales'
 import { ACCOUNT_PAGE_CONTENT } from '../pages/AccountPage/content'
@@ -136,6 +138,12 @@ export function AccountShell({ locale }: AccountShellProps) {
     }
   }
 
+  const handleLogout = async () => {
+    await authUseCases.logout.execute()
+    // Sesión cerrada: volvemos a la home (donde el header ya mostrará "Iniciar sesión").
+    window.location.href = getLocaleUrl('/', locale)
+  }
+
   const nav = useMemo(
     () =>
       [
@@ -159,8 +167,14 @@ export function AccountShell({ locale }: AccountShellProps) {
   return (
     <div className="account">
       <header className="account__head">
-        <h1 className="account__title">{content.title}</h1>
-        <p className="account__subtitle">{content.subtitle}</p>
+        <div className="account__head-text">
+          <h1 className="account__title">{content.title}</h1>
+          <p className="account__subtitle">{content.subtitle}</p>
+        </div>
+        <Button variant="ghost" className="account__logout" onClick={handleLogout}>
+          <LogOut size={18} strokeWidth={2} aria-hidden />
+          {content.logoutButton}
+        </Button>
       </header>
 
       <nav className="account__nav" aria-label={content.title}>

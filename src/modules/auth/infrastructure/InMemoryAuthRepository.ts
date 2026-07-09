@@ -1,5 +1,6 @@
 import { AuthSession, type AuthSessionPrimitive } from '../domain/AuthSession'
 import type { IAuthRepository } from '../domain/IAuthRepository'
+import { InvalidCodeError } from '../domain/InvalidCodeError'
 import { InvalidCredentialsError } from '../domain/InvalidCredentialsError'
 import { User, type UserPrimitive } from '../domain/User'
 import accounts from './accounts.mock.json'
@@ -14,6 +15,9 @@ const MOCK_ACCOUNTS = accounts as MockAccount[]
 /** Clave de la sesión persistida en el navegador. */
 const SESSION_KEY = 'kai.auth.session'
 
+/** Código de verificación fijo del mock (solo prototipo/tests). */
+const MOCK_CODE = '123456'
+
 /**
  * Repositorio de auth de prototipo.
  *
@@ -23,9 +27,11 @@ const SESSION_KEY = 'kai.auth.session'
  * SupabaseAuthRepository sin tocar use cases ni UI.
  */
 export class InMemoryAuthRepository implements IAuthRepository {
-  async login(email: string, password: string): Promise<AuthSession> {
-    const normalizedEmail = email.trim().toLowerCase()
-    const account = MOCK_ACCOUNTS.find((a) => a.email.toLowerCase() === normalizedEmail)
+  /** Email cuyas credenciales ya pasaron el paso 1 y esperan validar el código. */
+  private pendingEmail: string | null = null
+
+  async login(email: string, password: string): Promise<void> {
+    const account = this.findAccount(email)
 
     // Mismo error para "email no existe" y "contraseña incorrecta": no filtramos
     // qué cuentas están registradas.
@@ -33,13 +39,32 @@ export class InMemoryAuthRepository implements IAuthRepository {
       throw new InvalidCredentialsError()
     }
 
+    // Primer paso superado: simulamos el envío del código y dejamos el email
+    // pendiente de validación.
+    this.pendingEmail = account.email.toLowerCase()
+  }
+
+  async validateCode(email: string, code: string): Promise<AuthSession> {
+    const account = this.findAccount(email)
+    const normalizedEmail = email.trim().toLowerCase()
+
+    if (!account || this.pendingEmail !== normalizedEmail || code !== MOCK_CODE) {
+      throw new InvalidCodeError()
+    }
+
     const { password: _password, ...userPrimitive } = account
     const session = AuthSession.fromPrimitive({
       user: userPrimitive,
       token: `mock-token-${account.id}`,
     })
+    this.pendingEmail = null
     this.persist(session)
     return session
+  }
+
+  private findAccount(email: string): MockAccount | undefined {
+    const normalizedEmail = email.trim().toLowerCase()
+    return MOCK_ACCOUNTS.find((a) => a.email.toLowerCase() === normalizedEmail)
   }
 
   async logout(): Promise<void> {
@@ -49,6 +74,10 @@ export class InMemoryAuthRepository implements IAuthRepository {
   }
 
   async getCurrentUser(): Promise<User | null> {
+    return this.getCurrentUserSync()
+  }
+
+  getCurrentUserSync(): User | null {
     const session = this.readSession()
     return session ? session.user : null
   }
