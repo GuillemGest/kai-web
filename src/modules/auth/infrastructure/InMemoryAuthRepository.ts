@@ -80,6 +80,11 @@ export class InMemoryAuthRepository implements IAuthRepository {
     // No-op en mock.
   }
 
+  async verifySession(): Promise<AuthSession | null> {
+    // Mock: la sesión persistida siempre se considera válida.
+    return this.readSession()
+  }
+
   private findAccount(email: string): MockAccount | undefined {
     const normalizedEmail = email.trim().toLowerCase()
     return MOCK_ACCOUNTS.find((a) => a.email.toLowerCase() === normalizedEmail)

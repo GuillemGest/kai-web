@@ -3,6 +3,7 @@ dist/
 .astro/
 .env
 .env.local
+env.local
 CONTEXT.md
 .claude/
 BASE_DE_DATOS.md

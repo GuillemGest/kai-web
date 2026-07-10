@@ -7,6 +7,7 @@ import { GetCurrentUserSync } from './GetCurrentUserSync'
 import { Login } from './Login'
 import { Logout } from './Logout'
 import { ValidateLoginCode } from './ValidateLoginCode'
+import { VerifyCurrentSession } from './VerifyCurrentSession'
 
 // ⚠️ PROVISIONAL: el decorator añade un "entrar mock" (sesión de desarrollo sin
 // credenciales) para probar el flujo. Para volver al login real puro, usar
@@ -21,6 +22,7 @@ export const authUseCases = {
   logout: new Logout(authRepository),
   getCurrentUser: new GetCurrentUser(authRepository),
   getCurrentUserSync: new GetCurrentUserSync(authRepository),
+  verifyCurrentSession: new VerifyCurrentSession(authRepository),
   getActiveSessions: new GetActiveSessions(deviceSessionRepository),
   // ⚠️ PROVISIONAL: crea una sesión de desarrollo al instante. Quitar con el
   // botón mock del login antes de producción.

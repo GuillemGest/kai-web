@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Check, Building2, ArrowLeft } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import type { LoginResult } from '../../modules/auth/domain/IAuthRepository'
 import type { Organization } from '../../modules/auth/domain/Organization'
@@ -42,12 +42,25 @@ export function LoginApp({ locale }: LoginAppProps) {
   }
 
   // Aplica el resultado del login a la máquina de estados.
-  function applyLoginResult(result: LoginResult) {
+  async function applyLoginResult(result: LoginResult) {
     if (result.kind === 'session') {
       redirectToApp()
       return
     }
     if (result.kind === 'select_org') {
+      // Una sola organización: entra automáticamente sin mostrar picker.
+      if (result.orgs.length === 1) {
+        const only = result.orgs[0].id
+        setSelectedOrg(only)
+        try {
+          const next = await authUseCases.login.execute(email, password, only)
+          await applyLoginResult(next)
+        } catch {
+          setError(form.errorInvalidCredentials)
+          setSubmitting(false)
+        }
+        return
+      }
       setOrgs(result.orgs)
       setStep('select_org')
       setSubmitting(false)
@@ -64,7 +77,7 @@ export function LoginApp({ locale }: LoginAppProps) {
     setSubmitting(true)
     try {
       const result = await authUseCases.login.execute(email, password, selectedOrg)
-      applyLoginResult(result)
+      await applyLoginResult(result)
     } catch {
       setError(form.errorInvalidCredentials)
       setSubmitting(false)
@@ -82,7 +95,7 @@ export function LoginApp({ locale }: LoginAppProps) {
     setSubmitting(true)
     try {
       const result = await authUseCases.login.execute(email, password, selectedOrg)
-      applyLoginResult(result)
+      await applyLoginResult(result)
     } catch {
       setError(form.errorInvalidCredentials)
       setSubmitting(false)
@@ -250,21 +263,33 @@ export function LoginApp({ locale }: LoginAppProps) {
             <h1 className="login__heading">{form.orgSelectHeading}</h1>
             <p className="login__sub">{form.orgSelectSubheading}</p>
 
-            <div className="login__fields" role="radiogroup" aria-label={form.orgSelectLabel}>
-              {orgs.map((o) => (
-                <label key={o.id} className="login__field">
-                  <input
-                    type="radio"
-                    name="organization"
-                    value={o.id}
-                    checked={selectedOrg === o.id}
-                    onChange={() => setSelectedOrg(o.id)}
-                    disabled={submitting}
-                  />
-                  <span className="login__label">{o.name}</span>
-                </label>
-              ))}
-            </div>
+            <ul className="login__org-list" role="radiogroup" aria-label={form.orgSelectLabel}>
+              {orgs.map((o) => {
+                const checked = selectedOrg === o.id
+                return (
+                  <li key={o.id}>
+                    <label className={`login__org-option${checked ? ' is-selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="organization"
+                        value={o.id}
+                        checked={checked}
+                        onChange={() => setSelectedOrg(o.id)}
+                        disabled={submitting}
+                        className="login__org-radio"
+                      />
+                      <span className="login__org-icon" aria-hidden>
+                        <Building2 size={18} strokeWidth={2} />
+                      </span>
+                      <span className="login__org-name">{o.name}</span>
+                      <span className="login__org-check" aria-hidden>
+                        {checked && <Check size={16} strokeWidth={2.5} />}
+                      </span>
+                    </label>
+                  </li>
+                )
+              })}
+            </ul>
 
             {error && (
               <p className="login__error" role="alert">
@@ -283,8 +308,9 @@ export function LoginApp({ locale }: LoginAppProps) {
               {submitting ? form.orgSelectSubmitLoading : form.orgSelectSubmitIdle}
             </Button>
 
-            <button type="button" className="login__register-link" onClick={handleBack}>
-              {form.codeBack}
+            <button type="button" className="login__back" onClick={handleBack} disabled={submitting}>
+              <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+              <span>{form.codeBack}</span>
             </button>
           </form>
         )}
@@ -329,8 +355,9 @@ export function LoginApp({ locale }: LoginAppProps) {
               {submitting ? form.codeSubmitLoading : form.codeSubmitIdle}
             </Button>
 
-            <button type="button" className="login__register-link" onClick={handleBack}>
-              {form.codeBack}
+            <button type="button" className="login__back" onClick={handleBack} disabled={submitting}>
+              <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+              <span>{form.codeBack}</span>
             </button>
           </form>
         )}

@@ -36,6 +36,12 @@ export interface IAuthRepository {
    * silenciosamente si el navegador/servidor no permite establecerla.
    */
   setSsoCookie(token: string): Promise<void>
+  /**
+   * Confirma con el backend (GET /login/session/current) que la sesión guardada
+   * sigue viva. Devuelve la sesión (posiblemente refrescada) si el backend la
+   * acepta, o `null` si la ha rechazado. Pensada para el primer render tras F5.
+   */
+  verifySession(): Promise<AuthSession | null>
   logout(): Promise<void>
   getCurrentUser(): Promise<User | null>
   /**

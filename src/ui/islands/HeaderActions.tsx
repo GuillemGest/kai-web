@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CircleUser } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import { Button } from '../components/Button/Button'
@@ -38,7 +38,28 @@ export function HeaderActions({
 }: HeaderActionsProps) {
   // Lectura síncrona en el primer render: como la isla es client:only, no hay
   // HTML de servidor con el que discrepar, así que este valor es autoritativo.
-  const [authed] = useState<boolean>(() => authUseCases.getCurrentUserSync.execute() !== null)
+  const [authed, setAuthed] = useState<boolean>(
+    () => authUseCases.getCurrentUserSync.execute() !== null,
+  )
+
+  // Tras F5 confirmamos con el backend que el token sigue vivo. Si lo rechaza,
+  // el use case ya limpia la sesión persistida; aquí solo actualizamos la UI.
+  useEffect(() => {
+    if (!authed) return
+    let cancelled = false
+    authUseCases.verifyCurrentSession
+      .execute()
+      .then((session) => {
+        if (!cancelled && session === null) setAuthed(false)
+      })
+      .catch(() => {
+        // Fallo de red: mantenemos el estado optimista para no sacar al usuario
+        // por un problema transitorio.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [authed])
   const loginHref = getLocaleUrl('/login', locale)
   const accountHref = getLocaleUrl('/cuenta', locale)
   const large = variant === 'block'
