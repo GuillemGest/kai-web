@@ -7,9 +7,8 @@ import { COUNTRIES } from '../utils/countries'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { REGISTER_PAGE_CONTENT } from '../pages/RegisterPage/content'
+import { canSsoHandoff, kaiPanelUrl } from '../../config/appUrls'
 import '../pages/RegisterPage/RegisterPage.css'
-
-const POST_REGISTER_URL = 'https://kai.amplifysoft.io/es/chat'
 
 interface RegisterAppProps {
   locale: Locale
@@ -58,7 +57,9 @@ export function RegisterApp({ locale }: RegisterAppProps) {
     try {
       const data = RegistrationData.fromPrimitive(values)
       await registrationUseCases.register.execute(data)
-      window.location.href = POST_REGISTER_URL
+      window.location.href = canSsoHandoff()
+        ? kaiPanelUrl(locale)
+        : getLocaleUrl('/cuenta', locale)
     } catch {
       setError(form.errorGeneric)
     } finally {

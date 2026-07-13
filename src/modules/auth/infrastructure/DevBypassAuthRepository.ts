@@ -1,5 +1,5 @@
 import { AuthSession } from '../domain/AuthSession'
-import type { IAuthRepository } from '../domain/IAuthRepository'
+import type { IAuthRepository, LoginResult } from '../domain/IAuthRepository'
 import { User } from '../domain/User'
 
 /**
@@ -16,7 +16,7 @@ import { User } from '../domain/User'
  * Para desactivarlo: dejar de envolver en `auth/application/factory.ts` y borrar
  * el botón mock del login.
  */
-const SESSION_KEY = 'kai.auth.session'
+const SESSION_KEY = 'cached_session'
 
 const MOCK_USER: User = User.fromPrimitive({
   id: 'dev-kai',
@@ -39,12 +39,25 @@ export class DevBypassAuthRepository implements IAuthRepository {
     return session
   }
 
-  login(email: string, password: string): Promise<void> {
-    return this.real.login(email, password)
+  login(email: string, password: string, organization?: string): Promise<LoginResult> {
+    return this.real.login(email, password, organization)
   }
 
-  validateCode(email: string, code: string): Promise<AuthSession> {
-    return this.real.validateCode(email, code)
+  validateCode(
+    email: string,
+    code: string,
+    password: string,
+    organization?: string,
+  ): Promise<AuthSession> {
+    return this.real.validateCode(email, code, password, organization)
+  }
+
+  setSsoCookie(token: string): Promise<void> {
+    return this.real.setSsoCookie(token)
+  }
+
+  verifySession(): Promise<AuthSession | null> {
+    return this.real.verifySession()
   }
 
   logout(): Promise<void> {
@@ -61,6 +74,6 @@ export class DevBypassAuthRepository implements IAuthRepository {
 
   private persist(session: AuthSession): void {
     if (typeof localStorage === 'undefined') return
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session.toPrimitive()))
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session.toStoragePrimitive()))
   }
 }

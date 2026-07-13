@@ -8,6 +8,7 @@ import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOGIN_PAGE_CONTENT } from '../pages/LoginPage/content'
 import { startCheckout } from '../utils/startCheckout'
+import { canSsoHandoff, kaiPanelUrl } from '../../config/appUrls'
 import '../pages/LoginPage/LoginPage.css'
 
 /**
@@ -104,7 +105,7 @@ export function LoginApp({ locale }: LoginAppProps) {
 
   // Continúa el flujo una vez hay sesión (login normal o mock):
   //  - si venía un plan pendiente (?plan=<id>), inicia el checkout de Stripe,
-  //  - si no, entra a la página de usuario.
+  //  - si no, hace handoff SSO al panel de frontend-kai (kai.amplifysoft.io).
   async function continueAfterAuth(userId: string, userEmail: string) {
     const planId = pendingPlanId()
     // Plan gratuito: no hay checkout de Stripe. Llevamos a la cuenta con un flag
@@ -117,6 +118,15 @@ export function LoginApp({ locale }: LoginAppProps) {
     if (planId) {
       // startCheckout redirige a Stripe; si lanza, lo gestiona quien llame.
       await startCheckout({ planId, period: 'monthly', userId, customerEmail: userEmail })
+      return
+    }
+    // Handoff SSO al panel de frontend-kai: la cookie HttpOnly de
+    // `.amplifysoft.io` ya fue emitida por setSsoCookie tras validar el código,
+    // así que frontend-kai hidrata la sesión sin re-login. Solo válido cuando
+    // el navegador puede realmente aceptar esa cookie (kai-web servido bajo
+    // *.amplifysoft.io sobre https); en dev localhost caemos al /cuenta local.
+    if (canSsoHandoff()) {
+      window.location.href = kaiPanelUrl(locale)
       return
     }
     window.location.href = getLocaleUrl(form.redirectAfterLogin, locale)

@@ -6,17 +6,28 @@ import { Organization, type OrganizationPrimitive } from '../domain/Organization
 import { User } from '../domain/User'
 
 /**
+ * URL absoluta del backend Amplify.
+ */
+const AUTH_API_URL = 'https://authentication.amplifysoft.io/api'
+
+/**
  * Base del servicio de autenticación.
  *
- * En el navegador usamos la ruta relativa `/auth-api`, servida por el proxy de
- * desarrollo de Vite (ver `astro.config.mjs`), para evitar el preflight CORS
- * contra el dominio del backend. Fuera del navegador llamamos al dominio
- * absoluto, donde CORS no aplica.
+ * - **SSR / scripts**: URL absoluta (no hay CORS).
+ * - **Browser en dev**: ruta relativa `/auth-api`, servida por el proxy de Vite
+ *   (ver `astro.config.mjs`), para evitar el preflight CORS contra el dominio
+ *   del backend en local.
+ * - **Browser en prod**: URL absoluta directa. Necesario para que el
+ *   `Set-Cookie` de `/login/set/cookie` (Domain=.amplifysoft.io) sea aceptado
+ *   por el navegador — si pasa por un proxy same-origin, el browser lo scope
+ *   al origen del proxy y descarta el cookie.
  */
 const API_BASE =
-  typeof window !== 'undefined'
-    ? '/auth-api'
-    : 'https://authentication.amplifysoft.io/api'
+  typeof window === 'undefined'
+    ? AUTH_API_URL
+    : import.meta.env.DEV
+      ? '/auth-api'
+      : AUTH_API_URL
 
 /**
  * Clave en `localStorage` compartida con frontend-kai para permitir handoff
