@@ -9,6 +9,8 @@ export const mainPageContent = {
     titleTail: ' sense revisar hores de metratge',
     lead: 'KAI indexa el teu material en brut, entén les teves cerques amb llenguatge natural i exporta les teves seleccions directament al teu editor. Redueixes l’etiquetatge manual i guanyes temps per decidir, muntar i explicar millor.',
     primaryCta: 'Veure plans',
+    secondaryCta: 'Provar gratis',
+    secondaryCtaHref: '/login?plan=free',
     videoAlt: 'KAI localitzant els moments clau dins d’una línia de temps de vídeo',
     videoPause: 'Pausar la demo',
     videoPlay: 'Reproduir la demo',

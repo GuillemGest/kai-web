@@ -1,7 +1,8 @@
 ---
 import { LifeBuoy, BookOpen, ArrowRight, Layers, Clock } from 'lucide-react'
-import { Button } from '../components/Button/Button'
 import { ResourcesSearch } from '../islands/ResourcesSearch'
+import { ContactEmail } from '../components/ContactEmail/ContactEmail'
+import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -46,6 +47,7 @@ function estimateGuideMinutes(stepCount: number): number {
         content={resourcesPageContent}
         resources={resources}
         categoryOrder={categoryOrder}
+        locale={locale}
       />
     </div>
   </header>
@@ -125,9 +127,15 @@ function estimateGuideMinutes(stepCount: number): number {
     <div class="resources__cta-inner" data-reveal>
       <h2 class="resources__cta-title">{cta.title}</h2>
       <p class="resources__cta-lead">{cta.lead}</p>
-      <a href={`mailto:${supportEmail}`}>
-        <Button variant="primary" size="large">{cta.button}</Button>
-      </a>
+      <ContactEmail
+        client:visible
+        email={supportEmail}
+        variant="primary"
+        size="large"
+        labels={CONTACT_EMAIL_LABELS[locale]}
+      >
+        {cta.button}
+      </ContactEmail>
     </div>
   </section>
 </div>

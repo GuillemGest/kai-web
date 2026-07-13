@@ -9,6 +9,8 @@ export const mainPageContent = {
     titleTail: ' without reviewing hours of footage',
     lead: 'KAI indexes your raw footage, understands your queries in natural language and exports your selections straight into your editor. You spend less time logging by hand and gain more time to decide, cut and tell a better story.',
     primaryCta: 'See plans',
+    secondaryCta: 'Try for free',
+    secondaryCtaHref: '/login?plan=free',
     videoAlt: 'KAI locating key moments inside a video timeline',
     videoPause: 'Pause the demo',
     videoPlay: 'Play the demo',

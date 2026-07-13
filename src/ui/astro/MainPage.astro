@@ -18,6 +18,9 @@ const { hero, compat, demo, features, faq, cta } = await repo.getMainPage(locale
 // Iconos asociados por posicion a las features del documento de contenido.
 const FEATURE_ICONS = [Sparkles, Wand2, Search]
 const plansHref = getLocaleUrl('/planes', locale)
+// La prueba gratis arrastra el plan gratuito al login (?plan=free); localizamos
+// la ruta base conservando el query que trae el content.
+const freeTrialHref = getLocaleUrl(hero.secondaryCtaHref, locale)
 ---
 
 <section class="hero">
@@ -31,7 +34,10 @@ const plansHref = getLocaleUrl('/planes', locale)
       <p class="hero__lead">{hero.lead}</p>
       <div class="hero__actions">
         <a href={plansHref}>
-          <Button variant="primary" size="large">{hero.primaryCta}</Button>
+          <Button variant="secondary" size="large">{hero.primaryCta}</Button>
+        </a>
+        <a href={freeTrialHref}>
+          <Button variant="primary" size="large">{hero.secondaryCta}</Button>
         </a>
       </div>
     </div>

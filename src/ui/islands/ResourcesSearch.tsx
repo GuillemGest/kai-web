@@ -1,6 +1,9 @@
 import { useDeferredValue, useId, useMemo, useState, type CSSProperties } from 'react'
 import { Search } from 'lucide-react'
 import { Button } from '../components/Button/Button'
+import { ContactEmail } from '../components/ContactEmail/ContactEmail'
+import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
+import type { Locale } from '../../i18n/locales'
 import type { ResourcesPageContent, ResourceTranslations } from '../../modules/content/domain/types'
 
 interface ResourceItem {
@@ -34,9 +37,10 @@ interface ResourcesSearchProps {
   content: ResourcesPageContent
   resources: ResourceTranslations
   categoryOrder: string[]
+  locale: Locale
 }
 
-export function ResourcesSearch({ content, resources, categoryOrder }: ResourcesSearchProps) {
+export function ResourcesSearch({ content, resources, categoryOrder, locale }: ResourcesSearchProps) {
   const { supportEmail, head, status, index, empty } = content
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
@@ -158,9 +162,13 @@ export function ResourcesSearch({ content, resources, categoryOrder }: Resources
                 <Button variant="ghost" onClick={() => setQuery('')}>
                   {empty.clearButton}
                 </Button>
-                <a href={`mailto:${supportEmail}`}>
-                  <Button variant="secondary">{empty.contactButton}</Button>
-                </a>
+                <ContactEmail
+                  email={supportEmail}
+                  variant="secondary"
+                  labels={CONTACT_EMAIL_LABELS[locale]}
+                >
+                  {empty.contactButton}
+                </ContactEmail>
               </div>
             </div>
           )}

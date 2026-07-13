@@ -1,5 +1,8 @@
 import { useEffect, useState, type CSSProperties } from 'react'
 import { ShieldCheck, CreditCard, Headset, Building2, ArrowUpRight, type LucideIcon } from 'lucide-react'
+import type { Locale } from '../../i18n/locales'
+import { ContactEmail } from '../components/ContactEmail/ContactEmail'
+import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
 import { billingUseCases } from '../../modules/billing/application/factory'
 import { authUseCases } from '../../modules/auth/application/factory'
 import { Plan } from '../../modules/billing/domain/Plan'
@@ -42,14 +45,12 @@ interface ShopPlansProps {
   content: ShopPageContent
   planTranslations: PlanTranslations
   loginHref: string
+  locale: Locale
 }
 
-export function ShopPlans({ content, planTranslations, loginHref }: ShopPlansProps) {
+export function ShopPlans({ content, planTranslations, loginHref, locale }: ShopPlansProps) {
   const { planCard, error, empty, reassurance, faq, comparison, yearlyDiscountPercent, enterpriseContact } =
     content
-  const enterpriseMailto = `mailto:${enterpriseContact.email}?subject=${encodeURIComponent(
-    enterpriseContact.emailSubject,
-  )}`
   const [plans, setPlans] = useState<Plan[]>([])
   const [state, setState] = useState<LoadState>('loading')
   // El toggle mensual/anual esta desactivado temporalmente (ver comentario en el JSX
@@ -179,10 +180,15 @@ export function ShopPlans({ content, planTranslations, loginHref }: ShopPlansPro
             <p className="shop__enterprise-label">{enterpriseContact.label}</p>
             <p className="shop__enterprise-text">{enterpriseContact.text}</p>
           </div>
-          <a className="shop__enterprise-cta" href={enterpriseMailto}>
+          <ContactEmail
+            email={enterpriseContact.email}
+            subject={enterpriseContact.emailSubject}
+            triggerClassName="shop__enterprise-cta"
+            labels={CONTACT_EMAIL_LABELS[locale]}
+          >
             {enterpriseContact.ctaLabel}
             <ArrowUpRight size={16} strokeWidth={2} aria-hidden />
-          </a>
+          </ContactEmail>
         </aside>
       )}
 

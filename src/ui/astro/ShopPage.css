@@ -169,6 +169,11 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
+  /* Reset: ahora es un <button> (abre el selector de correo), no un <a>. */
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
   color: var(--accent);
   font: var(--type-action);
   white-space: nowrap;
@@ -296,16 +301,15 @@
 .plans-grid {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-4);
   align-items: stretch;
-  /* El grid de planes rompe el --content-max de la página para dar aire a las
-     cards (5 en fila resultaban estrechas a 1200px). Se ensancha solo aquí,
-     centrado respecto al viewport; el resto de secciones sigue a --content-max.
-     Full-bleed acotado: el grid se centra en el viewport (margin-inline: 50%
-     - 50vw lo lleva a sangre completa) y luego se limita a --plans-max con
-     padding lateral que nunca baja del gutter de la página. */
-  --plans-max: 1560px;
+  justify-content: center;
+  /* El grid muestra 3 planes cloud (audioPro, fullPro, team). Se acota a un ancho
+     máximo cómodo para las 3 cards y se centra respecto al viewport; el resto de
+     secciones sigue a --content-max. margin-inline (50% - 50vw) lo lleva a sangre
+     completa y padding-inline lo limita a --plans-max sin bajar del gutter. */
+  --plans-max: 1080px;
   margin-inline: calc(50% - 50vw);
   padding-inline: max(var(--space-4), calc(50vw - var(--plans-max) / 2));
 }
@@ -420,11 +424,9 @@
 /* ==========================================================================
    Responsive
    ========================================================================== */
-/* Laptop / desktop estrecho: 5 tarjetas en 3 columnas (3 + 2).
-   Se desactiva el full-bleed de desktop y se vuelve a centrar en --content-max. */
+/* Laptop / desktop estrecho: se desactiva el full-bleed y se centra en su ancho. */
 @media (max-width: 1320px) {
   .plans-grid {
-    grid-template-columns: repeat(3, 1fr);
     max-width: 1080px;
     margin-inline: auto;
     padding-inline: 0;
