@@ -1,6 +1,8 @@
 ---
 import { ArrowLeft, LifeBuoy } from 'lucide-react'
 import { Button } from '../components/Button/Button'
+import { ContactEmail } from '../components/ContactEmail/ContactEmail'
+import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -81,9 +83,14 @@ const stepWord = stepCount === 1 ? stepWordSingular : stepWordPlural
       <a href={resourcesUrl}>
         <Button variant="ghost">{foot.moreResourcesLabel}</Button>
       </a>
-      <a href={`mailto:${supportEmail}`}>
-        <Button variant="secondary">{foot.contactLabel}</Button>
-      </a>
+      <ContactEmail
+        client:visible
+        email={supportEmail}
+        variant="secondary"
+        labels={CONTACT_EMAIL_LABELS[locale]}
+      >
+        {foot.contactLabel}
+      </ContactEmail>
     </div>
   </aside>
 </article>

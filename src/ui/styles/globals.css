@@ -191,19 +191,21 @@ h3 {
   display: none;
 }
 .faq__q::after {
-  content: '+';
-  /* Caja cuadrada: el glifo se centra por flex, así el rotate gira sobre el
-     centro real y la cruz/aspa queda alineada tanto abierta como cerrada. */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  content: '';
+  /* Cruz dibujada geométricamente (no con el glifo '+'): dos gradientes,
+     uno vertical y otro horizontal, centrados exactamente al 50% de la caja.
+     Así el trazo queda perfectamente centrado con independencia de la métrica
+     de la fuente, y el rotate gira sobre el centro real (cruz abierta ↔ aspa). */
+  display: block;
   width: 24px;
   height: 24px;
-  font-size: 24px;
-  font-weight: 400;
-  line-height: 0;
-  color: var(--accent);
   flex-shrink: 0;
+  background-image:
+    linear-gradient(var(--accent), var(--accent)),
+    linear-gradient(var(--accent), var(--accent));
+  background-size: 2px 12px, 12px 2px;
+  background-position: center, center;
+  background-repeat: no-repeat;
   transition: transform 0.25s var(--ease-out-expo);
 }
 .faq[open] .faq__q::after {
