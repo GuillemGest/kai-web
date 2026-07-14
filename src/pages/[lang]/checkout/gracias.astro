@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro'
+import { PAGE_TITLES } from '../../../i18n/titles'
+import { getLocaleUrl } from '../../../i18n/getLocaleUrl'
+import { isLocale, DEFAULT_LOCALE } from '../../../i18n/locales'
+import { CHECKOUT_THANKS_PAGE_CONTENT } from '../../../ui/pages/CheckoutThanksPage/content'
+
+// SSR: leemos el session_id que Stripe añade al success_url.
+export const prerender = false
+
+const rawLang = Astro.params.lang
+// Ruta SSR: el [lang] no pasa por getStaticPaths, así que se valida aquí.
+// Un idioma desconocido cae al locale por defecto (Stripe solo genera URLs
+// con locales válidos, construidas en el endpoint de checkout).
+const lang = isLocale(rawLang) ? rawLang : DEFAULT_LOCALE
+const content = CHECKOUT_THANKS_PAGE_CONTENT[lang]
+const sessionId = Astro.url.searchParams.get('session_id')
+---
+
+<BaseLayout locale={lang} title={PAGE_TITLES.checkoutThanks[lang]}>
+  <main class="checkout-thanks">
+    <section class="checkout-thanks__card">
+      <h1 class="checkout-thanks__title">{content.title}</h1>
+      <p class="checkout-thanks__lead">{content.lead}</p>
+      {
+        sessionId && (
+          <p class="checkout-thanks__ref">
+            {content.sessionRefLabel} <code>{sessionId}</code>
+          </p>
+        )
+      }
+      <a class="checkout-thanks__cta" href={getLocaleUrl('/cuenta', lang)}>{content.ctaLabel}</a>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .checkout-thanks {
+    display: flex;
+    justify-content: center;
+    padding: 6rem 1.5rem;
+  }
+  .checkout-thanks__card {
+    max-width: 34rem;
+    text-align: center;
+  }
+  .checkout-thanks__title {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  .checkout-thanks__lead {
+    opacity: 0.85;
+    line-height: 1.6;
+  }
+  .checkout-thanks__ref {
+    margin-top: 1.5rem;
+    font-size: 0.85rem;
+    opacity: 0.6;
+    word-break: break-all;
+  }
+  .checkout-thanks__cta {
+    display: inline-block;
+    margin-top: 2rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--r-md, 0.5rem);
+    background: var(--accent, #4cbdca);
+    color: var(--bg, #2b2b2b);
+    text-decoration: none;
+    font-weight: 700;
+  }
+</style>

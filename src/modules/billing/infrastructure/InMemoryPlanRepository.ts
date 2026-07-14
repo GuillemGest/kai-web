@@ -31,6 +31,7 @@ const PLANS: PlanPrimitive[] = [
     name: 'KAI Free',
     priceMonth: 0,
     currency: 'EUR',
+    maxUsers: 1,
     capacity: '2 GB o 1 h',
     custom: false,
     features: [
@@ -50,6 +51,7 @@ const PLANS: PlanPrimitive[] = [
     name: 'KAI Audio Analysis',
     priceMonth: 59,
     currency: 'EUR',
+    maxUsers: 1,
     capacity: '250 GB o 100 h',
     custom: false,
     features: [
@@ -67,6 +69,7 @@ const PLANS: PlanPrimitive[] = [
     name: 'KAI Full',
     priceMonth: 149,
     currency: 'EUR',
+    maxUsers: 5,
     capacity: '250 GB o 100 h',
     custom: false,
     features: [
@@ -84,6 +87,7 @@ const PLANS: PlanPrimitive[] = [
     name: 'KAI Team',
     priceMonth: 299,
     currency: 'EUR',
+    maxUsers: 10,
     capacity: '1 TB o 1.000 h',
     custom: false,
     features: [
@@ -101,6 +105,8 @@ const PLANS: PlanPrimitive[] = [
     name: 'KAI Enterprise',
     priceMonth: null,
     currency: 'EUR',
+    // A medida: el número de usuarios se pacta en la cotización.
+    maxUsers: null,
     capacity: null,
     custom: true,
     features: [

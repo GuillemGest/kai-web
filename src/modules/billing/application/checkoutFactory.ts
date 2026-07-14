@@ -18,5 +18,16 @@ import { CreateCheckoutSession } from './CreateCheckoutSession'
 export function createCheckoutUseCase(secretKey: string) {
   const planRepository = new InMemoryPlanRepository()
   const checkoutGateway = new StripeCheckoutGateway(secretKey)
-  return new CreateCheckoutSession(planRepository, checkoutGateway)
+  // Precio recurrente del asiento extra (10 €/usuario/mes), leído aquí en el
+  // composition root igual que la secret key: el use case no conoce env vars.
+  const extraSeatPriceIds = {
+    monthly: readPriceId('STRIPE_PRICE_EXTRA_SEAT_MONTHLY'),
+    yearly: readPriceId('STRIPE_PRICE_EXTRA_SEAT_YEARLY'),
+  }
+  return new CreateCheckoutSession(planRepository, checkoutGateway, extraSeatPriceIds)
+}
+
+function readPriceId(key: string): string | null {
+  const value = import.meta.env[key]
+  return typeof value === 'string' && value.length > 0 ? value : null
 }

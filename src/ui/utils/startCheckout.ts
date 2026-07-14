@@ -1,10 +1,16 @@
 import type { BillingPeriod } from '../../modules/billing/domain/Plan'
+import type { BillingDetailsPrimitive } from '../../modules/billing/domain/BillingDetails'
+import type { Locale } from '../../i18n/locales'
 
 interface StartCheckoutParams {
   planId: string
   period: BillingPeriod
+  /** Usuarios adicionales al incluido en el plan. */
+  seats: number
   userId: string
-  customerEmail: string | null
+  billingDetails: BillingDetailsPrimitive
+  /** Idioma actual, para que las URLs de retorno de Stripe queden localizadas. */
+  locale: Locale
 }
 
 /**

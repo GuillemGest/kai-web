@@ -4,11 +4,8 @@ export interface RegistrationDataPrimitive {
   company: string
   email: string
   phone: string
-  country: string
-  street: string
-  city: string
-  region: string
-  postalCode: string
+  acceptsTerms: boolean
+  acceptsNewsletter: boolean
 }
 
 export class RegistrationData {
@@ -18,11 +15,8 @@ export class RegistrationData {
     readonly company: string,
     readonly email: string,
     readonly phone: string,
-    readonly country: string,
-    readonly street: string,
-    readonly city: string,
-    readonly region: string,
-    readonly postalCode: string,
+    readonly acceptsTerms: boolean,
+    readonly acceptsNewsletter: boolean,
   ) {}
 
   static fromPrimitive(data: RegistrationDataPrimitive): RegistrationData {
@@ -32,11 +26,8 @@ export class RegistrationData {
       data.company,
       data.email,
       data.phone,
-      data.country,
-      data.street,
-      data.city,
-      data.region,
-      data.postalCode,
+      data.acceptsTerms,
+      data.acceptsNewsletter,
     )
   }
 
@@ -47,11 +38,8 @@ export class RegistrationData {
       company: this.company,
       email: this.email,
       phone: this.phone,
-      country: this.country,
-      street: this.street,
-      city: this.city,
-      region: this.region,
-      postalCode: this.postalCode,
+      acceptsTerms: this.acceptsTerms,
+      acceptsNewsletter: this.acceptsNewsletter,
     }
   }
 }

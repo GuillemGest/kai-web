@@ -23,6 +23,8 @@ export default defineConfig({
     '/empresa': '/es/empresa',
     '/login': '/es/login',
     '/registro': '/es/registro',
+    '/checkout': '/es/checkout',
+    '/confirmar-cuenta': '/es/confirmar-cuenta',
     '/recursos': '/es/recursos',
   },
   // Dev en localhost:3000: el backend permite este origen, así que el navegador

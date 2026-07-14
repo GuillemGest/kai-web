@@ -22,7 +22,10 @@
   background: var(--surface-2);
   box-shadow: 0 0 0 1px var(--accent);
 }
-@media (min-width: 1181px) {
+/* El scale del destacado solo se aplica cuando las 4 cards están en una fila
+   completa (grid de 4 col, >1080px). Por debajo el grid refluye a 3/2/1 y el
+   scale descuadraría la retícula. Coincide con el primer breakpoint de .plans-grid. */
+@media (min-width: 1081px) {
   .plan-card--highlighted {
     transform: scale(1.03);
   }
@@ -70,6 +73,10 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-2);
+  /* Reserva la altura del precio numérico para que, con o sin el eyebrow
+     "desde" (Free/Enterprise no lo tienen), el separador de features y el CTA
+     arranquen a la misma altura en las 4 cards de la fila. */
+  min-height: var(--fs-h2);
 }
 .plan-card__amount {
   display: inline-flex;
@@ -105,7 +112,12 @@
 }
 
 .plan-card__from {
-  margin-top: calc(-1 * var(--space-1));
+  /* El eyebrow "desde" se inserta entre name y price, añadiendo dos gaps del
+     flow (space-3 ×2) + su propio alto. Para que las cards CON eyebrow (planes
+     de pago) alineen el bloque de precio con las que NO lo tienen (Free,
+     Enterprise), sus márgenes neutralizan ese extra: el "desde" queda pegado
+     sobre el número sin desplazar la línea de features entre cards. */
+  margin-top: calc(-1 * var(--space-3));
   margin-bottom: calc(-1 * var(--space-2));
   color: var(--fg-muted);
   font: var(--type-secondary);
@@ -133,13 +145,16 @@
 }
 .plan-card__feature {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
   font: var(--type-body);
 }
 .plan-card__check {
   color: var(--accent);
   flex-shrink: 0;
+  /* Alinea el check a la primera línea del texto (no al centro del bloque)
+     cuando una feature ocupa dos líneas: (line-height 24px − icono 16px) / 2. */
+  margin-top: 4px;
 }
 
 .plan-card__cta {

@@ -77,6 +77,8 @@ export const accountPageContent = {
       statusLabels: {
         paid: 'Paid',
         open: 'Pending',
+        void: 'Voided',
+        uncollectible: 'Uncollectible',
         refunded: 'Refunded',
       } satisfies Record<InvoiceStatus, string>,
     },

@@ -1,17 +1,28 @@
 import type { BillingPeriod } from './Plan'
+import type { BillingDetails } from './BillingDetails'
+
+/** Línea de cobro de la sesión: precio recurrente del proveedor + cantidad. */
+export interface CheckoutLineItem {
+  /** Identificador de precio recurrente del proveedor (Stripe: `price_...`). */
+  priceId: string
+  quantity: number
+}
 
 /**
  * Datos necesarios para abrir una sesión de pago de una suscripción.
- * `priceId` es el identificador de precio recurrente del proveedor (Stripe:
- * `price_...`); el dominio no conoce el formato, solo lo transporta.
+ * El dominio no conoce el formato de los `priceId`, solo los transporta.
  */
 export interface CheckoutRequest {
-  priceId: string
+  /** Plan base ×1 y, si hay usuarios extra, el precio por asiento ×N. */
+  lineItems: CheckoutLineItem[]
+  planId: string
   period: BillingPeriod
+  /** Usuarios adicionales al incluido, para reconciliar en el webhook. */
+  extraSeats: number
   /** Identificador del usuario que compra, para asociar la suscripción. */
   userId: string
-  /** Email del comprador; el proveedor lo usa para crear/enlazar el cliente. */
-  customerEmail: string | null
+  /** Datos fiscales del comprador, ya validados (value object). */
+  billingDetails: BillingDetails
   /** URL absoluta a la que volver tras un pago con éxito. */
   successUrl: string
   /** URL absoluta a la que volver si el usuario cancela el pago. */

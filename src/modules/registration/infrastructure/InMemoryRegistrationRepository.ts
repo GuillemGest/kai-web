@@ -1,20 +1,18 @@
-import { AuthSession } from '../../auth/domain/AuthSession'
-import type { UserPrimitive } from '../../auth/domain/User'
 import type { IRegistrationRepository } from '../domain/IRegistrationRepository'
+import type { Password } from '../domain/Password'
 import type { RegistrationData } from '../domain/RegistrationData'
 
 /**
- * Repositorio de registro de prototipo: simula el alta y autentica en memoria.
- * Se sustituirá por SupabaseRegistrationRepository sin tocar use cases ni UI.
+ * Repositorio de registro de prototipo: simula el alta pendiente de confirmación
+ * y el establecimiento de contraseña. Se sustituirá por la implementación real
+ * (backend de Amplify) sin tocar use cases ni UI.
  */
 export class InMemoryRegistrationRepository implements IRegistrationRepository {
-  async register(data: RegistrationData): Promise<AuthSession> {
-    const user: UserPrimitive = {
-      id: 'user-' + Date.now(),
-      email: data.email,
-      name: `${data.firstName} ${data.lastName}`.trim(),
-      createdAt: new Date().toISOString(),
-    }
-    return AuthSession.fromPrimitive({ user, token: 'mock-token' })
+  async register(_data: RegistrationData): Promise<void> {
+    // Simula el alta pendiente + envío del correo de confirmación.
+  }
+
+  async setPassword(_email: string, _password: Password): Promise<void> {
+    // Simula la confirmación de la cuenta con la contraseña elegida.
   }
 }

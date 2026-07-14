@@ -7,18 +7,9 @@ import { Button } from '../components/Button/Button'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOGIN_PAGE_CONTENT } from '../pages/LoginPage/content'
-import { startCheckout } from '../utils/startCheckout'
 import { kaiPanelUrl } from '../../config/appUrls'
+import { pendingPlanFromQuery, pendingPlanQueryString } from '../utils/pendingPlanQuery'
 import '../pages/LoginPage/LoginPage.css'
-
-/**
- * Si el usuario llegó al login desde un plan (`?plan=<id>`), tras autenticarse
- * se inicia el checkout de ese plan en lugar de ir a la página de cuenta.
- */
-function pendingPlanId(): string | null {
-  if (typeof window === 'undefined') return null
-  return new URLSearchParams(window.location.search).get('plan')
-}
 
 interface LoginAppProps {
   locale: Locale
@@ -28,6 +19,9 @@ type Step = 'credentials' | 'select_org' | 'code'
 
 export function LoginApp({ locale }: LoginAppProps) {
   const { brand, form } = LOGIN_PAGE_CONTENT[locale]
+  // El enlace a "crear cuenta" conserva el plan pendiente para que el flujo de
+  // compra sobreviva al desvío por registro.
+  const registerHref = `${getLocaleUrl('/registro', locale)}${pendingPlanQueryString()}`
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
@@ -104,15 +98,16 @@ export function LoginApp({ locale }: LoginAppProps) {
   }
 
   // Continúa el flujo una vez hay sesión (2FA o sesión directa):
-  //  - plan de pago pendiente (?plan=<id>) → checkout de Stripe,
+  //  - plan de pago pendiente (?plan=<id>) → wizard de compra (/checkout),
   //  - plan free o sin plan → handoff SSO al panel de frontend-kai
   //    (kai.amplifysoft.io).
-  async function continueAfterAuth(userId: string, userEmail: string) {
-    const planId = pendingPlanId()
-    // Plan de pago pendiente (?plan=<id> distinto de free): checkout de Stripe.
-    // startCheckout redirige a Stripe; si lanza, lo gestiona quien llame.
-    if (planId && planId !== 'free') {
-      await startCheckout({ planId, period: 'monthly', userId, customerEmail: userEmail })
+  async function continueAfterAuth(_userId: string, _userEmail: string) {
+    const pending = pendingPlanFromQuery()
+    // Plan de pago pendiente (?plan=<id> distinto de free): al wizard, donde se
+    // eligen usuarios y datos de facturación antes del pago en Stripe.
+    if (pending && pending.planId !== 'free') {
+      const seatsQuery = pending.seats > 0 ? `&seats=${pending.seats}` : ''
+      window.location.href = `${getLocaleUrl('/checkout', locale)}?plan=${pending.planId}${seatsQuery}`
       return
     }
     // Plan free o sin plan: SIEMPRE al panel de frontend-kai. La cookie HttpOnly
@@ -222,7 +217,7 @@ export function LoginApp({ locale }: LoginAppProps) {
 
             <p className="login__register-prompt">
               {form.registerPrompt}{' '}
-              <a href={getLocaleUrl('/registro', locale)} className="login__register-link">
+              <a href={registerHref} className="login__register-link">
                 {form.registerLink}
               </a>
             </p>

@@ -301,15 +301,15 @@
 .plans-grid {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-4);
   align-items: stretch;
   justify-content: center;
-  /* El grid muestra 3 planes cloud (audioPro, fullPro, team). Se acota a un ancho
-     máximo cómodo para las 3 cards y se centra dentro del contenedor (--content-max
-     ya es mayor, así que no hace falta romper el ancho del contenedor; hacerlo con
-     50vw provocaba scroll horizontal porque 100vw incluye la barra de scroll). */
-  max-width: 1080px;
+  /* El grid muestra 4 planes: free + los tres cloud (audioPro, fullPro, team).
+     Se acota a un ancho máximo cómodo para las 4 cards y se centra dentro del
+     contenedor (hacerlo con 50vw provocaba scroll horizontal porque 100vw
+     incluye la barra de scroll). */
+  max-width: 1160px;
   margin-inline: auto;
 }
 .plans-grid__item {
@@ -423,6 +423,14 @@
 /* ==========================================================================
    Responsive
    ========================================================================== */
+/* Laptop: 3 columnas (las 4 cards se aprietan por debajo de este ancho). */
+@media (max-width: 1080px) {
+  .plans-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 900px;
+  }
+}
+
 /* Tablet / laptop estrecho: 2 columnas. */
 @media (max-width: 900px) {
   .plans-grid {

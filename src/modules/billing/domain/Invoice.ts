@@ -1,4 +1,8 @@
-export type InvoiceStatus = 'paid' | 'open' | 'refunded'
+/**
+ * Estados visibles de factura. Alineados con los de Stripe (menos `draft`,
+ * que no se lista) y con `refunded` propio para reembolsos.
+ */
+export type InvoiceStatus = 'paid' | 'open' | 'void' | 'uncollectible' | 'refunded'
 
 export interface InvoicePrimitive {
   id: string

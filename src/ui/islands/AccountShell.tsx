@@ -21,11 +21,7 @@ import type { Invoice } from '../../modules/billing/domain/Invoice'
 import type { PaymentMethod } from '../../modules/billing/domain/PaymentMethod'
 import { adminUseCases } from '../../modules/admin/application/factory'
 import type { ManagedUser } from '../../modules/admin/domain/ManagedUser'
-import {
-  isFullAdminEmail,
-  organizationIdsOf,
-  usersInOrganization,
-} from '../../modules/admin/domain/managedUsers'
+import { organizationIdsOf, usersInOrganization } from '../../modules/admin/domain/managedUsers'
 import { Button } from '../components/Button/Button'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -78,10 +74,10 @@ function initials(name: string): string {
     .join('')
 }
 
+// Todas las secciones son visibles para cualquier usuario con sesión; el rol
+// admin ya no recorta el menú (solo condiciona datos internos como el listado
+// de usuarios, que el backend devuelve vacío a los no-admin).
 const SECTIONS: readonly SectionId[] = ['account', 'billing', 'team', 'security']
-
-/** Paneles visibles solo para full admins (facturación y administración). */
-const ADMIN_ONLY_SECTIONS: readonly SectionId[] = ['billing', 'team']
 
 /** Sección inicial a partir del hash de la URL (deep-link), con fallback a 'account'. */
 function sectionFromHash(): SectionId {
@@ -104,7 +100,7 @@ export function AccountShell({ locale }: AccountShellProps) {
   const [section, setSection] = useState<SectionId>(sectionFromHash)
   const [showTrialBanner, setShowTrialBanner] = useState(trialStartedFromQuery)
   const [user, setUser] = useState<User | null>(null)
-  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
@@ -124,16 +120,20 @@ export function AccountShell({ locale }: AccountShellProps) {
       // El listado de usuarios requiere el JWT de la sesión (endpoint admin).
       const session = authUseCases.getCurrentSessionSync.execute()
       const [sub, pm, invs, users, sess] = await Promise.all([
-        billingUseCases.getCurrentSubscription.execute(currentUser.id),
+        // Suscripciones reales de Stripe por email (identidad de facturación);
+        // puede haber varias a la vez (un plan por producción, por ejemplo).
+        billingUseCases.getSubscriptions.execute(currentUser.email).catch(() => []),
         billingUseCases.getPaymentMethod.execute(currentUser.id),
-        billingUseCases.getInvoices.execute(currentUser.id),
+        // Facturas reales de Stripe: la identidad de facturación es el email
+        // (el checkout crea el Customer por email). Si falla, historial vacío.
+        billingUseCases.getInvoices.execute(currentUser.email).catch(() => []),
         session
           ? adminUseCases.getManagedUsers.execute(session.token).catch(() => [])
           : Promise.resolve([]),
         authUseCases.getActiveSessions.execute(currentUser.id),
       ])
       if (!active) return
-      setSubscription(sub)
+      setSubscriptions(sub)
       setPaymentMethod(pm)
       setInvoices(invs)
       setManagedUsers(users)
@@ -175,26 +175,17 @@ export function AccountShell({ locale }: AccountShellProps) {
     window.location.href = getLocaleUrl('/', locale)
   }
 
-  // Solo un full admin ve los paneles restringidos. Un no-admin no puede
-  // descargar el listado de usuarios (endpoint admin-only), así que la lista
-  // vacía también resuelve a false.
-  const isAdmin = user ? isFullAdminEmail(managedUsers, user.email) : false
-
-  // Si se llega por deep-link (#billing/#team) sin ser admin, cae en 'account'.
-  const activeSection: SectionId =
-    !isAdmin && ADMIN_ONLY_SECTIONS.includes(section) ? 'account' : section
+  const activeSection: SectionId = section
 
   const nav = useMemo(
     () =>
-      (
-        [
-          { id: 'account', label: content.nav.account, Icon: UserIcon },
-          { id: 'billing', label: content.nav.billing, Icon: CreditCard },
-          { id: 'team', label: content.nav.team, Icon: Users },
-          { id: 'security', label: content.nav.security, Icon: Shield },
-        ] as const
-      ).filter(({ id }) => isAdmin || !ADMIN_ONLY_SECTIONS.includes(id)),
-    [content, isAdmin],
+      [
+        { id: 'account', label: content.nav.account, Icon: UserIcon },
+        { id: 'billing', label: content.nav.billing, Icon: CreditCard },
+        { id: 'team', label: content.nav.team, Icon: Users },
+        { id: 'security', label: content.nav.security, Icon: Shield },
+      ] as const,
+    [content],
   )
 
   if (loaded && !user) {
@@ -258,17 +249,17 @@ export function AccountShell({ locale }: AccountShellProps) {
         {activeSection === 'account' && (
           <AccountSection content={content} user={user} localeTag={localeTag} locale={locale} />
         )}
-        {activeSection === 'billing' && isAdmin && (
+        {activeSection === 'billing' && (
           <BillingSection
             content={content}
             locale={locale}
             localeTag={localeTag}
-            subscription={subscription}
+            subscriptions={subscriptions}
             paymentMethod={paymentMethod}
             invoices={invoices}
           />
         )}
-        {activeSection === 'team' && isAdmin && (
+        {activeSection === 'team' && (
           <TeamSection
             content={content}
             users={managedUsers}
@@ -340,27 +331,18 @@ function BillingSection({
   content,
   locale,
   localeTag,
-  subscription,
+  subscriptions,
   paymentMethod,
   invoices,
 }: {
   content: Content
   locale: Locale
   localeTag: string
-  subscription: Subscription | null
+  subscriptions: Subscription[]
   paymentMethod: PaymentMethod | null
   invoices: Invoice[]
 }) {
   const c = content.billing
-  const planName = subscription
-    ? PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ?? subscription.planId
-    : null
-  const statusTone =
-    subscription?.status === 'active'
-      ? 'status-chip--active'
-      : subscription?.status === 'past_due'
-        ? 'status-chip--warning'
-        : 'status-chip--neutral'
 
   return (
     <section className="account-view" aria-label={c.title}>
@@ -371,26 +353,40 @@ function BillingSection({
         </div>
       </div>
 
-      {/* Plan actual */}
+      {/* Planes actuales: el usuario puede tener varias suscripciones a la vez
+          (p. ej. un plan por producción), así que se listan todas. */}
       <div className="account-panel">
         <p className="account-panel__title">{c.plan.title}</p>
-        {subscription ? (
-          <div className="plan-summary">
-            <div>
-              <p className="plan-summary__name">{planName}</p>
-              <p className="plan-summary__meta">
-                {subscription.status === 'canceled'
-                  ? `${c.plan.canceledAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
-                  : `${c.plan.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`}
-              </p>
-            </div>
-            <div className="plan-summary__aside">
-              <span className={`status-chip ${statusTone}`}>
-                {c.plan.statusLabels[subscription.status]}
-              </span>
-              <Button variant="secondary">{c.plan.changePlanButton}</Button>
-            </div>
-          </div>
+        {subscriptions.length > 0 ? (
+          subscriptions.map((subscription) => {
+            const planName =
+              PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ??
+              subscription.planId
+            const statusTone =
+              subscription.status === 'active'
+                ? 'status-chip--active'
+                : subscription.status === 'past_due'
+                  ? 'status-chip--warning'
+                  : 'status-chip--neutral'
+            return (
+              <div className="plan-summary" key={subscription.id}>
+                <div>
+                  <p className="plan-summary__name">{planName}</p>
+                  <p className="plan-summary__meta">
+                    {subscription.status === 'canceled'
+                      ? `${c.plan.canceledAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
+                      : `${c.plan.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`}
+                  </p>
+                </div>
+                <div className="plan-summary__aside">
+                  <span className={`status-chip ${statusTone}`}>
+                    {c.plan.statusLabels[subscription.status]}
+                  </span>
+                  <Button variant="secondary">{c.plan.changePlanButton}</Button>
+                </div>
+              </div>
+            )
+          })
         ) : (
           <p className="account-empty">{c.plan.empty}</p>
         )}
@@ -452,14 +448,20 @@ function BillingSection({
                       {formatAmount(inv.amount, inv.currency, localeTag)}
                     </td>
                     <td className="is-end">
-                      <a
-                        className="invoice-download"
-                        href={inv.pdfUrl ?? '#'}
-                        aria-label={fill(c.invoices.downloadAriaLabel, { number: inv.number })}
-                      >
-                        <Download size={16} strokeWidth={2} aria-hidden />
-                        {c.invoices.downloadLabel}
-                      </a>
+                      {/* PDF alojado en Stripe: se abre en pestaña nueva. Sin
+                          URL (factura aún sin PDF) no se pinta enlace. */}
+                      {inv.pdfUrl && (
+                        <a
+                          className="invoice-download"
+                          href={inv.pdfUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={fill(c.invoices.downloadAriaLabel, { number: inv.number })}
+                        >
+                          <Download size={16} strokeWidth={2} aria-hidden />
+                          {c.invoices.downloadLabel}
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))}

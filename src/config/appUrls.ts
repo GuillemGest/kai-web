@@ -22,6 +22,12 @@ export const ORIGINS = {
   /** Google Fonts (preconnect + stylesheet). */
   googleFonts: 'https://fonts.googleapis.com',
   googleFontsStatic: 'https://fonts.gstatic.com',
+  /**
+   * Términos y condiciones (enlace del checkbox de registro). PROVISIONAL:
+   * apunta a un placeholder; cuando exista la página legal real, cambiarla aquí.
+   */
+  termsAndConditions:
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTXCWGaaIRf7s8FqrrZP1Pn7RM_qzmgauztrtaTjPiw2IM_AAnpGj8hump&s=10',
 } as const
 
 /**

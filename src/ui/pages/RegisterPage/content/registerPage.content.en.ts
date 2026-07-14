@@ -7,7 +7,7 @@ export const registerPageContent = {
     quoteEmphasis: 'saving hours',
     quoteTail: ' of footage review.',
     quoteMeta:
-      'Your billing details let us activate your subscription and issue your invoices correctly from day one.',
+      'We only need your contact details: create your account and start using KAI in minutes.',
   },
 
   form: {
@@ -17,7 +17,6 @@ export const registerPageContent = {
     loginLink: 'Sign in',
 
     sectionContact: 'Contact details',
-    sectionBilling: 'Billing address',
 
     firstNameLabel: 'First name',
     firstNamePlaceholder: 'Ana',
@@ -29,23 +28,24 @@ export const registerPageContent = {
     emailLabel: 'Email',
     emailPlaceholder: 'you@email.com',
     phoneLabel: 'Phone',
+    phoneOptional: '(optional)',
     phonePlaceholder: '+1 555 000 0000',
 
-    countryLabel: 'Country',
-    streetLabel: 'Street',
-    streetPlaceholder: 'Street and number',
-    cityLabel: 'City',
-    cityPlaceholder: 'Madrid',
-    regionLabel: 'Region',
-    regionPlaceholder: 'State / province',
-    postalCodeLabel: 'Postal code',
-    postalCodeOptional: '(optional)',
-    postalCodePlaceholder: '28001',
+    termsLabelLead: 'I accept the',
+    termsLinkLabel: 'terms and conditions',
+    newsletterLabel: 'I want to receive the KAI newsletter',
 
     submitIdle: 'Create account',
     submitLoading: 'Creating account…',
     prototypeHint: 'Prototype: registering starts a demo session.',
     errorGeneric: "We couldn't create your account. Please try again.",
+    errorTermsRequired: 'You must accept the terms and conditions to continue.',
     requiredHint: '* Required field',
+
+    sentTitle: 'Check your email',
+    sentBodyLead: 'We have sent a message to',
+    sentBodyTail: 'to confirm your email and create your password.',
+    sentHint: "Can't find it? Check your spam folder.",
+    sentDevButton: 'Temporary: open the email link',
   },
 } as const

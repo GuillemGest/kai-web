@@ -3,31 +3,18 @@ import { ShieldCheck, CreditCard, Headset, Building2, ArrowUpRight, type LucideI
 import type { Locale } from '../../i18n/locales'
 import { ContactEmail } from '../components/ContactEmail/ContactEmail'
 import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
-import { CONTACT_EMAILS } from '../../config/appUrls'
+import { CONTACT_EMAILS, kaiPanelUrl } from '../../config/appUrls'
 import { billingUseCases } from '../../modules/billing/application/factory'
 import { authUseCases } from '../../modules/auth/application/factory'
 import { Plan } from '../../modules/billing/domain/Plan'
 import { PlanCard, type BillingPeriod } from '../components/PlanCard/PlanCard'
 import { PlanComparison, type PlanComparisonContent } from '../components/PlanComparison/PlanComparison'
-import { startCheckout } from '../utils/startCheckout'
+import { localizePlan } from '../utils/localizePlan'
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { ShopPageContent, PlanTranslations, PlanId } from '../../modules/content/domain/types'
 
 type LoadState = 'loading' | 'ready' | 'error'
 type ShopReassuranceIcon = ShopPageContent['reassurance'][number]['iconName']
-
-function localizePlan(
-  plan: Plan,
-  translations: Record<PlanId, { name: string; capacity: string; features: readonly string[] }>,
-): Plan {
-  const t = translations[plan.id as PlanId]
-  if (!t) return plan
-  return Plan.fromPrimitive({
-    ...plan.toPrimitive(),
-    name: t.name,
-    capacity: t.capacity,
-    features: [...t.features],
-  })
-}
 
 const REASSURANCE_ICONS: Record<ShopReassuranceIcon, LucideIcon> = {
   ShieldCheck,
@@ -35,10 +22,10 @@ const REASSURANCE_ICONS: Record<ShopReassuranceIcon, LucideIcon> = {
   Headset,
 }
 
-// Planes visibles en el grid: solo los tres cloud "del medio". El gratuito
-// (free) sale como chip de prueba en el encabezado y el a medida (enterprise)
-// como bloque de contacto discreto bajo el grid, así que se filtran aquí.
-const GRID_PLAN_IDS: readonly PlanId[] = ['audioPro', 'fullPro', 'team']
+// Planes visibles en el grid: el gratuito (free) y los tres cloud. El plan a
+// medida (enterprise) NO entra al grid: vive en el bloque de contacto discreto
+// bajo el grid, así que se filtra aquí.
+const GRID_PLAN_IDS: readonly PlanId[] = ['free', 'audioPro', 'fullPro', 'team']
 // Plan destacado del grid ("Más popular"): la puerta de entrada completa.
 const HIGHLIGHTED_PLAN_ID: PlanId = 'fullPro'
 
@@ -58,10 +45,9 @@ export function ShopPlans({ content, planTranslations, loginHref, locale }: Shop
   // original de ShopPage.tsx): el pricing v1 solo define precios mensuales.
   const [billingPeriod] = useState<BillingPeriod>('monthly')
 
-  // Solo los tres planes del medio, en orden, con el destacado forzado en
-  // presentación (el dominio los marca todos highlighted=false). El free y el
-  // enterprise no entran al grid: viven en el chip de prueba y en el bloque
-  // de contacto respectivamente.
+  // Free + los tres planes cloud, en orden, con el destacado forzado en
+  // presentación (el dominio los marca todos highlighted=false). El enterprise
+  // no entra al grid: vive en el bloque de contacto bajo el grid.
   const gridPlans = GRID_PLAN_IDS.map((id) => plans.find((p) => p.id === id)).filter(
     (p): p is Plan => Boolean(p),
   )
@@ -105,7 +91,24 @@ export function ShopPlans({ content, planTranslations, loginHref, locale }: Shop
       return
     }
 
-    // Si ya hay sesion, vamos directos al checkout de Stripe. Si no, llevamos al
+    // El plan gratuito NO es una compra: no pasa por /checkout. Se comporta como
+    // el FreeTrialButton: con sesion, handoff SSO al panel de KAI; sin sesion, al
+    // login arrastrando el plan free para activar la prueba tras entrar.
+    if (plan.id === 'free') {
+      const freeLoginHref = `${loginHref}?plan=free`
+      try {
+        const hadSession = await authUseCases.preparePanelHandoff.execute()
+        window.location.href = hadSession ? kaiPanelUrl(locale) : freeLoginHref
+      } catch {
+        // Si el handoff falla (red, backend caido…), caemos al login, que
+        // reconstruye la sesion y continua el flujo.
+        window.location.href = freeLoginHref
+      }
+      return
+    }
+
+    // Planes de pago. Si ya hay sesion, al wizard de compra (/checkout) donde se
+    // ajustan plan, usuarios y datos de facturacion antes de Stripe. Si no, al
     // login arrastrando el plan (?plan=<id>) para retomar la compra tras entrar.
     const user = authUseCases.getCurrentUserSync.execute()
     if (!user) {
@@ -113,25 +116,14 @@ export function ShopPlans({ content, planTranslations, loginHref, locale }: Shop
       return
     }
 
-    try {
-      await startCheckout({
-        planId: plan.id,
-        period: billingPeriod,
-        userId: user.id,
-        customerEmail: user.email,
-      })
-    } catch {
-      // El checkout no arranco (endpoint caido, plan sin precio...): reutilizamos
-      // el mismo aviso de error que la carga de planes.
-      setState('error')
-    }
+    window.location.href = `${getLocaleUrl('/checkout', locale)}?plan=${plan.id}`
   }
 
   return (
     <>
       {state === 'loading' && (
         <div className="plans-grid" aria-hidden>
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2, 3].map((i) => (
             <div key={i} className="plan-skeleton" />
           ))}
         </div>

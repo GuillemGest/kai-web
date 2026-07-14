@@ -77,6 +77,8 @@ export const accountPageContent = {
       statusLabels: {
         paid: 'Pagada',
         open: 'Pendent',
+        void: 'Anul·lada',
+        uncollectible: 'Impagada',
         refunded: 'Reemborsada',
       } satisfies Record<InvoiceStatus, string>,
     },

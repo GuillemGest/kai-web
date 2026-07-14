@@ -1,3 +1,11 @@
+/**
+ * Precio mensual (EUR) de cada usuario adicional al incluido en el plan.
+ * Vive en dominio porque es una regla de pricing, pero la verdad de cobro
+ * sigue siendo el `price_...` de Stripe: este valor es solo para mostrar
+ * totales en la UI y para validar límites, nunca para cobrar.
+ */
+export const EXTRA_SEAT_PRICE_MONTH = 10
+
 export interface PlanPrimitive {
   id: string
   name: string
@@ -8,6 +16,11 @@ export interface PlanPrimitive {
    */
   priceMonth: number | null
   currency: string
+  /**
+   * Número máximo TOTAL de usuarios del plan (incluido el titular).
+   * `null` cuando no aplica límite cerrado (planes a medida).
+   */
+  maxUsers: number | null
   /**
    * Subtítulo de capacidad orientativo (p. ej. "250 GB o 100 h").
    * `null` cuando no aplica (plan a medida).
@@ -37,6 +50,7 @@ export class Plan {
     readonly name: string,
     readonly priceMonth: number | null,
     readonly currency: string,
+    readonly maxUsers: number | null,
     readonly capacity: string | null,
     readonly custom: boolean,
     readonly features: string[],
@@ -61,12 +75,36 @@ export class Plan {
     return period === 'yearly' ? this.stripePriceIdYearly : this.stripePriceIdMonthly
   }
 
+  /**
+   * Usuarios adicionales que admite el plan por encima del incluido.
+   * Los planes sin límite cerrado (a medida) no venden asientos extra online.
+   */
+  get maxExtraSeats(): number {
+    return this.maxUsers !== null ? Math.max(0, this.maxUsers - 1) : 0
+  }
+
+  /** Valida que `extraSeats` sea un entero dentro de los límites del plan. */
+  allowsExtraSeats(extraSeats: number): boolean {
+    return Number.isInteger(extraSeats) && extraSeats >= 0 && extraSeats <= this.maxExtraSeats
+  }
+
+  /**
+   * Precio mensual total con `extraSeats` usuarios adicionales, o `null` si el
+   * plan no tiene precio fijo. Solo para mostrar: el cobro real lo calculan los
+   * `price_...` de Stripe en el servidor.
+   */
+  totalPriceMonth(extraSeats: number): number | null {
+    if (this.priceMonth === null) return null
+    return this.priceMonth + extraSeats * EXTRA_SEAT_PRICE_MONTH
+  }
+
   static fromPrimitive(data: PlanPrimitive): Plan {
     return new Plan(
       data.id,
       data.name,
       data.priceMonth,
       data.currency,
+      data.maxUsers,
       data.capacity,
       data.custom,
       data.features,
@@ -82,6 +120,7 @@ export class Plan {
       name: this.name,
       priceMonth: this.priceMonth,
       currency: this.currency,
+      maxUsers: this.maxUsers,
       capacity: this.capacity,
       custom: this.custom,
       features: this.features,

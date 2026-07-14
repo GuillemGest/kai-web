@@ -10,7 +10,7 @@ export const registerPageContent = {
     quoteEmphasis: 'ahorrar horas',
     quoteTail: ' de revisión de metraje.',
     quoteMeta:
-      'Tus datos de facturación nos permiten activar tu suscripción y emitir tus facturas correctamente desde el primer día.',
+      'Solo necesitamos tus datos de contacto: crea tu cuenta y empieza a usar KAI en minutos.',
   },
 
   form: {
@@ -20,7 +20,6 @@ export const registerPageContent = {
     loginLink: 'Inicia sesión',
 
     sectionContact: 'Datos de contacto',
-    sectionBilling: 'Dirección de facturación',
 
     firstNameLabel: 'Nombre',
     firstNamePlaceholder: 'Ana',
@@ -32,23 +31,24 @@ export const registerPageContent = {
     emailLabel: 'Correo electrónico',
     emailPlaceholder: 'tu@email.com',
     phoneLabel: 'Teléfono',
+    phoneOptional: '(opcional)',
     phonePlaceholder: '+34 600 000 000',
 
-    countryLabel: 'País',
-    streetLabel: 'Calle',
-    streetPlaceholder: 'Calle y número',
-    cityLabel: 'Ciudad',
-    cityPlaceholder: 'Madrid',
-    regionLabel: 'Región',
-    regionPlaceholder: 'Comunidad de Madrid',
-    postalCodeLabel: 'Código postal',
-    postalCodeOptional: '(opcional)',
-    postalCodePlaceholder: '28001',
+    termsLabelLead: 'Acepto los',
+    termsLinkLabel: 'términos y condiciones',
+    newsletterLabel: 'Quiero recibir la newsletter de KAI',
 
     submitIdle: 'Crear cuenta',
     submitLoading: 'Creando cuenta…',
     prototypeHint: 'Prototipo: el registro crea una sesión de demostración.',
     errorGeneric: 'No hemos podido crear tu cuenta. Inténtalo de nuevo.',
+    errorTermsRequired: 'Debes aceptar los términos y condiciones para continuar.',
     requiredHint: '* Campo obligatorio',
+
+    sentTitle: 'Revisa tu correo',
+    sentBodyLead: 'Hemos enviado un mensaje a',
+    sentBodyTail: 'para confirmar tu email y crear tu contraseña.',
+    sentHint: 'Si no lo encuentras, mira en la carpeta de spam.',
+    sentDevButton: 'Provisional: abrir el enlace del correo',
   },
 } as const
