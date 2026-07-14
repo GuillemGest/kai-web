@@ -49,4 +49,10 @@ export interface IAuthRepository {
    * primer render en cliente (evita el flash "invitado → cuenta").
    */
   getCurrentUserSync(): User | null
+  /**
+   * Sesión completa (con token) en curso, de forma síncrona. A diferencia de
+   * `getCurrentUserSync`, expone el token, necesario para disparar el handoff
+   * SSO (`setSsoCookie`) antes de saltar a otra app del ecosistema Amplify.
+   */
+  getCurrentSessionSync(): AuthSession | null
 }

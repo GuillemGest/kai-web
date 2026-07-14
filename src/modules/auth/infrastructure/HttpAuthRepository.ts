@@ -4,30 +4,7 @@ import { InvalidCodeError } from '../domain/InvalidCodeError'
 import { InvalidCredentialsError } from '../domain/InvalidCredentialsError'
 import { Organization, type OrganizationPrimitive } from '../domain/Organization'
 import { User } from '../domain/User'
-
-/**
- * URL absoluta del backend Amplify.
- */
-const AUTH_API_URL = 'https://authentication.amplifysoft.io/api'
-
-/**
- * Base del servicio de autenticación.
- *
- * - **SSR / scripts**: URL absoluta (no hay CORS).
- * - **Browser en dev**: ruta relativa `/auth-api`, servida por el proxy de Vite
- *   (ver `astro.config.mjs`), para evitar el preflight CORS contra el dominio
- *   del backend en local.
- * - **Browser en prod**: URL absoluta directa. Necesario para que el
- *   `Set-Cookie` de `/login/set/cookie` (Domain=.amplifysoft.io) sea aceptado
- *   por el navegador — si pasa por un proxy same-origin, el browser lo scope
- *   al origen del proxy y descarta el cookie.
- */
-const API_BASE =
-  typeof window === 'undefined'
-    ? AUTH_API_URL
-    : import.meta.env.DEV
-      ? '/auth-api'
-      : AUTH_API_URL
+import { AUTH_API_BASE } from '../../../config/appUrls'
 
 /**
  * Clave en `localStorage` compartida con frontend-kai para permitir handoff
@@ -88,7 +65,8 @@ export class HttpAuthRepository implements IAuthRepository {
     password: string,
     organization?: string,
   ): Promise<LoginResult> {
-    const res = await fetch(`${API_BASE}/login/${encodeURIComponent(email)}`, {
+    // El backend espera el email literal en la ruta (con `@`, no `%40`).
+    const res = await fetch(`${AUTH_API_BASE}/login/${email}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -125,7 +103,7 @@ export class HttpAuthRepository implements IAuthRepository {
     organization?: string,
   ): Promise<AuthSession> {
     const res = await fetch(
-      `${API_BASE}/login/${encodeURIComponent(email)}/validate/${encodeURIComponent(code)}`,
+      `${AUTH_API_BASE}/login/${email}/validate/${encodeURIComponent(code)}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -151,7 +129,7 @@ export class HttpAuthRepository implements IAuthRepository {
 
   async setSsoCookie(token: string): Promise<void> {
     try {
-      await fetch(`${API_BASE}/login/set/cookie`, {
+      await fetch(`${AUTH_API_BASE}/login/set/cookie`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${token}` },
         credentials: 'include',
@@ -174,7 +152,7 @@ export class HttpAuthRepository implements IAuthRepository {
     if (!session) return null
 
     try {
-      const res = await fetch(`${API_BASE}/login/session/current`, {
+      const res = await fetch(`${AUTH_API_BASE}/login/session/current`, {
         method: 'GET',
         headers: { Authorization: `Bearer ${session.token}` },
         credentials: 'include',
@@ -223,6 +201,10 @@ export class HttpAuthRepository implements IAuthRepository {
   getCurrentUserSync(): User | null {
     const session = this.readSession()
     return session ? session.user : null
+  }
+
+  getCurrentSessionSync(): AuthSession | null {
+    return this.readSession()
   }
 
   private buildSession(token: string, organizationId?: string): AuthSession {

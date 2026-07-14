@@ -8,7 +8,6 @@
  * Regla: si aparece un texto nuevo en GuidePage, va aquí, no en el JSX.
  */
 export const guidePageContent = {
-  supportEmail: 'soporte@kai.app',
   resourcesHref: '/recursos',
 
   breadcrumbAriaLabel: 'Migas de pan',

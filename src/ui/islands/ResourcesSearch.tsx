@@ -3,6 +3,7 @@ import { Search } from 'lucide-react'
 import { Button } from '../components/Button/Button'
 import { ContactEmail } from '../components/ContactEmail/ContactEmail'
 import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
+import { CONTACT_EMAILS } from '../../config/appUrls'
 import type { Locale } from '../../i18n/locales'
 import type { ResourcesPageContent, ResourceTranslations } from '../../modules/content/domain/types'
 
@@ -41,7 +42,7 @@ interface ResourcesSearchProps {
 }
 
 export function ResourcesSearch({ content, resources, categoryOrder, locale }: ResourcesSearchProps) {
-  const { supportEmail, head, status, index, empty } = content
+  const { head, status, index, empty } = content
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
   const searchId = useId()
@@ -163,7 +164,7 @@ export function ResourcesSearch({ content, resources, categoryOrder, locale }: R
                   {empty.clearButton}
                 </Button>
                 <ContactEmail
-                  email={supportEmail}
+                  email={CONTACT_EMAILS.support}
                   variant="secondary"
                   labels={CONTACT_EMAIL_LABELS[locale]}
                 >

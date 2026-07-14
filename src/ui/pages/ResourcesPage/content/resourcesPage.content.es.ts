@@ -10,7 +10,6 @@
  * Aquí solo va el "chrome" de la página.
  */
 export const resourcesPageContent = {
-  supportEmail: 'soporte@kai.app',
 
   head: {
     badge: 'Centro de recursos',

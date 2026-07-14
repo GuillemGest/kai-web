@@ -5,6 +5,7 @@ import { ContactEmail } from '../components/ContactEmail/ContactEmail'
 import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import { CONTACT_EMAILS } from '../../config/appUrls'
 import type { Locale } from '../../i18n/locales'
 import './GuidePage.css'
 
@@ -16,7 +17,6 @@ interface Props {
 const { locale, slug } = Astro.props
 const repo = getContentRepository()
 const {
-  supportEmail,
   resourcesHref,
   breadcrumbAriaLabel,
   backLabel,
@@ -85,7 +85,7 @@ const stepWord = stepCount === 1 ? stepWordSingular : stepWordPlural
       </a>
       <ContactEmail
         client:visible
-        email={supportEmail}
+        email={CONTACT_EMAILS.support}
         variant="secondary"
         labels={CONTACT_EMAIL_LABELS[locale]}
       >

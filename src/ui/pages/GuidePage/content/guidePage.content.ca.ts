@@ -2,7 +2,6 @@
  * Traducció al català (ca) del contingut chrome de GuidePage.
  */
 export const guidePageContent = {
-  supportEmail: 'soporte@kai.app',
   resourcesHref: '/recursos',
 
   breadcrumbAriaLabel: 'Molles de pa',

@@ -45,7 +45,6 @@ export const shopPageContent = {
     label: 'KAI Enterprise',
     text: 'None of these plans fit your production? We quote a tailored enterprise licence.',
     ctaLabel: 'Talk to sales',
-    email: 'ventas@kai.app',
     emailSubject: 'KAI Enterprise enquiry',
   },
 

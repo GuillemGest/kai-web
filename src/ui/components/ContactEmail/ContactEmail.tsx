@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Copy, Check, ExternalLink } from 'lucide-react'
 import { Button } from '../Button/Button'
+import { ORIGINS } from '../../../config/appUrls'
 import './ContactEmail.css'
 
 type Variant = 'primary' | 'secondary' | 'ghost'
@@ -104,13 +105,13 @@ export function ContactEmail({
 
   // URLs de composición: Gmail y Outlook web reciben destinatario/asunto/cuerpo
   // por query; el mailto sirve de fallback para clientes de escritorio.
-  const gmailUrl = new URL('https://mail.google.com/mail/')
+  const gmailUrl = new URL(ORIGINS.gmailCompose)
   gmailUrl.searchParams.set('view', 'cm')
   gmailUrl.searchParams.set('to', email)
   if (subject) gmailUrl.searchParams.set('su', subject)
   if (body) gmailUrl.searchParams.set('body', body)
 
-  const outlookUrl = new URL('https://outlook.office.com/mail/deeplink/compose')
+  const outlookUrl = new URL(ORIGINS.outlookCompose)
   outlookUrl.searchParams.set('to', email)
   if (subject) outlookUrl.searchParams.set('subject', subject)
   if (body) outlookUrl.searchParams.set('body', body)

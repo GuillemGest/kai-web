@@ -3,6 +3,7 @@ import { ShieldCheck, CreditCard, Headset, Building2, ArrowUpRight, type LucideI
 import type { Locale } from '../../i18n/locales'
 import { ContactEmail } from '../components/ContactEmail/ContactEmail'
 import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
+import { CONTACT_EMAILS } from '../../config/appUrls'
 import { billingUseCases } from '../../modules/billing/application/factory'
 import { authUseCases } from '../../modules/auth/application/factory'
 import { Plan } from '../../modules/billing/domain/Plan'
@@ -181,7 +182,7 @@ export function ShopPlans({ content, planTranslations, loginHref, locale }: Shop
             <p className="shop__enterprise-text">{enterpriseContact.text}</p>
           </div>
           <ContactEmail
-            email={enterpriseContact.email}
+            email={CONTACT_EMAILS.sales}
             subject={enterpriseContact.emailSubject}
             triggerClassName="shop__enterprise-cta"
             labels={CONTACT_EMAIL_LABELS[locale]}

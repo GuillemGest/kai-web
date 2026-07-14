@@ -1,6 +1,5 @@
 import type { Subscription } from '../../../../modules/billing/domain/Subscription'
 import type { InvoiceStatus } from '../../../../modules/billing/domain/Invoice'
-import type { TeamRole, MemberStatus } from '../../../../modules/team/domain/TeamMember'
 
 /**
  * Traducció al català (ca) del contingut del tauler "El meu compte".
@@ -84,25 +83,13 @@ export const accountPageContent = {
   },
 
   team: {
-    title: 'Administració de l’equip',
-    description: 'Membres de la teva organització i seients del teu pla.',
-    seatsUsed: 'seients en ús',
-    seatsOf: 'de',
+    title: 'Administració d’usuaris',
+    description: 'Usuaris de cada organització de la plataforma.',
     inviteButton: 'Convida algú',
-    memberColumn: 'Membre',
-    roleColumn: 'Rol',
-    statusColumn: 'Estat',
-    joinedColumn: 'Des de',
-    manageAria: 'Gestiona {name}',
-    roleLabels: {
-      owner: 'Propietari',
-      admin: 'Administrador',
-      editor: 'Editor',
-    } satisfies Record<TeamRole, string>,
-    statusLabels: {
-      active: 'Actiu',
-      invited: 'Invitació pendent',
-    } satisfies Record<MemberStatus, string>,
+    organizationLabel: 'Organització',
+    usersInOrg: 'usuaris en aquesta organització',
+    emptyUsers: 'No hi ha usuaris per mostrar.',
+    fullAdminLabel: 'Administrador',
   },
 
   security: {

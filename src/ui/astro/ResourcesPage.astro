@@ -5,6 +5,7 @@ import { ContactEmail } from '../components/ContactEmail/ContactEmail'
 import { CONTACT_EMAIL_LABELS } from '../components/ContactEmail/ContactEmail.labels'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import { CONTACT_EMAILS } from '../../config/appUrls'
 import type { Locale } from '../../i18n/locales'
 import './ResourcesPage.css'
 
@@ -17,7 +18,7 @@ const repo = getContentRepository()
 const resourcesPageContent = await repo.getResourcesPage(locale)
 const { categoryOrder, resources } = await repo.getResources(locale)
 const guides = await repo.getGuides(locale)
-const { supportEmail, head, guides: guidesCopy, cta } = resourcesPageContent
+const { head, guides: guidesCopy, cta } = resourcesPageContent
 const meta = guidesCopy.meta
 
 /** Nº de pasos que se muestran como adelanto en la tarjeta de guia. */
@@ -129,7 +130,7 @@ function estimateGuideMinutes(stepCount: number): number {
       <p class="resources__cta-lead">{cta.lead}</p>
       <ContactEmail
         client:visible
-        email={supportEmail}
+        email={CONTACT_EMAILS.support}
         variant="primary"
         size="large"
         labels={CONTACT_EMAIL_LABELS[locale]}

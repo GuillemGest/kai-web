@@ -1,6 +1,5 @@
 import type { Subscription } from '../../../../modules/billing/domain/Subscription'
 import type { InvoiceStatus } from '../../../../modules/billing/domain/Invoice'
-import type { TeamRole, MemberStatus } from '../../../../modules/team/domain/TeamMember'
 
 /**
  * English (en) translation of the "My account" panel content.
@@ -84,25 +83,13 @@ export const accountPageContent = {
   },
 
   team: {
-    title: 'Team administration',
-    description: 'Members of your organisation and the seats in your plan.',
-    seatsUsed: 'seats in use',
-    seatsOf: 'of',
+    title: 'User administration',
+    description: 'Users of each organisation on the platform.',
     inviteButton: 'Invite someone',
-    memberColumn: 'Member',
-    roleColumn: 'Role',
-    statusColumn: 'Status',
-    joinedColumn: 'Since',
-    manageAria: 'Manage {name}',
-    roleLabels: {
-      owner: 'Owner',
-      admin: 'Admin',
-      editor: 'Editor',
-    } satisfies Record<TeamRole, string>,
-    statusLabels: {
-      active: 'Active',
-      invited: 'Invitation pending',
-    } satisfies Record<MemberStatus, string>,
+    organizationLabel: 'Organisation',
+    usersInOrg: 'users in this organisation',
+    emptyUsers: 'No users to show.',
+    fullAdminLabel: 'Admin',
   },
 
   security: {

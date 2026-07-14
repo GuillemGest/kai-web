@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { CircleUser } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import { Button } from '../components/Button/Button'
+import { FreeTrialButton } from './FreeTrialButton'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 
@@ -61,9 +62,13 @@ export function HeaderActions({
     }
   }, [authed])
   const loginHref = getLocaleUrl('/login', locale)
+  // La prueba gratis sin sesión arrastra el plan gratuito al login (?plan=free);
+  // con sesión, FreeTrialButton hace el handoff al panel de KAI.
+  const freeTrialLoginHref = getLocaleUrl('/login?plan=free', locale)
   const accountHref = getLocaleUrl('/cuenta', locale)
   const large = variant === 'block'
   const linkClass = large ? 'header__drawer-cta' : undefined
+  const btnSize = large ? 'large' : 'default'
   // ¿Estamos en la página de cuenta? Marca el botón como activo.
   const onAccount = currentPath === '/cuenta' || currentPath.startsWith('/cuenta')
 
@@ -72,27 +77,38 @@ export function HeaderActions({
       .filter(Boolean)
       .join(' ')
     return (
-      <a href={accountHref} className={linkClass} aria-current={onAccount ? 'page' : undefined}>
-        <Button variant="secondary" size={large ? 'large' : 'default'} className={btnClass}>
-          <CircleUser size={18} strokeWidth={2} aria-hidden />
-          {accountLabel}
-        </Button>
-      </a>
+      <>
+        <a href={accountHref} className={linkClass} aria-current={onAccount ? 'page' : undefined}>
+          <Button variant="secondary" size={btnSize} className={btnClass}>
+            <CircleUser size={18} strokeWidth={2} aria-hidden />
+            {accountLabel}
+          </Button>
+        </a>
+        <FreeTrialButton
+          locale={locale}
+          label={ctaLabel}
+          loginHref={freeTrialLoginHref}
+          size={btnSize}
+          className={linkClass}
+        />
+      </>
     )
   }
 
   return (
     <>
       <a href={loginHref} className={linkClass}>
-        <Button variant="ghost" size={large ? 'large' : 'default'} className={linkClass}>
+        <Button variant="ghost" size={btnSize} className={linkClass}>
           {loginLabel}
         </Button>
       </a>
-      <a href={loginHref} className={linkClass}>
-        <Button variant="primary" size={large ? 'large' : 'default'} className={linkClass}>
-          {ctaLabel}
-        </Button>
-      </a>
+      <FreeTrialButton
+        locale={locale}
+        label={ctaLabel}
+        loginHref={freeTrialLoginHref}
+        size={btnSize}
+        className={linkClass}
+      />
     </>
   )
 }

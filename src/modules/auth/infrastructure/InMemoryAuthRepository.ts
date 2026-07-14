@@ -105,6 +105,10 @@ export class InMemoryAuthRepository implements IAuthRepository {
     return session ? session.user : null
   }
 
+  getCurrentSessionSync(): AuthSession | null {
+    return this.readSession()
+  }
+
   private persist(session: AuthSession): void {
     if (typeof localStorage === 'undefined') return
     // Mock: guardamos el shape completo (con user) para no depender de decodificar JWT.

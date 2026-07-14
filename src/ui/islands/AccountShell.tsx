@@ -19,9 +19,13 @@ import { billingUseCases } from '../../modules/billing/application/factory'
 import type { Subscription } from '../../modules/billing/domain/Subscription'
 import type { Invoice } from '../../modules/billing/domain/Invoice'
 import type { PaymentMethod } from '../../modules/billing/domain/PaymentMethod'
-import { teamUseCases } from '../../modules/team/application/factory'
-import type { Team } from '../../modules/team/domain/Team'
-import type { TeamMember } from '../../modules/team/domain/TeamMember'
+import { adminUseCases } from '../../modules/admin/application/factory'
+import type { ManagedUser } from '../../modules/admin/domain/ManagedUser'
+import {
+  isFullAdminEmail,
+  organizationIdsOf,
+  usersInOrganization,
+} from '../../modules/admin/domain/managedUsers'
 import { Button } from '../components/Button/Button'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -76,6 +80,9 @@ function initials(name: string): string {
 
 const SECTIONS: readonly SectionId[] = ['account', 'billing', 'team', 'security']
 
+/** Paneles visibles solo para full admins (facturación y administración). */
+const ADMIN_ONLY_SECTIONS: readonly SectionId[] = ['billing', 'team']
+
 /** Sección inicial a partir del hash de la URL (deep-link), con fallback a 'account'. */
 function sectionFromHash(): SectionId {
   if (typeof window === 'undefined') return 'account'
@@ -100,7 +107,8 @@ export function AccountShell({ locale }: AccountShellProps) {
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
-  const [team, setTeam] = useState<Team | null>(null)
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
+  const [selectedOrg, setSelectedOrg] = useState<string | null>(null)
   const [sessions, setSessions] = useState<DeviceSession[]>([])
   const [loaded, setLoaded] = useState(false)
 
@@ -113,18 +121,24 @@ export function AccountShell({ locale }: AccountShellProps) {
         setLoaded(true)
         return
       }
-      const [sub, pm, invs, tm, sess] = await Promise.all([
+      // El listado de usuarios requiere el JWT de la sesión (endpoint admin).
+      const session = authUseCases.getCurrentSessionSync.execute()
+      const [sub, pm, invs, users, sess] = await Promise.all([
         billingUseCases.getCurrentSubscription.execute(currentUser.id),
         billingUseCases.getPaymentMethod.execute(currentUser.id),
         billingUseCases.getInvoices.execute(currentUser.id),
-        teamUseCases.getTeam.execute(currentUser.id),
+        session
+          ? adminUseCases.getManagedUsers.execute(session.token).catch(() => [])
+          : Promise.resolve([]),
         authUseCases.getActiveSessions.execute(currentUser.id),
       ])
       if (!active) return
       setSubscription(sub)
       setPaymentMethod(pm)
       setInvoices(invs)
-      setTeam(tm)
+      setManagedUsers(users)
+      // Preselecciona la primera organización disponible.
+      setSelectedOrg(organizationIdsOf(users)[0] ?? null)
       setSessions(sess)
       setLoaded(true)
     })
@@ -161,15 +175,26 @@ export function AccountShell({ locale }: AccountShellProps) {
     window.location.href = getLocaleUrl('/', locale)
   }
 
+  // Solo un full admin ve los paneles restringidos. Un no-admin no puede
+  // descargar el listado de usuarios (endpoint admin-only), así que la lista
+  // vacía también resuelve a false.
+  const isAdmin = user ? isFullAdminEmail(managedUsers, user.email) : false
+
+  // Si se llega por deep-link (#billing/#team) sin ser admin, cae en 'account'.
+  const activeSection: SectionId =
+    !isAdmin && ADMIN_ONLY_SECTIONS.includes(section) ? 'account' : section
+
   const nav = useMemo(
     () =>
-      [
-        { id: 'account', label: content.nav.account, Icon: UserIcon },
-        { id: 'billing', label: content.nav.billing, Icon: CreditCard },
-        { id: 'team', label: content.nav.team, Icon: Users },
-        { id: 'security', label: content.nav.security, Icon: Shield },
-      ] as const,
-    [content],
+      (
+        [
+          { id: 'account', label: content.nav.account, Icon: UserIcon },
+          { id: 'billing', label: content.nav.billing, Icon: CreditCard },
+          { id: 'team', label: content.nav.team, Icon: Users },
+          { id: 'security', label: content.nav.security, Icon: Shield },
+        ] as const
+      ).filter(({ id }) => isAdmin || !ADMIN_ONLY_SECTIONS.includes(id)),
+    [content, isAdmin],
   )
 
   if (loaded && !user) {
@@ -220,7 +245,7 @@ export function AccountShell({ locale }: AccountShellProps) {
             key={id}
             type="button"
             className="account-tab"
-            aria-current={section === id ? 'page' : undefined}
+            aria-current={activeSection === id ? 'page' : undefined}
             onClick={() => goTo(id)}
           >
             <Icon className="account-tab__icon" size={18} strokeWidth={2} aria-hidden />
@@ -230,10 +255,10 @@ export function AccountShell({ locale }: AccountShellProps) {
       </nav>
 
       <div className="account__panel">
-        {section === 'account' && (
+        {activeSection === 'account' && (
           <AccountSection content={content} user={user} localeTag={localeTag} locale={locale} />
         )}
-        {section === 'billing' && (
+        {activeSection === 'billing' && isAdmin && (
           <BillingSection
             content={content}
             locale={locale}
@@ -243,10 +268,15 @@ export function AccountShell({ locale }: AccountShellProps) {
             invoices={invoices}
           />
         )}
-        {section === 'team' && (
-          <TeamSection content={content} team={team} localeTag={localeTag} />
+        {activeSection === 'team' && isAdmin && (
+          <TeamSection
+            content={content}
+            users={managedUsers}
+            selectedOrg={selectedOrg}
+            onSelectOrg={setSelectedOrg}
+          />
         )}
-        {section === 'security' && (
+        {activeSection === 'security' && (
           <SecuritySection content={content} sessions={sessions} localeTag={localeTag} />
         )}
       </div>
@@ -444,18 +474,21 @@ function BillingSection({
   )
 }
 
-// --- Sección: Administración del equipo ------------------------------------
+// --- Sección: Administración de usuarios ------------------------------------
 function TeamSection({
   content,
-  team,
-  localeTag,
+  users,
+  selectedOrg,
+  onSelectOrg,
 }: {
   content: Content
-  team: Team | null
-  localeTag: string
+  users: ManagedUser[]
+  selectedOrg: string | null
+  onSelectOrg: (organizationId: string) => void
 }) {
   const c = content.team
-  const fillPct = team && team.seatsTotal > 0 ? Math.round((team.seatsUsed / team.seatsTotal) * 100) : 0
+  const orgIds = organizationIdsOf(users)
+  const visibleUsers = selectedOrg ? usersInOrganization(users, selectedOrg) : []
 
   return (
     <section className="account-view" aria-label={c.title}>
@@ -467,70 +500,58 @@ function TeamSection({
         <Button variant="primary">{c.inviteButton}</Button>
       </div>
 
-      {team ? (
+      {orgIds.length > 0 ? (
         <>
           <div className="account-panel">
-            <div className="team-meter">
-              <span className="team-meter__count">
-                {team.seatsUsed} {c.seatsOf} {team.seatsTotal}
-              </span>
-              <span className="team-meter__label">{c.seatsUsed}</span>
-              <span
-                className="team-meter__bar"
-                role="progressbar"
-                aria-valuenow={team.seatsUsed}
-                aria-valuemin={0}
-                aria-valuemax={team.seatsTotal}
-                aria-label={c.seatsUsed}
+            <label className="org-select">
+              <span className="org-select__label">{c.organizationLabel}</span>
+              <select
+                className="org-select__input"
+                value={selectedOrg ?? ''}
+                onChange={(e) => onSelectOrg(e.target.value)}
               >
-                <span className="team-meter__fill" style={{ width: `${fillPct}%` }} />
-              </span>
-            </div>
+                {orgIds.map((id) => (
+                  <option key={id} value={id}>
+                    {id}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="org-select__count">
+              {visibleUsers.length} {c.usersInOrg}
+            </p>
           </div>
 
           <div className="account-panel">
-            {team.members.map((m) => (
-              <MemberRow key={m.id} member={m} content={content} localeTag={localeTag} />
+            {visibleUsers.map((u) => (
+              <MemberRow key={u.id} user={u} content={content} />
             ))}
           </div>
         </>
       ) : (
         <div className="account-panel">
-          <p className="account-empty">{content.security.sessions.empty}</p>
+          <p className="account-empty">{c.emptyUsers}</p>
         </div>
       )}
     </section>
   )
 }
 
-function MemberRow({
-  member,
-  content,
-  localeTag,
-}: {
-  member: TeamMember
-  content: Content
-  localeTag: string
-}) {
+function MemberRow({ user, content }: { user: ManagedUser; content: Content }) {
   const c = content.team
   return (
     <div className="member">
       <div className="member__id">
         <span className="member__avatar" aria-hidden>
-          {initials(member.name)}
+          {initials(user.derivedName)}
         </span>
         <div style={{ minWidth: 0 }}>
-          <p className="member__name">{member.name}</p>
-          <p className="member__email">{member.email}</p>
+          <p className="member__name">{user.derivedName}</p>
+          <p className="member__email">{user.email}</p>
         </div>
       </div>
       <div className="member__meta">
-        <span className="member__role">{c.roleLabels[member.role]}</span>
-        {member.isPending ? (
-          <span className="status-chip status-chip--info">{c.statusLabels.invited}</span>
-        ) : (
-          <span className="member__joined">{formatDate(member.joinedAt, localeTag)}</span>
-        )}
+        {user.isFullAdmin && <span className="member__role">{c.fullAdminLabel}</span>}
       </div>
     </div>
   )

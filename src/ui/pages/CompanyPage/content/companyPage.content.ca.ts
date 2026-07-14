@@ -3,7 +3,6 @@
  * Reflecteix exactament la forma de `companyPage.content.ts`.
  */
 export const companyPageContent = {
-  contactEmail: 'hola@kai.app',
 
   hero: {
     kicker: 'Sobre KAI',

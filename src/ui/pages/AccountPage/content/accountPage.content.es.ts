@@ -1,6 +1,5 @@
 import type { Subscription } from '../../../../modules/billing/domain/Subscription'
 import type { InvoiceStatus } from '../../../../modules/billing/domain/Invoice'
-import type { TeamRole, MemberStatus } from '../../../../modules/team/domain/TeamMember'
 
 /**
  * Documento de textos del panel "Mi cuenta" (Account).
@@ -92,25 +91,13 @@ export const accountPageContent = {
   },
 
   team: {
-    title: 'Administración del equipo',
-    description: 'Miembros de tu organización y asientos de tu plan.',
-    seatsUsed: 'asientos en uso',
-    seatsOf: 'de',
+    title: 'Administración de usuarios',
+    description: 'Usuarios de cada organización de la plataforma.',
     inviteButton: 'Invitar a alguien',
-    memberColumn: 'Miembro',
-    roleColumn: 'Rol',
-    statusColumn: 'Estado',
-    joinedColumn: 'Desde',
-    manageAria: 'Gestionar a {name}',
-    roleLabels: {
-      owner: 'Propietario',
-      admin: 'Administrador',
-      editor: 'Editor',
-    } satisfies Record<TeamRole, string>,
-    statusLabels: {
-      active: 'Activo',
-      invited: 'Invitación pendiente',
-    } satisfies Record<MemberStatus, string>,
+    organizationLabel: 'Organización',
+    usersInOrg: 'usuarios en esta organización',
+    emptyUsers: 'No hay usuarios para mostrar.',
+    fullAdminLabel: 'Administrador',
   },
 
   security: {

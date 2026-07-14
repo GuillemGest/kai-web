@@ -72,6 +72,10 @@ export class DevBypassAuthRepository implements IAuthRepository {
     return this.real.getCurrentUserSync()
   }
 
+  getCurrentSessionSync(): AuthSession | null {
+    return this.real.getCurrentSessionSync()
+  }
+
   private persist(session: AuthSession): void {
     if (typeof localStorage === 'undefined') return
     localStorage.setItem(SESSION_KEY, JSON.stringify(session.toStoragePrimitive()))

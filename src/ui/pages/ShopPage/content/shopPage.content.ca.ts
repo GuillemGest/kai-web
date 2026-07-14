@@ -45,7 +45,6 @@ export const shopPageContent = {
     label: 'KAI Enterprise',
     text: 'Cap d’aquests plans encaixa amb la teva producció? Cotitzem una llicència enterprise a mida.',
     ctaLabel: 'Parlar amb vendes',
-    email: 'ventas@kai.app',
     emailSubject: 'Consulta KAI Enterprise',
   },
 

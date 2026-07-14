@@ -3,6 +3,7 @@ import Header from '../ui/astro/Header.astro'
 import Footer from '../ui/astro/Footer.astro'
 import type { Locale } from '../i18n/locales'
 import { LOCALES } from '../i18n/locales'
+import { ORIGINS, GOOGLE_FONTS_STYLESHEET } from '../config/appUrls'
 import '../ui/styles/globals.css'
 import '../ui/layouts/PublicLayout.css'
 
@@ -21,12 +22,9 @@ const { locale, title = 'KAI' } = Astro.props
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/png" href="/kai_icona.png" />
     <title>{title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preconnect" href={ORIGINS.googleFonts} />
+    <link rel="preconnect" href={ORIGINS.googleFontsStatic} crossorigin />
+    <link href={GOOGLE_FONTS_STYLESHEET} rel="stylesheet" />
     {LOCALES.map((loc) => (
       <link rel="alternate" hreflang={loc} href={`/${loc}/`} />
     ))}

@@ -2,6 +2,7 @@
 import { Sparkles, Wand2, Search, Play } from 'lucide-react'
 import { Button } from '../components/Button/Button'
 import { DemoVideo } from '../islands/DemoVideo'
+import { FreeTrialButton } from '../islands/FreeTrialButton'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -18,9 +19,9 @@ const { hero, compat, demo, features, faq, cta } = await repo.getMainPage(locale
 // Iconos asociados por posicion a las features del documento de contenido.
 const FEATURE_ICONS = [Sparkles, Wand2, Search]
 const plansHref = getLocaleUrl('/planes', locale)
-// La prueba gratis arrastra el plan gratuito al login (?plan=free); localizamos
-// la ruta base conservando el query que trae el content.
-const freeTrialHref = getLocaleUrl(hero.secondaryCtaHref, locale)
+// La prueba gratis: sin sesión arrastra el plan gratuito al login (?plan=free);
+// con sesión, la isla FreeTrialButton lo lleva directo al panel de KAI.
+const freeTrialLoginHref = getLocaleUrl(hero.secondaryCtaHref, locale)
 ---
 
 <section class="hero">
@@ -36,9 +37,12 @@ const freeTrialHref = getLocaleUrl(hero.secondaryCtaHref, locale)
         <a href={plansHref}>
           <Button variant="secondary" size="large">{hero.primaryCta}</Button>
         </a>
-        <a href={freeTrialHref}>
-          <Button variant="primary" size="large">{hero.secondaryCta}</Button>
-        </a>
+        <FreeTrialButton
+          client:load
+          locale={locale}
+          label={hero.secondaryCta}
+          loginHref={freeTrialLoginHref}
+        />
       </div>
     </div>
 

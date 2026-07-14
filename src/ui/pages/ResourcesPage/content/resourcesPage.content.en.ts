@@ -2,7 +2,6 @@
  * English (en) translation of ResourcesPage content.
  */
 export const resourcesPageContent = {
-  supportEmail: 'soporte@kai.app',
 
   head: {
     badge: 'Resource centre',

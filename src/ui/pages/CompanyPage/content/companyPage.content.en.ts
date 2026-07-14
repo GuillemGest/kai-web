@@ -3,7 +3,6 @@
  * Mirror the shape of `companyPage.content.ts` exactly.
  */
 export const companyPageContent = {
-  contactEmail: 'hola@kai.app',
 
   hero: {
     kicker: 'About KAI',

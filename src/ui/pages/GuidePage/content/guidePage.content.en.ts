@@ -2,7 +2,6 @@
  * English (en) translation of GuidePage chrome content.
  */
 export const guidePageContent = {
-  supportEmail: 'soporte@kai.app',
   resourcesHref: '/recursos',
 
   breadcrumbAriaLabel: 'Breadcrumb',
