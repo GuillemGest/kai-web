@@ -58,24 +58,3 @@ export const AUTH_API_BASE = ORIGINS.authApi
 export function kaiPanelUrl(locale: Locale): string {
   return `${ORIGINS.kaiApp}/${locale}/chat`
 }
-
-/**
- * ¿Puede el navegador actual completar el handshake SSO al panel?
- *
- * La cookie HttpOnly emitida por `authentication.amplifysoft.io/api/login/set/cookie`
- * lleva `Domain=.amplifysoft.io; Secure; SameSite=None`. Para que el navegador
- * la acepte y luego la envíe a `kai.amplifysoft.io`, la página que dispara la
- * llamada debe:
- *  - servirse sobre https, y
- *  - estar bajo un subdominio de `amplifysoft.io` (mismo registrable domain).
- *
- * En dev local (`localhost:3000`, http) no se cumple, así que el handoff se
- * salta y volvemos al fallback local (`/cuenta`).
- */
-export function canSsoHandoff(): boolean {
-  if (typeof window === 'undefined') return false
-  const { protocol, hostname } = window.location
-  const httpsOk = protocol === 'https:'
-  const domainOk = hostname === 'amplifysoft.io' || hostname.endsWith('.amplifysoft.io')
-  return httpsOk && domainOk
-}

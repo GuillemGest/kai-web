@@ -8,7 +8,7 @@ import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOGIN_PAGE_CONTENT } from '../pages/LoginPage/content'
 import { startCheckout } from '../utils/startCheckout'
-import { canSsoHandoff, kaiPanelUrl } from '../../config/appUrls'
+import { kaiPanelUrl } from '../../config/appUrls'
 import '../pages/LoginPage/LoginPage.css'
 
 /**
@@ -38,14 +38,14 @@ export function LoginApp({ locale }: LoginAppProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  function redirectToApp() {
-    window.location.href = getLocaleUrl(form.redirectAfterLogin, locale)
-  }
-
   // Aplica el resultado del login a la máquina de estados.
   async function applyLoginResult(result: LoginResult) {
     if (result.kind === 'session') {
-      redirectToApp()
+      // Sesión directa sin 2FA: validateCode no llega a ejecutarse, así que
+      // emitimos aquí la cookie SSO (best-effort) antes de continuar el flujo
+      // (checkout del plan pendiente o handoff al panel).
+      await authUseCases.preparePanelHandoff.execute()
+      await continueAfterAuth(result.session.user.id, result.session.user.email)
       return
     }
     if (result.kind === 'select_org') {
@@ -103,33 +103,24 @@ export function LoginApp({ locale }: LoginAppProps) {
     }
   }
 
-  // Continúa el flujo una vez hay sesión (login normal o mock):
-  //  - si venía un plan pendiente (?plan=<id>), inicia el checkout de Stripe,
-  //  - si no, hace handoff SSO al panel de frontend-kai (kai.amplifysoft.io).
+  // Continúa el flujo una vez hay sesión (2FA o sesión directa):
+  //  - plan de pago pendiente (?plan=<id>) → checkout de Stripe,
+  //  - plan free o sin plan → handoff SSO al panel de frontend-kai
+  //    (kai.amplifysoft.io).
   async function continueAfterAuth(userId: string, userEmail: string) {
     const planId = pendingPlanId()
-    // Plan gratuito: no hay checkout de Stripe. Llevamos a la cuenta con un flag
-    // (?trial=started) que dispara el aviso de prueba iniciada. Solo apariencia:
-    // no se persiste ningún estado de prueba de momento.
-    if (planId === 'free') {
-      window.location.href = getLocaleUrl(`${form.redirectAfterLogin}?trial=started`, locale)
-      return
-    }
-    if (planId) {
-      // startCheckout redirige a Stripe; si lanza, lo gestiona quien llame.
+    // Plan de pago pendiente (?plan=<id> distinto de free): checkout de Stripe.
+    // startCheckout redirige a Stripe; si lanza, lo gestiona quien llame.
+    if (planId && planId !== 'free') {
       await startCheckout({ planId, period: 'monthly', userId, customerEmail: userEmail })
       return
     }
-    // Handoff SSO al panel de frontend-kai: la cookie HttpOnly de
-    // `.amplifysoft.io` ya fue emitida por setSsoCookie tras validar el código,
-    // así que frontend-kai hidrata la sesión sin re-login. Solo válido cuando
-    // el navegador puede realmente aceptar esa cookie (kai-web servido bajo
-    // *.amplifysoft.io sobre https); en dev localhost caemos al /cuenta local.
-    if (canSsoHandoff()) {
-      window.location.href = kaiPanelUrl(locale)
-      return
-    }
-    window.location.href = getLocaleUrl(form.redirectAfterLogin, locale)
+    // Plan free o sin plan: SIEMPRE al panel de frontend-kai. La cookie HttpOnly
+    // de `.amplifysoft.io` ya fue emitida por setSsoCookie (tras validar el
+    // código o en applyLoginResult si hubo sesión directa), así que frontend-kai
+    // hidrata la sesión sin re-login. En entornos donde el navegador no puede
+    // aceptar esa cookie (dev en localhost/http) el panel mostrará su login.
+    window.location.href = kaiPanelUrl(locale)
   }
 
   // Paso 2: valida el código (ValidateLoginCode también dispara set/cookie SSO)
@@ -148,22 +139,6 @@ export function LoginApp({ locale }: LoginAppProps) {
       await continueAfterAuth(session.user.id, session.user.email)
     } catch {
       setError(form.errorInvalidCode)
-      setSubmitting(false)
-    }
-  }
-
-  // ⚠️ PROVISIONAL (solo desarrollo): entra con una sesión mock, saltándose
-  // credenciales y código, y continúa el flujo igual que un login real.
-  async function handleMockLogin() {
-    setError(null)
-    setSubmitting(true)
-    try {
-      const session = await authUseCases.loginMock()
-      await continueAfterAuth(session.user.id, session.user.email)
-    } catch (err) {
-      // Mostramos el error REAL (no el genérico de código) para poder depurar:
-      // el fallo casi siempre es del checkout de Stripe, no del login mock.
-      setError(err instanceof Error ? err.message : 'Error al entrar (mock).')
       setSubmitting(false)
     }
   }
@@ -243,18 +218,6 @@ export function LoginApp({ locale }: LoginAppProps) {
               disabled={submitting}
             >
               {submitting ? form.submitLoading : form.submitIdle}
-            </Button>
-
-            {/* ⚠️ PROVISIONAL (solo desarrollo): entra directo sin credenciales. */}
-            <Button
-              type="button"
-              variant="secondary"
-              size="large"
-              className="login__submit"
-              disabled={submitting}
-              onClick={handleMockLogin}
-            >
-              Entrar (mock)
             </Button>
 
             <p className="login__register-prompt">

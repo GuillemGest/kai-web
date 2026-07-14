@@ -306,12 +306,11 @@
   align-items: stretch;
   justify-content: center;
   /* El grid muestra 3 planes cloud (audioPro, fullPro, team). Se acota a un ancho
-     máximo cómodo para las 3 cards y se centra respecto al viewport; el resto de
-     secciones sigue a --content-max. margin-inline (50% - 50vw) lo lleva a sangre
-     completa y padding-inline lo limita a --plans-max sin bajar del gutter. */
-  --plans-max: 1080px;
-  margin-inline: calc(50% - 50vw);
-  padding-inline: max(var(--space-4), calc(50vw - var(--plans-max) / 2));
+     máximo cómodo para las 3 cards y se centra dentro del contenedor (--content-max
+     ya es mayor, así que no hace falta romper el ancho del contenedor; hacerlo con
+     50vw provocaba scroll horizontal porque 100vw incluye la barra de scroll). */
+  max-width: 1080px;
+  margin-inline: auto;
 }
 .plans-grid__item {
   display: flex;
@@ -424,15 +423,6 @@
 /* ==========================================================================
    Responsive
    ========================================================================== */
-/* Laptop / desktop estrecho: se desactiva el full-bleed y se centra en su ancho. */
-@media (max-width: 1320px) {
-  .plans-grid {
-    max-width: 1080px;
-    margin-inline: auto;
-    padding-inline: 0;
-  }
-}
-
 /* Tablet / laptop estrecho: 2 columnas. */
 @media (max-width: 900px) {
   .plans-grid {

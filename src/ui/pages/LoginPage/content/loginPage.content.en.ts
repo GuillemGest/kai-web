@@ -37,7 +37,6 @@ export const loginPageContent = {
     orgSelectSubmitIdle: 'Continue',
     orgSelectSubmitLoading: 'Continuing…',
     errorNoOrgSelected: 'Please select an organization to continue.',
-    redirectAfterLogin: '/cuenta',
     registerPrompt: "Don't have an account?",
     registerLink: 'Create account',
   },

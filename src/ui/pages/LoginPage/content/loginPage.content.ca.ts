@@ -37,7 +37,6 @@ export const loginPageContent = {
     orgSelectSubmitIdle: 'Continuar',
     orgSelectSubmitLoading: 'Continuant…',
     errorNoOrgSelected: 'Selecciona una organització per continuar.',
-    redirectAfterLogin: '/cuenta',
     registerPrompt: 'No tens compte?',
     registerLink: 'Crear compte',
   },
