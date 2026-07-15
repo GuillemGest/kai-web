@@ -15,7 +15,7 @@ export const mainPageContent = {
     titleAccent: 'momentos clave',
     titleTail: ' sin revisar horas de metraje',
     lead: 'KAI indexa tu material en bruto, entiende lo que le pides con lenguaje natural y exporta tus selecciones directamente a tu editor. Reduces el etiquetado manual y ganas tiempo para decidir, montar y contar mejor.',
-    primaryCta: 'Ver planes',
+    primaryCta: 'Comprar KAI',
     secondaryCta: 'Probar gratis',
     secondaryCtaHref: '/login?plan=free',
     videoAlt: 'KAI localizando los momentos clave dentro de una línea de tiempo de vídeo',
@@ -108,6 +108,6 @@ export const mainPageContent = {
   cta: {
     title: 'Convierte tu metraje en una selección lista para montar',
     lead: 'Suscríbete y empieza a buscar en tus vídeos con lenguaje natural. KAI se ocupa de la parte más laboriosa para que tu equipo se centre en lo esencial: seleccionar, ordenar y contar mejor.',
-    primaryCta: 'Ver planes',
+    primaryCta: 'Comprar KAI',
   },
 } as const

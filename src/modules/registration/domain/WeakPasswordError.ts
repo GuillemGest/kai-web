@@ -4,7 +4,7 @@
  */
 export class WeakPasswordError extends Error {
   constructor() {
-    super('Password does not meet the minimum requirements')
+    super('Password does not meet the security requirements')
     this.name = 'WeakPasswordError'
   }
 }

@@ -52,6 +52,7 @@ export const checkoutPageContent = {
         label: 'Email de facturació',
         placeholder: 'factures@laempresa.com',
         error: 'Indica un email vàlid.',
+        hint: 'És l’email del teu compte i no es pot modificar.',
       },
       addressLine: {
         label: 'Adreça',

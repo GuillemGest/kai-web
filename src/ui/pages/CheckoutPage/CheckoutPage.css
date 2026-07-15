@@ -397,6 +397,22 @@ select.checkout__input option {
   color: var(--fg);
 }
 
+.checkout__input--readonly {
+  background: var(--surface-strong);
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+.checkout__input--readonly:hover {
+  border-color: var(--border);
+}
+
+.checkout__field-hint {
+  color: var(--fg-muted);
+  font: var(--type-secondary);
+  font-weight: 400;
+}
+
 .checkout__field-error {
   display: flex;
   align-items: center;

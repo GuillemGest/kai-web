@@ -486,10 +486,20 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
                               </option>
                             ))}
                           </select>
+                        ) : field === 'billingEmail' ? (
+                          <input
+                            id={inputId}
+                            type="email"
+                            className="checkout__input checkout__input--readonly"
+                            value={billing.billingEmail}
+                            autoComplete={BILLING_AUTOCOMPLETE.billingEmail}
+                            readOnly
+                            aria-describedby={`${inputId}-hint`}
+                          />
                         ) : (
                           <input
                             id={inputId}
-                            type={field === 'billingEmail' ? 'email' : 'text'}
+                            type="text"
                             className={`checkout__input${hasError ? ' has-error' : ''}`}
                             placeholder={'placeholder' in copy ? copy.placeholder : undefined}
                             value={billing[field]}
@@ -497,6 +507,11 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
                             autoComplete={BILLING_AUTOCOMPLETE[field]}
                             required
                           />
+                        )}
+                        {field === 'billingEmail' && 'hint' in copy && (
+                          <p id={`${inputId}-hint`} className="checkout__field-hint">
+                            {copy.hint}
+                          </p>
                         )}
                         {hasError && (
                           <p className="checkout__field-error" role="alert">

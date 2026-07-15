@@ -1,5 +1,8 @@
 .shop {
-  max-width: var(--content-max);
+  /* Shop usa un ancho mayor que --content-max (1200) para que el grid de 4 cards
+     respire. El texto (head, lead, faq) queda acotado por sus propios max-width,
+     así que solo el grid aprovecha el ancho extra. */
+  max-width: 1400px;
   margin: 0 auto;
   padding: clamp(var(--space-7), 8vw, var(--space-9)) var(--space-4) var(--space-9);
 }
@@ -301,7 +304,11 @@
 .plans-grid {
   list-style: none;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  /* minmax(0, 1fr): fuerza columnas de ancho idéntico ignorando el ancho
+     intrínseco del contenido. Con `1fr` a secas (= minmax(auto, 1fr)) una card
+     con features de texto largo reclama más min-content y estrecha a las demás,
+     descuadrando los anchos entre cards. */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--space-4);
   align-items: stretch;
   justify-content: center;
@@ -309,16 +316,21 @@
      Se acota a un ancho máximo cómodo para las 4 cards y se centra dentro del
      contenedor (hacerlo con 50vw provocaba scroll horizontal porque 100vw
      incluye la barra de scroll). */
-  max-width: 1160px;
+  max-width: 1400px;
   margin-inline: auto;
 }
 .plans-grid__item {
   display: flex;
+  /* min-width: 0 rompe el mínimo intrínseco del flex item (default min-width:
+     auto). Sin él, una card con contenido largo no encoge y desborda su columna,
+     descuadrando anchos entre cards. */
+  min-width: 0;
   animation: plan-rise 0.55s var(--ease-out-expo) both;
   animation-delay: calc(var(--i, 0) * 80ms);
 }
 .plans-grid__item > .plan-card {
   flex: 1;
+  min-width: 0;
 }
 @keyframes plan-rise {
   from {
@@ -426,7 +438,7 @@
 /* Laptop: 3 columnas (las 4 cards se aprietan por debajo de este ancho). */
 @media (max-width: 1080px) {
   .plans-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 900px;
   }
 }
@@ -434,7 +446,7 @@
 /* Tablet / laptop estrecho: 2 columnas. */
 @media (max-width: 900px) {
   .plans-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: 720px;
   }
 }

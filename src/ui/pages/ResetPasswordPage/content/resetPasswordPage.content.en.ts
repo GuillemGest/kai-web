@@ -1,20 +1,20 @@
 /**
- * English (en) translation of ConfirmAccountPage content.
+ * English (en) translation of ResetPasswordPage content.
  */
-export const confirmAccountPageContent = {
+export const resetPasswordPageContent = {
   form: {
-    heading: 'Create your password',
-    subheadingLead: 'Last step to activate the account for',
-    subheadingFallback: 'Last step to activate your account.',
-    passwordLabel: 'Password',
+    heading: 'Reset your password',
+    subheadingLead: 'Choose a new password for',
+    subheadingFallback: 'Choose a new password for your account.',
+    passwordLabel: 'New password',
     passwordPlaceholder: 'Between 8 and 20 characters',
-    repeatLabel: 'Repeat password',
+    repeatLabel: 'Repeat new password',
     repeatPlaceholder: 'Type it again',
-    submitIdle: 'Confirm account',
-    submitLoading: 'Confirming…',
+    submitIdle: 'Save password',
+    submitLoading: 'Saving…',
     errorMismatch: 'Passwords do not match.',
     errorWeakPassword: 'The password does not meet all the requirements.',
-    errorGeneric: "We couldn't confirm your account. Please try again.",
+    errorGeneric: "We couldn't update your password. Please try again.",
     requirementsTitle: 'The password must include:',
     passwordRequirements: {
       length: 'Between 8 and 20 characters',
@@ -25,8 +25,8 @@ export const confirmAccountPageContent = {
     },
   },
   success: {
-    title: 'Account confirmed!',
-    body: 'Your password is set. You can now sign in with your email and your new password.',
+    title: 'Password updated!',
+    body: 'Your new password is saved. You can now sign in with it.',
     redirectNotice: 'Taking you to the sign-in page in a few seconds…',
     cta: 'Go to sign in',
   },

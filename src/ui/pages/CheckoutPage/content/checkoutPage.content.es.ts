@@ -58,6 +58,7 @@ export const checkoutPageContent = {
         label: 'Email de facturación',
         placeholder: 'facturas@tuempresa.com',
         error: 'Indica un email válido.',
+        hint: 'Es el email de tu cuenta y no se puede modificar.',
       },
       addressLine: {
         label: 'Dirección',

@@ -32,6 +32,10 @@ export function LoginApp({ locale }: LoginAppProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Enlace a la página de recuperación de contraseña (donde el usuario escribe
+  // el email a recuperar). Conserva el plan pendiente para no perder la compra.
+  const forgotHref = `${getLocaleUrl('/recuperar-contrasena', locale)}${pendingPlanQueryString()}`
+
   // Aplica el resultado del login a la máquina de estados.
   async function applyLoginResult(result: LoginResult) {
     if (result.kind === 'session') {
@@ -198,9 +202,13 @@ export function LoginApp({ locale }: LoginAppProps) {
               </label>
             </div>
 
+            <a className="login__forgot" href={forgotHref}>
+              {form.forgotLink}
+            </a>
+
             {error && (
               <p className="login__error" role="alert">
-                <AlertCircle size={15} strokeWidth={2} aria-hidden />
+                <AlertCircle size={13} strokeWidth={2} aria-hidden />
                 {error}
               </p>
             )}
@@ -222,7 +230,6 @@ export function LoginApp({ locale }: LoginAppProps) {
               </a>
             </p>
 
-            <p className="login__hint">{form.prototypeHint}</p>
           </form>
         )}
 
@@ -261,7 +268,7 @@ export function LoginApp({ locale }: LoginAppProps) {
 
             {error && (
               <p className="login__error" role="alert">
-                <AlertCircle size={15} strokeWidth={2} aria-hidden />
+                <AlertCircle size={13} strokeWidth={2} aria-hidden />
                 {error}
               </p>
             )}
@@ -308,7 +315,7 @@ export function LoginApp({ locale }: LoginAppProps) {
 
             {error && (
               <p className="login__error" role="alert">
-                <AlertCircle size={15} strokeWidth={2} aria-hidden />
+                <AlertCircle size={13} strokeWidth={2} aria-hidden />
                 {error}
               </p>
             )}

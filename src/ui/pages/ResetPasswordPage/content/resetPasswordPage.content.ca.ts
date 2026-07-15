@@ -1,20 +1,20 @@
 /**
- * Traducció al català (ca) del contingut de ConfirmAccountPage.
+ * Traducció al català (ca) del contingut de ResetPasswordPage.
  */
-export const confirmAccountPageContent = {
+export const resetPasswordPageContent = {
   form: {
-    heading: 'Crea la teva contrasenya',
-    subheadingLead: 'Últim pas per activar el compte de',
-    subheadingFallback: 'Últim pas per activar el teu compte.',
-    passwordLabel: 'Contrasenya',
+    heading: 'Restableix la contrasenya',
+    subheadingLead: 'Tria una nova contrasenya per a',
+    subheadingFallback: 'Tria una nova contrasenya per al teu compte.',
+    passwordLabel: 'Nova contrasenya',
     passwordPlaceholder: 'Entre 8 i 20 caràcters',
-    repeatLabel: 'Repeteix la contrasenya',
+    repeatLabel: 'Repeteix la nova contrasenya',
     repeatPlaceholder: 'Torna a escriure-la',
-    submitIdle: 'Confirmar compte',
-    submitLoading: 'Confirmant…',
+    submitIdle: 'Desar contrasenya',
+    submitLoading: 'Desant…',
     errorMismatch: 'Les contrasenyes no coincideixen.',
     errorWeakPassword: 'La contrasenya no compleix tots els requisits.',
-    errorGeneric: 'No hem pogut confirmar el teu compte. Torna-ho a provar.',
+    errorGeneric: 'No hem pogut actualitzar la teva contrasenya. Torna-ho a provar.',
     requirementsTitle: 'La contrasenya ha d’incloure:',
     passwordRequirements: {
       length: 'Entre 8 i 20 caràcters',
@@ -25,8 +25,8 @@ export const confirmAccountPageContent = {
     },
   },
   success: {
-    title: 'Compte confirmat!',
-    body: 'La teva contrasenya està creada. Ja pots iniciar sessió amb el teu email i la teva nova contrasenya.',
+    title: 'Contrasenya actualitzada!',
+    body: 'La teva nova contrasenya està desada. Ja pots iniciar sessió amb ella.',
     redirectNotice: 'Et portem a l’inici de sessió d’aquí a uns segons…',
     cta: 'Anar a iniciar sessió',
   },

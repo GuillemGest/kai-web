@@ -50,7 +50,12 @@ export function PlanCard({
 
       <h3 className="plan-card__name">{plan.name}</h3>
 
-      {!isCustom && !isFree && <p className="plan-card__from">{copy.priceFromPrefix}</p>}
+      {/* El eyebrow "desde" se reserva SIEMPRE (aunque Free/Enterprise no lo
+          usen) para que la línea base del precio quede a la misma altura en las
+          cuatro cards; cuando no aplica queda oculto pero ocupa su espacio. */}
+      <p className="plan-card__from" aria-hidden={isCustom || isFree}>
+        {!isCustom && !isFree ? copy.priceFromPrefix : ' '}
+      </p>
 
       {isCustom ? (
         <p className="plan-card__price">

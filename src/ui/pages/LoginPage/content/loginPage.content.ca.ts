@@ -19,7 +19,6 @@ export const loginPageContent = {
     passwordPlaceholder: '••••••••',
     submitIdle: 'Entrar',
     submitLoading: 'Entrant…',
-    prototypeHint: 'Prototip: fes servir demo@kai.app / kai1234 per entrar.',
     errorInvalidCredentials: 'Credencials incorrectes. Torna-ho a provar.',
     // Segon pas: verificació per codi (2FA).
     codeHeading: 'Verifica la teva identitat',
@@ -39,5 +38,7 @@ export const loginPageContent = {
     errorNoOrgSelected: 'Selecciona una organització per continuar.',
     registerPrompt: 'No tens compte?',
     registerLink: 'Crear compte',
+    // Enllaç a la pàgina de recuperació de contrasenya.
+    forgotLink: 'Has oblidat la contrasenya?',
   },
 } as const

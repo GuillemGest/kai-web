@@ -1,3 +1,6 @@
+import { Email } from './Email'
+import { PhoneNumber } from './PhoneNumber'
+
 export interface RegistrationDataPrimitive {
   firstName: string
   lastName: string
@@ -20,12 +23,17 @@ export class RegistrationData {
   ) {}
 
   static fromPrimitive(data: RegistrationDataPrimitive): RegistrationData {
+    // Los value objects garantizan la invariante de formato: si el email o el
+    // teléfono no son válidos, se lanza el error de dominio correspondiente.
+    // `Email`/`PhoneNumber` normalizan (trim) el valor de entrada.
+    const email = Email.fromString(data.email).value
+    const phone = data.phone.trim() ? PhoneNumber.fromString(data.phone).value : ''
     return new RegistrationData(
       data.firstName,
       data.lastName,
       data.company,
-      data.email,
-      data.phone,
+      email,
+      phone,
       data.acceptsTerms,
       data.acceptsNewsletter,
     )

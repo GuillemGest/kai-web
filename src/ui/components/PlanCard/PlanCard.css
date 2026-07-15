@@ -2,7 +2,9 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  /* Sin gap uniforme: cada banda (nombre → eyebrow → precio → features → CTA)
+     lleva su propio margen para agrupar el precio con el nombre y empujar el
+     CTA al fondo, manteniendo las mismas líneas horizontales entre cards. */
   padding: clamp(var(--space-5), 2.4vw, var(--space-6));
   background: var(--surface);
   border: 1px solid var(--border);
@@ -17,25 +19,19 @@
   }
 }
 
+/* Card destacada: se distingue por color y elevación, NUNCA por escala, para
+   que su tipografía y su línea base sigan alineadas con las demás cards de la
+   fila. El realce es el anillo cian (identidad de interacción) + fondo elevado;
+   sin sombra ancha (se evita el patrón "ghost-card" borde 1px + blur ≥16px). */
 .plan-card--highlighted {
   border-color: var(--accent);
   background: var(--surface-2);
   box-shadow: 0 0 0 1px var(--accent);
 }
-/* El scale del destacado solo se aplica cuando las 4 cards están en una fila
-   completa (grid de 4 col, >1080px). Por debajo el grid refluye a 3/2/1 y el
-   scale descuadraría la retícula. Coincide con el primer breakpoint de .plans-grid. */
-@media (min-width: 1081px) {
-  .plan-card--highlighted {
-    transform: scale(1.03);
-  }
-  @media (hover: hover) {
-    .plan-card--highlighted:hover {
-      transform: scale(1.03) translateY(-2px);
-    }
-    .plan-card:not(.plan-card--highlighted):hover {
-      transform: translateY(-2px);
-    }
+
+@media (hover: hover) {
+  .plan-card:hover {
+    transform: translateY(-2px);
   }
 }
 
@@ -43,20 +39,17 @@
   .plan-card {
     transition: none;
   }
-  /* Se anula solo el desplazamiento de hover; el scale del destacado es
-     identidad visual (jerarquía), no movimiento, así que se conserva. */
-  .plan-card:not(.plan-card--highlighted):hover {
+  .plan-card:hover {
     transform: none;
-  }
-  .plan-card--highlighted:hover {
-    transform: scale(1.03);
   }
 }
 
 .plan-card__badge {
   position: absolute;
-  top: calc(-1 * var(--space-2));
-  right: var(--space-4);
+  /* Anclado dentro del borde superior de la card (no montado sobre él) para que
+     no se solape con las cards vecinas ni quede recortado. */
+  top: var(--space-3);
+  right: var(--space-3);
   background: var(--accent);
   color: var(--bg);
   font: var(--type-secondary);
@@ -66,6 +59,7 @@
 
 .plan-card__name {
   font: var(--type-title);
+  margin-bottom: var(--space-3);
 }
 
 .plan-card__price {
@@ -73,10 +67,11 @@
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-2);
-  /* Reserva la altura del precio numérico para que, con o sin el eyebrow
-     "desde" (Free/Enterprise no lo tienen), el separador de features y el CTA
-     arranquen a la misma altura en las 4 cards de la fila. */
+  /* Altura fija del bloque de precio: garantiza que el separador de features
+     arranque a la MISMA línea en las cuatro cards, tengan precio numérico
+     ("59 €"), "Gratis" o etiqueta a medida. */
   min-height: var(--fs-h2);
+  margin: 0;
 }
 .plan-card__amount {
   display: inline-flex;
@@ -112,18 +107,18 @@
 }
 
 .plan-card__from {
-  /* El eyebrow "desde" se inserta entre name y price, añadiendo dos gaps del
-     flow (space-3 ×2) + su propio alto. Para que las cards CON eyebrow (planes
-     de pago) alineen el bloque de precio con las que NO lo tienen (Free,
-     Enterprise), sus márgenes neutralizan ese extra: el "desde" queda pegado
-     sobre el número sin desplazar la línea de features entre cards. */
-  margin-top: calc(-1 * var(--space-3));
-  margin-bottom: calc(-1 * var(--space-2));
+  /* El eyebrow "desde" se reserva SIEMPRE (ver PlanCard.tsx): en las cards sin
+     precio "desde" queda oculto pero ocupa su línea, de modo que el número del
+     precio comparte línea base en las cuatro cards. Sin márgenes negativos. */
+  margin: 0 0 var(--space-1);
   color: var(--fg-muted);
   font: var(--type-secondary);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+.plan-card__from[aria-hidden='true'] {
+  visibility: hidden;
 }
 .plan-card__amount--custom {
   font-size: var(--fs-h3);
@@ -138,7 +133,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin: var(--space-1) 0 var(--space-2);
+  /* Separación uniforme respecto al bloque de precio (arriba) y al CTA (abajo).
+     flex:1 estira la lista para que el CTA quede al fondo en todas las cards,
+     tengan 4 o 5 features. */
+  margin: var(--space-4) 0;
   padding-top: var(--space-4);
   border-top: 1px solid var(--border);
   flex: 1;
@@ -148,6 +146,9 @@
   align-items: flex-start;
   gap: var(--space-2);
   font: var(--type-body);
+  /* Reparte las líneas de forma equilibrada (evita una última línea con una sola
+     palabra "huérfana") para que las features largas se lean mejor. */
+  text-wrap: pretty;
 }
 .plan-card__check {
   color: var(--accent);
@@ -159,4 +160,7 @@
 
 .plan-card__cta {
   width: 100%;
+  /* El CTA queda anclado al fondo: los cuatro botones se alinean en la misma
+     línea aunque las listas de features tengan distinto largo. */
+  margin-top: auto;
 }

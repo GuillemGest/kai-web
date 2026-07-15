@@ -7,6 +7,8 @@ export type PageKey =
   | 'company'
   | 'login'
   | 'register'
+  | 'forgotPassword'
+  | 'resetPassword'
   | 'confirmAccount'
   | 'checkout'
   | 'checkoutThanks'
@@ -20,6 +22,16 @@ export const PAGE_TITLES: Record<PageKey, Record<Locale, string>> = {
   company: { es: 'Sobre KAI', en: 'About KAI', ca: 'Sobre KAI' },
   login: { es: 'Iniciar sesión · KAI', en: 'Log in · KAI', ca: 'Inicia sessió · KAI' },
   register: { es: 'Crear cuenta · KAI', en: 'Create account · KAI', ca: 'Crear compte · KAI' },
+  forgotPassword: {
+    es: 'Recuperar contraseña · KAI',
+    en: 'Recover password · KAI',
+    ca: 'Recuperar contrasenya · KAI',
+  },
+  resetPassword: {
+    es: 'Restablecer contraseña · KAI',
+    en: 'Reset password · KAI',
+    ca: 'Restablir contrasenya · KAI',
+  },
   confirmAccount: {
     es: 'Confirmar cuenta · KAI',
     en: 'Confirm account · KAI',

@@ -8,7 +8,7 @@ export const mainPageContent = {
     titleAccent: 'moments clau',
     titleTail: ' sense revisar hores de metratge',
     lead: 'KAI indexa el teu material en brut, entén les teves cerques amb llenguatge natural i exporta les teves seleccions directament al teu editor. Redueixes l’etiquetatge manual i guanyes temps per decidir, muntar i explicar millor.',
-    primaryCta: 'Veure plans',
+    primaryCta: 'Comprar KAI',
     secondaryCta: 'Provar gratis',
     secondaryCtaHref: '/login?plan=free',
     videoAlt: 'KAI localitzant els moments clau dins d’una línia de temps de vídeo',
@@ -101,6 +101,6 @@ export const mainPageContent = {
   cta: {
     title: 'Converteix el teu metratge en una selecció a punt per muntar',
     lead: 'Subscriu-te i comença a buscar als teus vídeos amb llenguatge natural. KAI s’ocupa de la part més laboriosa perquè el teu equip es concentri en l’essencial: seleccionar, ordenar i explicar millor.',
-    primaryCta: 'Veure plans',
+    primaryCta: 'Comprar KAI',
   },
 } as const

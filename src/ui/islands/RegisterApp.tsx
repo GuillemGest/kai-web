@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { AlertCircle, MailCheck } from 'lucide-react'
 import { registrationUseCases } from '../../modules/registration/application/factory'
 import { RegistrationData } from '../../modules/registration/domain/RegistrationData'
+import { Email } from '../../modules/registration/domain/Email'
+import { PhoneNumber } from '../../modules/registration/domain/PhoneNumber'
 import { Button } from '../components/Button/Button'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -34,21 +36,101 @@ const INITIAL_STATE: FormState = {
   acceptsNewsletter: false,
 }
 
+// Campos con verificación de formato/obligatoriedad. `company` es libre y
+// `acceptsTerms` se comprueba aparte al enviar.
+const VALIDATED_FIELDS = ['firstName', 'lastName', 'email', 'phone'] as const
+type ValidatedField = (typeof VALIDATED_FIELDS)[number]
+type FieldErrors = Partial<Record<ValidatedField, string>>
+
+function isValidatedField(field: keyof FormState): field is ValidatedField {
+  return (VALIDATED_FIELDS as readonly string[]).includes(field)
+}
+
+type FieldMessages = (typeof REGISTER_PAGE_CONTENT)[Locale]['form']
+
+// Devuelve el mensaje de error del campo, o undefined si es válido. La
+// verificación de formato se delega en los value objects del dominio, de modo
+// que la regla vive en un único sitio (Email/PhoneNumber).
+function validateField(field: ValidatedField, value: string, form: FieldMessages): string | undefined {
+  const trimmed = value.trim()
+  switch (field) {
+    case 'firstName':
+      return trimmed ? undefined : form.errorFirstNameRequired
+    case 'lastName':
+      return trimmed ? undefined : form.errorLastNameRequired
+    case 'email':
+      if (!trimmed) return form.errorEmailRequired
+      return Email.isValid(trimmed) ? undefined : form.errorEmailInvalid
+    case 'phone':
+      // Teléfono opcional: vacío es válido; con contenido, debe tener formato.
+      if (!trimmed) return undefined
+      return PhoneNumber.isValid(trimmed) ? undefined : form.errorPhoneInvalid
+  }
+}
+
 export function RegisterApp({ locale }: RegisterAppProps) {
   const { brand, form } = REGISTER_PAGE_CONTENT[locale]
   const [values, setValues] = useState<FormState>(INITIAL_STATE)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Errores de verificación por campo (se muestran bajo cada input).
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   // Alta completada: se muestra el aviso de "revisa tu correo" sobre el formulario.
   const [sent, setSent] = useState(false)
 
   function updateField<K extends keyof FormState>(field: K, value: FormState[K]) {
     setValues((prev) => ({ ...prev, [field]: value }))
+    // No mostramos errores mientras se escribe: la verificación se hace al salir
+    // del campo (onBlur). Excepción: si el campo YA tiene un error visible, lo
+    // reevaluamos en vivo para que desaparezca en cuanto el usuario lo corrige.
+    if (isValidatedField(field) && typeof value === 'string' && fieldErrors[field]) {
+      const message = validateField(field, value, form)
+      setFieldErrors((prev) => ({ ...prev, [field]: message }))
+    }
+  }
+
+  // Verifica el campo cuando el usuario lo abandona (onBlur).
+  function handleBlur(field: ValidatedField) {
+    const message = validateField(field, values[field], form)
+    setFieldErrors((prev) => ({ ...prev, [field]: message }))
+  }
+
+  // Verifica todos los campos y vuelca los errores al estado. Devuelve true si
+  // el formulario es válido.
+  function validateAll(): boolean {
+    const next: FieldErrors = {
+      firstName: validateField('firstName', values.firstName, form),
+      lastName: validateField('lastName', values.lastName, form),
+      email: validateField('email', values.email, form),
+      phone: validateField('phone', values.phone, form),
+    }
+    setFieldErrors(next)
+    return !Object.values(next).some(Boolean)
+  }
+
+  // ⚠️ PROVISIONAL: rellena de golpe los campos que estén vacíos con datos de
+  // ejemplo para agilizar las pruebas. Respeta lo que el usuario ya haya escrito.
+  function fillGaps() {
+    setError(null)
+    setFieldErrors({})
+    setValues((prev) => ({
+      firstName: prev.firstName || 'Ana',
+      lastName: prev.lastName || 'García',
+      company: prev.company || 'Gestmusic',
+      email: prev.email || 'ana.garcia@example.com',
+      phone: prev.phone || '+34 600 000 000',
+      acceptsTerms: true,
+      acceptsNewsletter: prev.acceptsNewsletter,
+    }))
   }
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
+    // Verificación de formato/obligatoriedad de cada campo antes de enviar.
+    if (!validateAll()) {
+      return
+    }
     // El form usa noValidate, así que el `required` nativo del checkbox no
     // bloquea el envío: los términos se comprueban aquí.
     if (!values.acceptsTerms) {
@@ -67,6 +149,27 @@ export function RegisterApp({ locale }: RegisterAppProps) {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  // Props e indicador de error reutilizables para cada input verificado.
+  function fieldErrorProps(field: ValidatedField) {
+    const message = fieldErrors[field]
+    return {
+      className: `register__input${message ? ' register__input--error' : ''}`,
+      'aria-invalid': message ? true : undefined,
+      'aria-describedby': message ? `register-error-${field}` : undefined,
+    }
+  }
+
+  function renderFieldError(field: ValidatedField) {
+    const message = fieldErrors[field]
+    if (!message) return null
+    return (
+      <span id={`register-error-${field}`} className="register__field-error" role="alert">
+        <AlertCircle size={13} strokeWidth={2} aria-hidden />
+        {message}
+      </span>
+    )
   }
 
   return (
@@ -98,14 +201,16 @@ export function RegisterApp({ locale }: RegisterAppProps) {
                 </span>
                 <input
                   type="text"
-                  className="register__input"
+                  {...fieldErrorProps('firstName')}
                   placeholder={form.firstNamePlaceholder}
                   value={values.firstName}
                   onChange={(e) => updateField('firstName', e.target.value)}
+                  onBlur={() => handleBlur('firstName')}
                   autoComplete="given-name"
                   required
                   disabled={submitting}
                 />
+                {renderFieldError('firstName')}
               </label>
 
               <label className="register__field">
@@ -114,14 +219,16 @@ export function RegisterApp({ locale }: RegisterAppProps) {
                 </span>
                 <input
                   type="text"
-                  className="register__input"
+                  {...fieldErrorProps('lastName')}
                   placeholder={form.lastNamePlaceholder}
                   value={values.lastName}
                   onChange={(e) => updateField('lastName', e.target.value)}
+                  onBlur={() => handleBlur('lastName')}
                   autoComplete="family-name"
                   required
                   disabled={submitting}
                 />
+                {renderFieldError('lastName')}
               </label>
 
               <label className="register__field register__field--span2">
@@ -146,14 +253,16 @@ export function RegisterApp({ locale }: RegisterAppProps) {
                 </span>
                 <input
                   type="email"
-                  className="register__input"
+                  {...fieldErrorProps('email')}
                   placeholder={form.emailPlaceholder}
                   value={values.email}
                   onChange={(e) => updateField('email', e.target.value)}
+                  onBlur={() => handleBlur('email')}
                   autoComplete="email"
                   required
                   disabled={submitting}
                 />
+                {renderFieldError('email')}
               </label>
 
               <label className="register__field">
@@ -163,13 +272,15 @@ export function RegisterApp({ locale }: RegisterAppProps) {
                 </span>
                 <input
                   type="tel"
-                  className="register__input"
+                  {...fieldErrorProps('phone')}
                   placeholder={form.phonePlaceholder}
                   value={values.phone}
                   onChange={(e) => updateField('phone', e.target.value)}
+                  onBlur={() => handleBlur('phone')}
                   autoComplete="tel"
                   disabled={submitting}
                 />
+                {renderFieldError('phone')}
               </label>
             </div>
           </fieldset>
@@ -212,7 +323,7 @@ export function RegisterApp({ locale }: RegisterAppProps) {
 
           {error && (
             <p className="register__error" role="alert">
-              <AlertCircle size={15} strokeWidth={2} aria-hidden />
+              <AlertCircle size={13} strokeWidth={2} aria-hidden />
               {error}
             </p>
           )}
@@ -239,6 +350,21 @@ export function RegisterApp({ locale }: RegisterAppProps) {
               {form.loginLink}
             </a>
           </p>
+
+          {/* ⚠️ PROVISIONAL (solo en desarrollo): autocompleta los campos vacíos
+              con datos de ejemplo. No se incluye en el build de producción. */}
+          {import.meta.env.DEV && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="small"
+              className="register__fill-gaps"
+              onClick={fillGaps}
+              disabled={submitting}
+            >
+              {form.fillGapsButton}
+            </Button>
+          )}
 
           <p className="register__hint">{form.prototypeHint}</p>
         </form>

@@ -6,20 +6,22 @@ import { Password, type PasswordRequirement } from '../../modules/registration/d
 import { Button } from '../components/Button/Button'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
-import { CONFIRM_ACCOUNT_PAGE_CONTENT } from '../pages/ConfirmAccountPage/content'
+import { RESET_PASSWORD_PAGE_CONTENT } from '../pages/ResetPasswordPage/content'
 import { pendingPlanQueryString } from '../utils/pendingPlanQuery'
+// Reutiliza el mismo estilo que la página de crear contraseña: solo cambian los
+// textos (content propio), no la maquetación.
 import '../pages/ConfirmAccountPage/ConfirmAccountPage.css'
 
 /**
- * Email de la cuenta a confirmar, del `?email=` de la URL. Lo pone el enlace
- * del correo de confirmación (hoy, el botón provisional del popup de registro).
+ * Email de la cuenta cuya contraseña se restablece, del `?email=` de la URL. Lo
+ * pone el enlace del correo de recuperación (hoy, el botón provisional).
  */
 function emailFromQuery(): string | null {
   if (typeof window === 'undefined') return null
   return new URLSearchParams(window.location.search).get('email')
 }
 
-/** Segundos antes de redirigir al login tras confirmar la cuenta. */
+/** Segundos antes de redirigir al login tras restablecer la contraseña. */
 const REDIRECT_DELAY_MS = 3000
 
 /** Orden en que se listan los requisitos de contraseña en la UI. */
@@ -31,18 +33,18 @@ const PASSWORD_REQUIREMENTS: readonly PasswordRequirement[] = [
   'symbol',
 ]
 
-interface ConfirmAccountAppProps {
+interface ResetPasswordAppProps {
   locale: Locale
 }
 
-export function ConfirmAccountApp({ locale }: ConfirmAccountAppProps) {
-  const { form, success } = CONFIRM_ACCOUNT_PAGE_CONTENT[locale]
+export function ResetPasswordApp({ locale }: ResetPasswordAppProps) {
+  const { form, success } = RESET_PASSWORD_PAGE_CONTENT[locale]
   const [email] = useState<string | null>(emailFromQuery)
   const [password, setPassword] = useState('')
   const [repeat, setRepeat] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [confirmed, setConfirmed] = useState(false)
+  const [done, setDone] = useState(false)
 
   // Estado de cada requisito de la política (feedback en vivo bajo el campo).
   const requirements = Password.requirements(password)
@@ -50,15 +52,15 @@ export function ConfirmAccountApp({ locale }: ConfirmAccountAppProps) {
   // Conserva el plan pendiente (?plan=&seats=): tras el login se retoma la compra.
   const loginHref = `${getLocaleUrl('/login', locale)}${pendingPlanQueryString()}`
 
-  // Cuenta confirmada: redirección automática al login (sin sesión; el login
-  // es manual). El botón de la vista de éxito permite ir sin esperar.
+  // Contraseña actualizada: redirección automática al login (sin sesión; el
+  // login es manual). El botón de la vista de éxito permite ir sin esperar.
   useEffect(() => {
-    if (!confirmed) return
+    if (!done) return
     const id = window.setTimeout(() => {
       window.location.href = loginHref
     }, REDIRECT_DELAY_MS)
     return () => window.clearTimeout(id)
-  }, [confirmed, loginHref])
+  }, [done, loginHref])
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -75,8 +77,10 @@ export function ConfirmAccountApp({ locale }: ConfirmAccountAppProps) {
     }
     setSubmitting(true)
     try {
+      // PROVISIONAL: reutilizamos setPassword (establece la contraseña por email)
+      // como stand-in del futuro caso de uso propio de auth (resetPassword).
       await registrationUseCases.setPassword.execute(email ?? '', password)
-      setConfirmed(true)
+      setDone(true)
     } catch (err) {
       setError(err instanceof WeakPasswordError ? form.errorWeakPassword : form.errorGeneric)
     } finally {
@@ -84,7 +88,7 @@ export function ConfirmAccountApp({ locale }: ConfirmAccountAppProps) {
     }
   }
 
-  if (confirmed) {
+  if (done) {
     return (
       <div className="confirm">
         <div className="confirm__card" role="status">
@@ -131,13 +135,13 @@ export function ConfirmAccountApp({ locale }: ConfirmAccountAppProps) {
               required
               autoFocus
               disabled={submitting}
-              aria-describedby="confirm-password-requirements"
+              aria-describedby="reset-password-requirements"
             />
           </label>
 
           {/* Requisitos de la contraseña: se marcan en vivo conforme se cumplen. */}
           {password.length > 0 && (
-            <div className="confirm__requirements" id="confirm-password-requirements">
+            <div className="confirm__requirements" id="reset-password-requirements">
               <p className="confirm__requirements-title">{form.requirementsTitle}</p>
               <ul className="confirm__requirements-list">
                 {PASSWORD_REQUIREMENTS.map((req) => {

@@ -8,7 +8,7 @@ export const mainPageContent = {
     titleAccent: 'key moments',
     titleTail: ' without reviewing hours of footage',
     lead: 'KAI indexes your raw footage, understands your queries in natural language and exports your selections straight into your editor. You spend less time logging by hand and gain more time to decide, cut and tell a better story.',
-    primaryCta: 'See plans',
+    primaryCta: 'Buy KAI',
     secondaryCta: 'Try for free',
     secondaryCtaHref: '/login?plan=free',
     videoAlt: 'KAI locating key moments inside a video timeline',
@@ -101,6 +101,6 @@ export const mainPageContent = {
   cta: {
     title: 'Turn your footage into a selection ready to edit',
     lead: 'Subscribe and start searching your videos in natural language. KAI takes on the most laborious work so your team can focus on what matters: selecting, ordering and telling a better story.',
-    primaryCta: 'See plans',
+    primaryCta: 'Buy KAI',
   },
 } as const

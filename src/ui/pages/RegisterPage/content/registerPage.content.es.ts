@@ -43,6 +43,11 @@ export const registerPageContent = {
     prototypeHint: 'Prototipo: el registro crea una sesión de demostración.',
     errorGeneric: 'No hemos podido crear tu cuenta. Inténtalo de nuevo.',
     errorTermsRequired: 'Debes aceptar los términos y condiciones para continuar.',
+    errorFirstNameRequired: 'Introduce tu nombre.',
+    errorLastNameRequired: 'Introduce tu apellido.',
+    errorEmailRequired: 'Introduce tu correo electrónico.',
+    errorEmailInvalid: 'Introduce un correo electrónico válido (p. ej. ana@email.com).',
+    errorPhoneInvalid: 'Introduce un teléfono válido.',
     requiredHint: '* Campo obligatorio',
 
     sentTitle: 'Revisa tu correo',
@@ -50,5 +55,6 @@ export const registerPageContent = {
     sentBodyTail: 'para confirmar tu email y crear tu contraseña.',
     sentHint: 'Si no lo encuentras, mira en la carpeta de spam.',
     sentDevButton: 'Provisional: abrir el enlace del correo',
+    fillGapsButton: 'Provisional: rellenar campos con datos de ejemplo',
   },
 } as const

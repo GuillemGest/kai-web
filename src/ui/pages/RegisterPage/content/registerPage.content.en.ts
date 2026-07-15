@@ -40,6 +40,11 @@ export const registerPageContent = {
     prototypeHint: 'Prototype: registering starts a demo session.',
     errorGeneric: "We couldn't create your account. Please try again.",
     errorTermsRequired: 'You must accept the terms and conditions to continue.',
+    errorFirstNameRequired: 'Enter your first name.',
+    errorLastNameRequired: 'Enter your last name.',
+    errorEmailRequired: 'Enter your email address.',
+    errorEmailInvalid: 'Enter a valid email address (e.g. ana@email.com).',
+    errorPhoneInvalid: 'Enter a valid phone number.',
     requiredHint: '* Required field',
 
     sentTitle: 'Check your email',
@@ -47,5 +52,6 @@ export const registerPageContent = {
     sentBodyTail: 'to confirm your email and create your password.',
     sentHint: "Can't find it? Check your spam folder.",
     sentDevButton: 'Temporary: open the email link',
+    fillGapsButton: 'Temporary: fill fields with sample data',
   },
 } as const

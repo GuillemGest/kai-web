@@ -52,6 +52,7 @@ export const checkoutPageContent = {
         label: 'Billing email',
         placeholder: 'invoices@yourcompany.com',
         error: 'Enter a valid email.',
+        hint: 'This is your account email and cannot be changed.',
       },
       addressLine: {
         label: 'Address',
