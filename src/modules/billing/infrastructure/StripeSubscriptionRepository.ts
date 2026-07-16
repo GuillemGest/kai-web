@@ -103,7 +103,7 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
     target: Plan,
     period: BillingPeriod,
     timing: PlanChangeTiming,
-  ): Promise<void> {
+  ): Promise<{ paymentUrl: string | null }> {
     const sub = await this.findOwnedSubscription(email, subscriptionId)
     if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
 
@@ -124,20 +124,28 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
     if (!target.allowsExtraSeats(extraSeats)) throw new SeatLimitExceededError(target.id)
 
     if (timing === 'now_prorated') {
-      // Upgrade: se aplica ya y se factura al momento SOLO la diferencia
-      // prorrateada del periodo en curso. Si había un downgrade programado o
-      // una baja pendiente, cambiar de plan implica continuar: se limpian.
+      // Upgrade: el item se actualiza ya, pero el cargo de la diferencia
+      // prorrateada NO se cobra en caliente contra la tarjeta guardada.
+      // `default_incomplete` deja la factura en `open` y expone su página
+      // alojada (`hosted_invoice_url`): ahí el usuario confirma el pago y
+      // puede cambiar de tarjeta, en vez de que Stripe cobre a ciegas. Si
+      // había un downgrade programado o una baja pendiente, cambiar de plan
+      // implica continuar: se limpian.
       await this.releaseScheduleIfAny(sub)
-      await this.stripe.subscriptions.update(subscriptionId, {
+      const updated = await this.stripe.subscriptions.update(subscriptionId, {
         items: [{ id: planItem.id, price: priceId }],
         proration_behavior: 'always_invoice',
-        // Si el cobro de la diferencia falla, la operación falla entera (no
-        // dejamos el plan cambiado con una factura impagada colgando).
-        payment_behavior: 'error_if_incomplete',
+        payment_behavior: 'default_incomplete',
         cancel_at_period_end: false,
         metadata: { ...sub.metadata, planId: target.id },
+        expand: ['latest_invoice'],
       })
-      return
+      const invoice = typeof updated.latest_invoice === 'object' ? updated.latest_invoice : null
+      // Sin importe pendiente (p. ej. crédito de saldo cubre la diferencia)
+      // Stripe no deja factura por pagar: no hace falta redirigir a nada.
+      const paymentUrl =
+        invoice && invoice.status === 'open' ? (invoice.hosted_invoice_url ?? null) : null
+      return { paymentUrl }
     }
 
     // Downgrade: el plan actual (ya pagado) se mantiene hasta fin de periodo y
@@ -174,6 +182,7 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
       // renovándose sola con el plan nuevo.
       end_behavior: 'release',
     })
+    return { paymentUrl: null }
   }
 
   /**

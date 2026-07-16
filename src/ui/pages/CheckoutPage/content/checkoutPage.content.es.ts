@@ -116,6 +116,9 @@ export const checkoutPageContent = {
     payLoading: 'Redirigiendo a Stripe…',
     secureNote: 'Pago seguro gestionado por Stripe. No guardamos tu tarjeta.',
     errorGeneric: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
+    /** Se muestra cuando la cuenta ya tiene una suscripción (máximo una por cuenta). */
+    errorSubscriptionLimit: 'Ya tienes una suscripción activa. Solo se permite una por cuenta.',
+    manageSubscriptionLink: 'Gestionar mi suscripción',
     back: 'Volver',
   },
 } as const

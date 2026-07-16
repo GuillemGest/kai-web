@@ -455,6 +455,16 @@ select.checkout__input option {
   color: var(--error);
   font: var(--type-ui);
 }
+/* Enlace a "gestionar mi suscripción" dentro del aviso de límite alcanzado. */
+.checkout__pay-error-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 700;
+}
+.checkout__pay-error-link:hover {
+  color: var(--fg);
+}
 
 .checkout__secure-note {
   display: flex;

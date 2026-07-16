@@ -14,7 +14,7 @@ import type { PlanId } from '../../modules/content/domain/types'
 import { Button } from '../components/Button/Button'
 import { localizePlan } from '../utils/localizePlan'
 import { pendingPlanFromQuery } from '../utils/pendingPlanQuery'
-import { startCheckout } from '../utils/startCheckout'
+import { startCheckout, CheckoutError } from '../utils/startCheckout'
 import { CHECKOUT_PAGE_CONTENT } from '../pages/CheckoutPage/content'
 import { PLAN_TRANSLATIONS } from '../pages/ShopPage/content'
 import '../pages/CheckoutPage/CheckoutPage.css'
@@ -142,6 +142,10 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<BillingDetailsField, boolean>>>({})
   const [submitting, setSubmitting] = useState(false)
   const [payError, setPayError] = useState<string | null>(null)
+  // Límite de una suscripción por cuenta: la cuenta ya tiene una activa. Se
+  // distingue del error genérico para ofrecer el enlace a gestionarla en vez
+  // de solo un mensaje de "reinténtalo".
+  const [subscriptionLimitHit, setSubscriptionLimitHit] = useState(false)
 
   const loginUrl = `${getLocaleUrl('/login', locale)}?plan=${selectedPlanId}${seats > 0 ? `&seats=${seats}` : ''}`
 
@@ -265,6 +269,7 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
   async function handlePay() {
     if (!user || !selectedPlan) return
     setPayError(null)
+    setSubscriptionLimitHit(false)
     setSubmitting(true)
     try {
       await startCheckout({
@@ -272,13 +277,19 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
         period: 'monthly',
         seats: effectiveSeats,
         userId: user.id,
+        email: user.email,
         billingDetails: billing,
         locale,
       })
       // Redirección en marcha: los datos fiscales ya viajaron a Stripe.
       sessionStorage.removeItem(BILLING_STORAGE_KEY)
-    } catch {
-      setPayError(content.payment.errorGeneric)
+    } catch (error) {
+      if (error instanceof CheckoutError && error.code === 'SUBSCRIPTION_LIMIT_EXCEEDED') {
+        setPayError(content.payment.errorSubscriptionLimit)
+        setSubscriptionLimitHit(true)
+      } else {
+        setPayError(content.payment.errorGeneric)
+      }
       setSubmitting(false)
     }
   }
@@ -602,6 +613,14 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
                 <p className="checkout__pay-error" role="alert">
                   <AlertCircle size={15} strokeWidth={2} aria-hidden />
                   {payError}
+                  {subscriptionLimitHit && (
+                    <>
+                      {' '}
+                      <a href={`${getLocaleUrl('/cuenta', locale)}#billing`} className="checkout__pay-error-link">
+                        {content.payment.manageSubscriptionLink}
+                      </a>
+                    </>
+                  )}
                 </p>
               )}
 

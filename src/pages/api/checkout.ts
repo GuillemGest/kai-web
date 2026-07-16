@@ -5,6 +5,7 @@ import {
   PlanNotFoundError,
   PlanNotPurchasableError,
 } from '../../modules/billing/application/CreateCheckoutSession'
+import { SubscriptionLimitExceededError } from '../../modules/billing/domain/subscriptionErrors'
 import {
   InvalidBillingDetailsError,
   type BillingDetailsPrimitive,
@@ -15,11 +16,14 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from '../../i18n/locales'
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 interface CheckoutBody {
   planId?: unknown
   period?: unknown
   seats?: unknown
   userId?: unknown
+  email?: unknown
   billingDetails?: unknown
   locale?: unknown
 }
@@ -88,7 +92,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     return json({ error: 'Body inválido.' }, 400)
   }
 
-  const { planId, period, seats, userId, billingDetails, locale } = body
+  const { planId, period, seats, userId, email, billingDetails, locale } = body
   if (typeof planId !== 'string' || !planId) {
     return json({ error: 'planId es obligatorio.' }, 400)
   }
@@ -103,6 +107,13 @@ export const POST: APIRoute = async ({ request, url }) => {
   }
   if (typeof userId !== 'string' || !userId) {
     return json({ error: 'Debes iniciar sesión para comprar.' }, 401)
+  }
+  // Email de la CUENTA (no el de facturación del formulario, que el usuario
+  // puede cambiar libremente): identifica al Customer de Stripe para el límite
+  // de una suscripción por cuenta.
+  const accountEmail = typeof email === 'string' ? email.trim() : ''
+  if (!EMAIL_PATTERN.test(accountEmail)) {
+    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
   }
   const parsedBilling = parseBillingDetails(billingDetails)
   if (!parsedBilling) {
@@ -119,6 +130,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       period,
       extraSeats,
       userId,
+      accountEmail,
       billingDetails: parsedBilling,
       successUrl: `${origin}/${lang}/checkout/gracias?session_id={CHECKOUT_SESSION_ID}`,
       // Cancelar en Stripe devuelve al wizard con el plan y asientos elegidos.
@@ -126,6 +138,17 @@ export const POST: APIRoute = async ({ request, url }) => {
     })
     return json({ url: session.url }, 200)
   } catch (error) {
+    if (error instanceof SubscriptionLimitExceededError) {
+      // `code` propio (no solo el mensaje) para que el cliente distinga este
+      // caso y ofrezca el enlace a "gestionar mi suscripción" sin parsear texto.
+      return json(
+        {
+          error: 'Ya tienes una suscripción activa. Solo se permite una por cuenta.',
+          code: 'SUBSCRIPTION_LIMIT_EXCEEDED',
+        },
+        409,
+      )
+    }
     if (error instanceof PlanNotFoundError) {
       return json({ error: 'Plan no encontrado.' }, 404)
     }

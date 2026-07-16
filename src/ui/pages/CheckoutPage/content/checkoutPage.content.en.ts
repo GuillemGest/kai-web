@@ -110,6 +110,8 @@ export const checkoutPageContent = {
     payLoading: 'Redirecting to Stripe…',
     secureNote: 'Secure payment handled by Stripe. We never store your card.',
     errorGeneric: 'The payment could not be started. Please try again.',
+    errorSubscriptionLimit: 'You already have an active subscription. Only one is allowed per account.',
+    manageSubscriptionLink: 'Manage my subscription',
     back: 'Back',
   },
 } as const

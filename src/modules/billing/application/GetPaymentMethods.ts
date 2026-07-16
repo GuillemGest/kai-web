@@ -1,10 +1,10 @@
 import type { IPaymentMethodRepository } from '../domain/IPaymentMethodRepository'
 import type { PaymentMethod } from '../domain/PaymentMethod'
 
-export class GetPaymentMethod {
+export class GetPaymentMethods {
   constructor(private readonly repository: IPaymentMethodRepository) {}
 
-  execute(userId: string): Promise<PaymentMethod | null> {
-    return this.repository.getDefault(userId)
+  execute(email: string): Promise<PaymentMethod[]> {
+    return this.repository.listByEmail(email)
   }
 }

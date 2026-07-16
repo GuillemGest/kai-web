@@ -23,8 +23,16 @@ export interface ISubscriptionRepository {
 
   /**
    * Cambia el plan de la suscripción según `timing` (regla en `planChangeTiming`):
-   * `now_prorated` aplica ya cobrando la diferencia prorrateada; `at_period_end`
-   * lo programa para la siguiente renovación manteniendo el plan actual.
+   * `now_prorated` deja pendiente de pago SOLO la diferencia prorrateada del
+   * periodo en curso (el precio del item ya queda actualizado, pero el cargo
+   * no se factura en caliente); `at_period_end` lo programa para la siguiente
+   * renovación manteniendo el plan actual, sin cobro ahora.
+   *
+   * Devuelve `paymentUrl`: la página de factura alojada de Stripe donde el
+   * usuario confirma el cargo (y puede cambiar de tarjeta) para un upgrade con
+   * importe pendiente. `null` cuando no hace falta pago (downgrade, o upgrade
+   * sin diferencia que cobrar). El plan NO se da por confirmado hasta que esa
+   * factura se paga — mientras tanto la suscripción puede quedar `past_due`.
    */
   changePlan(
     email: string,
@@ -32,5 +40,5 @@ export interface ISubscriptionRepository {
     target: Plan,
     period: BillingPeriod,
     timing: PlanChangeTiming,
-  ): Promise<void>
+  ): Promise<{ paymentUrl: string | null }>
 }

@@ -42,24 +42,36 @@ export class HttpSubscriptionRepository implements ISubscriptionRepository {
     target: Plan,
     period: BillingPeriod,
     _timing: PlanChangeTiming,
-  ): Promise<void> {
-    await this.post('/api/subscriptions/change-plan', {
+  ): Promise<{ paymentUrl: string | null }> {
+    const data = await this.postJson('/api/subscriptions/change-plan', {
       email,
       subscriptionId,
       planId: target.id,
       period,
     })
+    return { paymentUrl: data.paymentUrl ?? null }
   }
 
   private async post(url: string, body: Record<string, string>): Promise<void> {
+    await this.postJson(url, body)
+  }
+
+  private async postJson(
+    url: string,
+    body: Record<string, string>,
+  ): Promise<{ paymentUrl?: string | null; error?: string }> {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     })
+    const data = (await res.json().catch(() => null)) as {
+      paymentUrl?: string | null
+      error?: string
+    } | null
     if (!res.ok) {
-      const data = (await res.json().catch(() => null)) as { error?: string } | null
       throw new Error(data?.error ?? 'No se pudo completar la operación.')
     }
+    return data ?? {}
   }
 }

@@ -58,7 +58,6 @@ export const accountPageContent = {
       statusLabel: 'Estado',
       planLabel: 'Plan',
       renewsAtLabel: 'Renueva el',
-      canceledAtLabel: 'Finaliza el',
       endsAtLabel: 'Acaba el',
       pendingChangeLabel: 'Cambiará a {plan} el {date}',
       changePlanButton: 'Cambiar de plan',
@@ -79,19 +78,24 @@ export const accountPageContent = {
         cancelDesc: 'Deja de renovarse al final de este periodo',
         reactivateDesc: 'Vuelve a activar la renovación automática',
         backLabel: 'Atrás',
+        continueLabel: 'Continuar',
+        newPlanLabel: 'Plan nuevo',
+        newPriceLabel: 'Precio nuevo',
       },
-      /** Diálogo de cancelación (baja a fin de periodo). */
+      /** Diálogo de cancelación (baja a fin de periodo), en dos pasos: revisión + confirmación final. */
       cancelDialog: {
         title: 'Cancelar suscripción',
         body: '¿Seguro que quieres cancelar {plan}? Seguirás teniendo acceso hasta el {date}; a partir de esa fecha no se renovará y perderás el acceso. No se hace ningún cargo ni reembolso ahora.',
+        finalNote: 'Esta acción no se puede deshacer desde este paso: podrás reanudar la suscripción en cualquier momento antes de la fecha de fin.',
         confirm: 'Sí, cancelar',
         cancel: 'No, mantener',
         success: 'Tu suscripción se cancelará el {date}.',
       },
-      /** Diálogo de reactivación (revertir baja programada). */
+      /** Diálogo de reactivación (revertir baja programada), en dos pasos. */
       reactivateDialog: {
         title: 'Reanudar suscripción',
         body: 'Tu suscripción a {plan} volverá a renovarse con normalidad el {date}.',
+        finalNote: 'Se reanudará la renovación automática y se cobrará el importe habitual en la próxima fecha de renovación.',
         confirm: 'Reanudar',
         cancel: 'Cerrar',
         success: 'Tu suscripción vuelve a estar activa.',
@@ -101,9 +105,10 @@ export const accountPageContent = {
         title: 'Cambiar de plan',
         intro: 'Elige el plan al que quieres cambiar. Las mejoras se aplican al momento cobrando solo la diferencia de este mes; las bajadas se aplican en la próxima renovación.',
         currentBadge: 'Plan actual',
-        upgradeNote: 'Mejora: se aplica ya y se cobra solo la diferencia prorrateada de este periodo.',
+        upgradeNote: 'Mejora: se abrirá una pestaña de Stripe para confirmar el cobro de la diferencia prorrateada de este periodo (ahí también puedes cambiar la tarjeta). Esta pantalla se actualizará sola cuando termines.',
         downgradeNote: 'Bajada: sigues con {plan} hasta el {date} y el nuevo plan entra en la siguiente renovación.',
         confirm: 'Confirmar cambio',
+        confirmUpgrade: 'Continuar a pagar en Stripe',
         cancel: 'Cancelar',
         successNow: 'Plan cambiado. El nuevo plan ya está activo.',
         successLater: 'Cambio programado: entrará en vigor el {date}.',
@@ -113,9 +118,14 @@ export const accountPageContent = {
     },
     paymentMethod: {
       title: 'Método de pago',
+      hint: 'La tarjeta predeterminada es la que se usa para cobrar la renovación de tu suscripción.',
       empty: 'No has añadido ningún método de pago.',
       expiresLabel: 'Caduca',
-      updateButton: 'Actualizar tarjeta',
+      defaultLabel: 'Predeterminada',
+      makeDefaultButton: 'Usar para cobros',
+      addCardButton: 'Añadir tarjeta',
+      /** Se abre en pestaña nueva; este texto es breve porque no bloquea la interfaz. */
+      addingCardButton: 'Abriendo Stripe…',
     },
     invoices: {
       title: 'Historial de facturas',

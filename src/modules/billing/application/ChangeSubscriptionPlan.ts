@@ -19,14 +19,25 @@ export interface ChangeSubscriptionPlanRequest {
   period: BillingPeriod
 }
 
+export interface ChangeSubscriptionPlanResult {
+  timing: PlanChangeTiming
+  /**
+   * Página de factura alojada de Stripe donde confirmar el cargo (y poder
+   * cambiar de tarjeta) de un upgrade con importe pendiente. `null` en
+   * downgrades o si no queda importe por cobrar.
+   */
+  paymentUrl: string | null
+}
+
 /**
  * Cambia el plan de una suscripción activa aplicando la regla de negocio de
- * `planChangeTiming`: los upgrades se aplican YA cobrando solo la diferencia
- * prorrateada del periodo en curso; los downgrades se programan para la
- * siguiente renovación (se mantiene el plan grande ya pagado hasta entonces).
+ * `planChangeTiming`: los upgrades dejan pendiente de pago SOLO la diferencia
+ * prorrateada del periodo en curso (a confirmar en Stripe, ver `paymentUrl`);
+ * los downgrades se programan para la siguiente renovación (se mantiene el
+ * plan grande ya pagado hasta entonces, sin cobro ahora).
  *
- * Devuelve el timing aplicado para que la UI pueda informar al usuario de
- * cuándo entra en vigor el cambio.
+ * Devuelve el timing aplicado y, si aplica, la URL de pago para que la UI
+ * redirija al usuario a confirmarlo.
  */
 export class ChangeSubscriptionPlan {
   constructor(
@@ -34,7 +45,7 @@ export class ChangeSubscriptionPlan {
     private readonly planRepository: IPlanRepository,
   ) {}
 
-  async execute(request: ChangeSubscriptionPlanRequest): Promise<PlanChangeTiming> {
+  async execute(request: ChangeSubscriptionPlanRequest): Promise<ChangeSubscriptionPlanResult> {
     const { email, subscriptionId, planId, period } = request
 
     const subscriptions = await this.subscriptionRepository.listByEmail(email)
@@ -59,7 +70,13 @@ export class ChangeSubscriptionPlan {
     const current = plans.find((plan) => plan.id === subscription.planId)
     const timing = current ? planChangeTiming(current, target) : 'at_period_end'
 
-    await this.subscriptionRepository.changePlan(email, subscriptionId, target, period, timing)
-    return timing
+    const { paymentUrl } = await this.subscriptionRepository.changePlan(
+      email,
+      subscriptionId,
+      target,
+      period,
+      timing,
+    )
+    return { timing, paymentUrl }
   }
 }

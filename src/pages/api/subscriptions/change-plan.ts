@@ -31,8 +31,13 @@ function json(body: unknown, status: number): Response {
 /**
  * Cambia el plan de una suscripción. El TIMING (upgrade prorrateado ya vs.
  * downgrade a fin de periodo) lo decide SIEMPRE el use case en el servidor a
- * partir de los precios reales: el cliente solo dice a qué plan quiere ir. Se
- * devuelve el timing aplicado para que la UI informe de cuándo entra en vigor.
+ * partir de los precios reales: el cliente solo dice a qué plan quiere ir.
+ *
+ * Devuelve `timing` (para que la UI informe de cuándo entra en vigor) y
+ * `paymentUrl`: en upgrades con importe pendiente, la página de factura
+ * alojada de Stripe donde el usuario confirma el cargo (o cambia de tarjeta);
+ * `null` si no aplica. El cliente debe redirigir a esa URL si viene informada
+ * — el cambio de plan no se da por completado hasta que esa factura se paga.
  *
  * Misma limitación de auth que el resto de /api/*: el email llega del cliente y
  * la titularidad se verifica contra el Customer de Stripe.
@@ -67,13 +72,13 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    const timing = await createChangeSubscriptionPlanUseCase(secretKey).execute({
+    const { timing, paymentUrl } = await createChangeSubscriptionPlanUseCase(secretKey).execute({
       email,
       subscriptionId,
       planId,
       period: body.period,
     })
-    return json({ ok: true, timing }, 200)
+    return json({ ok: true, timing, paymentUrl }, 200)
   } catch (error) {
     if (error instanceof SubscriptionNotFoundError) {
       return json({ error: 'Suscripción no encontrada.' }, 404)

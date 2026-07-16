@@ -110,6 +110,8 @@ export const checkoutPageContent = {
     payLoading: 'Redirigint a Stripe…',
     secureNote: 'Pagament segur gestionat per Stripe. No guardem la teva targeta.',
     errorGeneric: 'No s’ha pogut iniciar el pagament. Torna-ho a provar.',
+    errorSubscriptionLimit: 'Ja tens una subscripció activa. Només se’n permet una per compte.',
+    manageSubscriptionLink: 'Administra la meva subscripció',
     back: 'Torna',
   },
 } as const

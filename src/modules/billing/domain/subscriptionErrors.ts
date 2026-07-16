@@ -36,3 +36,15 @@ export class SeatLimitExceededError extends Error {
     this.name = 'SeatLimitExceededError'
   }
 }
+
+/**
+ * Máximo de una suscripción activa por cuenta: se intenta comprar un plan
+ * nuevo (checkout) teniendo ya una suscripción gestionable. La corrección es
+ * cambiar de plan sobre la existente, no crear una segunda.
+ */
+export class SubscriptionLimitExceededError extends Error {
+  constructor(readonly existingSubscriptionId: string) {
+    super('La cuenta ya tiene una suscripción activa; máximo una por cuenta')
+    this.name = 'SubscriptionLimitExceededError'
+  }
+}

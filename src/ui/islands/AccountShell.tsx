@@ -28,6 +28,7 @@ import type { ManagedUser } from '../../modules/admin/domain/ManagedUser'
 import { organizationIdsOf, usersInOrganization } from '../../modules/admin/domain/managedUsers'
 import { Button } from '../components/Button/Button'
 import { Modal } from '../components/Modal/Modal'
+import { startCardSetup } from '../utils/startCardSetup'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOCALE_LABELS } from '../../i18n/locales'
@@ -107,7 +108,7 @@ export function AccountShell({ locale }: AccountShellProps) {
   const [user, setUser] = useState<User | null>(null)
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
   const [plans, setPlans] = useState<Plan[]>([])
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([])
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null)
@@ -125,13 +126,15 @@ export function AccountShell({ locale }: AccountShellProps) {
       }
       // El listado de usuarios requiere el JWT de la sesión (endpoint admin).
       const session = authUseCases.getCurrentSessionSync.execute()
-      const [sub, allPlans, pm, invs, users, sess] = await Promise.all([
+      const [sub, allPlans, pms, invs, users, sess] = await Promise.all([
         // Suscripciones reales de Stripe por email (identidad de facturación);
         // puede haber varias a la vez (un plan por producción, por ejemplo).
         billingUseCases.getSubscriptions.execute(currentUser.email).catch(() => []),
         // Catálogo de planes: alimenta el diálogo de cambio de plan.
         billingUseCases.getPlans.execute().catch(() => []),
-        billingUseCases.getPaymentMethod.execute(currentUser.id),
+        // Tarjetas reales de Stripe por email; puede haber varias, una marcada
+        // como predeterminada (la que cobra la renovación).
+        billingUseCases.getPaymentMethods.execute(currentUser.email).catch(() => []),
         // Facturas reales de Stripe: la identidad de facturación es el email
         // (el checkout crea el Customer por email). Si falla, historial vacío.
         billingUseCases.getInvoices.execute(currentUser.email).catch(() => []),
@@ -143,7 +146,7 @@ export function AccountShell({ locale }: AccountShellProps) {
       if (!active) return
       setSubscriptions(sub)
       setPlans(allPlans)
-      setPaymentMethod(pm)
+      setPaymentMethods(pms)
       setInvoices(invs)
       setManagedUsers(users)
       // Preselecciona la primera organización disponible.
@@ -178,6 +181,31 @@ export function AccountShell({ locale }: AccountShellProps) {
     const fresh = await billingUseCases.getSubscriptions.execute(user.email).catch(() => null)
     if (fresh) setSubscriptions(fresh)
   }
+
+  // Tras marcar una tarjeta como predeterminada se recarga la lista para
+  // reflejar el nuevo `isDefault` sin recargar toda la página.
+  const refreshPaymentMethods = async () => {
+    if (!user) return
+    const fresh = await billingUseCases.getPaymentMethods.execute(user.email).catch(() => null)
+    if (fresh) setPaymentMethods(fresh)
+  }
+
+  // El pago de un upgrade se confirma en una pestaña nueva (Stripe), no en
+  // esta: al volver el foco a esta pestaña (el usuario cierra o cambia de
+  // vuelta), se refresca el estado real — activo si pagó, `past_due` si no.
+  useEffect(() => {
+    if (!user) return
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshSubscriptions()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
 
   const dismissTrialBanner = () => {
     setShowTrialBanner(false)
@@ -275,9 +303,10 @@ export function AccountShell({ locale }: AccountShellProps) {
             email={user.email}
             subscriptions={subscriptions}
             plans={plans}
-            paymentMethod={paymentMethod}
+            paymentMethods={paymentMethods}
             invoices={invoices}
             onSubscriptionsChanged={refreshSubscriptions}
+            onPaymentMethodsChanged={refreshPaymentMethods}
           />
         )}
         {activeSection === 'team' && (
@@ -360,9 +389,10 @@ function BillingSection({
   email,
   subscriptions,
   plans,
-  paymentMethod,
+  paymentMethods,
   invoices,
   onSubscriptionsChanged,
+  onPaymentMethodsChanged,
 }: {
   content: Content
   locale: Locale
@@ -370,12 +400,49 @@ function BillingSection({
   email: string
   subscriptions: Subscription[]
   plans: Plan[]
-  paymentMethod: PaymentMethod | null
+  paymentMethods: PaymentMethod[]
   invoices: Invoice[]
   onSubscriptionsChanged: () => Promise<void>
+  onPaymentMethodsChanged: () => Promise<void>
 }) {
   const c = content.billing
   const [dialog, setDialog] = useState<PlanDialog>(null)
+  // Id de la tarjeta que se está marcando como predeterminada ahora mismo
+  // (deshabilita su botón mientras dura la llamada) y, si falla, qué tarjeta.
+  const [settingDefaultId, setSettingDefaultId] = useState<string | null>(null)
+  const [setDefaultError, setSetDefaultError] = useState(false)
+
+  const handleSetDefault = async (paymentMethodId: string) => {
+    setSettingDefaultId(paymentMethodId)
+    setSetDefaultError(false)
+    try {
+      await billingUseCases.setDefaultPaymentMethod.execute(email, paymentMethodId)
+      await onPaymentMethodsChanged()
+    } catch {
+      setSetDefaultError(true)
+    } finally {
+      setSettingDefaultId(null)
+    }
+  }
+
+  const [addingCard, setAddingCard] = useState(false)
+  const [addCardError, setAddCardError] = useState(false)
+
+  const handleAddCard = async () => {
+    setAddingCard(true)
+    setAddCardError(false)
+    try {
+      // Página de Stripe (Checkout en modo `setup`) en pestaña NUEVA — mismo
+      // patrón que el pago de un upgrade: no se pierde el panel de cuenta. Al
+      // volver, el listener de focus/visibility ya existente refresca la lista.
+      const url = await startCardSetup({ email, locale })
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      setAddCardError(true)
+    } finally {
+      setAddingCard(false)
+    }
+  }
 
   const planNameOf = (planId: string): string =>
     PLAN_TRANSLATIONS[locale][planId as PlanId]?.name ?? planId
@@ -390,26 +457,30 @@ function BillingSection({
       </div>
 
       {/* Planes actuales: el usuario puede tener varias suscripciones a la vez
-          (p. ej. un plan por producción), así que se listan todas. */}
+          (p. ej. un plan por producción), así que se listan todas. Las que ya
+          están canceladas DEL TODO (status 'canceled': la baja ya se hizo
+          efectiva) se excluyen — no son un plan "actual". La baja programada
+          pero aún no efectiva sigue en estado 'active' (isEnding) y sí se
+          muestra, porque el usuario todavía tiene el plan hasta esa fecha. */}
       <div className="account-panel">
         <p className="account-panel__title">{c.plan.title}</p>
-        {subscriptions.length > 0 ? (
-          subscriptions.map((subscription) => {
+        {(() => {
+          const currentSubscriptions = subscriptions.filter((s) => s.status !== 'canceled')
+          if (currentSubscriptions.length === 0) {
+            return <p className="account-empty">{c.plan.empty}</p>
+          }
+          return currentSubscriptions.map((subscription) => {
             const planName = planNameOf(subscription.planId)
             const statusTone =
               subscription.status === 'active'
                 ? subscription.cancelAtPeriodEnd
                   ? 'status-chip--warning'
                   : 'status-chip--active'
-                : subscription.status === 'past_due'
-                  ? 'status-chip--warning'
-                  : 'status-chip--neutral'
+                : 'status-chip--warning' // past_due: único status distinto de 'active' que llega aquí.
             // Metadato principal: baja programada, cambio pendiente, o renovación.
             const meta = subscription.isEnding
               ? `${c.plan.endsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
-              : subscription.status === 'canceled'
-                ? `${c.plan.canceledAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
-                : `${c.plan.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
+              : `${c.plan.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
             return (
               <div className="plan-summary" key={subscription.id}>
                 <div>
@@ -439,9 +510,7 @@ function BillingSection({
               </div>
             )
           })
-        ) : (
-          <p className="account-empty">{c.plan.empty}</p>
-        )}
+        })()}
       </div>
 
       {dialog && (
@@ -458,25 +527,51 @@ function BillingSection({
         />
       )}
 
-      {/* Método de pago */}
+      {/* Método de pago: todas las tarjetas guardadas en Stripe para esta
+          cuenta. La marcada "Predeterminada" es la que cobra la renovación de
+          CUALQUIER suscripción del Customer — no hay una tarjeta por plan. */}
       <div className="account-panel">
-        <p className="account-panel__title">{c.paymentMethod.title}</p>
-        {paymentMethod ? (
-          <div className="payment">
-            <div className="payment__card">
-              <span className="payment__brand">{paymentMethod.brand}</span>
-              <div>
-                <p className="payment__digits">•••• {paymentMethod.last4}</p>
-                <p className="payment__exp">
-                  {c.paymentMethod.expiresLabel} {paymentMethod.expLabel}
-                </p>
+        <div className="account-panel__head">
+          <p className="account-panel__title account-panel__title--flush">
+            {c.paymentMethod.title}
+          </p>
+          <Button variant="ghost" size="small" disabled={addingCard} onClick={handleAddCard}>
+            {addingCard ? c.paymentMethod.addingCardButton : c.paymentMethod.addCardButton}
+          </Button>
+        </div>
+        <p className="account-panel__hint">{c.paymentMethod.hint}</p>
+        {addCardError && <p className="modal-error account-panel__inline-error">{c.plan.genericError}</p>}
+        {paymentMethods.length > 0 ? (
+          paymentMethods.map((pm) => (
+            <div className="payment" key={pm.id}>
+              <div className="payment__card">
+                <span className="payment__brand">{pm.brand}</span>
+                <div>
+                  <p className="payment__digits">•••• {pm.last4}</p>
+                  <p className="payment__exp">
+                    {c.paymentMethod.expiresLabel} {pm.expLabel}
+                  </p>
+                </div>
               </div>
+              {pm.isDefault ? (
+                <span className="status-chip status-chip--active">
+                  {c.paymentMethod.defaultLabel}
+                </span>
+              ) : (
+                <Button
+                  variant="ghost"
+                  disabled={settingDefaultId === pm.id}
+                  onClick={() => handleSetDefault(pm.id)}
+                >
+                  {c.paymentMethod.makeDefaultButton}
+                </Button>
+              )}
             </div>
-            <Button variant="ghost">{c.paymentMethod.updateButton}</Button>
-          </div>
+          ))
         ) : (
           <p className="account-empty">{c.paymentMethod.empty}</p>
         )}
+        {setDefaultError && <p className="modal-error">{c.plan.genericError}</p>}
       </div>
 
       {/* Historial de facturas */}
@@ -564,9 +659,10 @@ function useSubscriptionAction(onDone: () => Promise<void>, onClose: () => void)
   return { pending, error, run }
 }
 
-// Vista interna del modal de administración: hub con las dos acciones, o una
-// de las dos sub-vistas (cancelar/reactivar comparten vista de confirmación).
-type ManageView = 'hub' | 'confirm' | 'change'
+// Vista interna del modal de administración: hub con las dos acciones, o los
+// pasos de cada operación. Cancelar/reactivar y cambiar de plan piden SIEMPRE
+// un paso de resumen (con precio/fecha) antes del paso final de confirmación.
+type ManageView = 'hub' | 'confirm-review' | 'confirm-final' | 'change-select' | 'change-review'
 
 function ManageSubscriptionDialog({
   content,
@@ -591,33 +687,42 @@ function ManageSubscriptionDialog({
 }) {
   const c = content.billing.plan
   const [view, setView] = useState<ManageView>('hub')
+  // Plan elegido en el paso de selección; se conserva al avanzar al resumen y
+  // al volver atrás desde él (no se pierde la elección).
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const backToHub = () => setView('hub')
 
-  if (view === 'confirm') {
+  if (view === 'confirm-review' || view === 'confirm-final') {
     return (
-      <ConfirmCancelOrReactivateView
+      <ConfirmCancelOrReactivateFlow
         content={content}
         localeTag={localeTag}
         email={email}
         subscription={subscription}
         planName={planName}
-        onBack={backToHub}
+        step={view === 'confirm-final' ? 'final' : 'review'}
+        onAdvance={() => setView('confirm-final')}
+        onBack={() => (view === 'confirm-final' ? setView('confirm-review') : backToHub())}
         onClose={onClose}
         onDone={onDone}
       />
     )
   }
 
-  if (view === 'change') {
+  if (view === 'change-select' || view === 'change-review') {
     return (
-      <ChangePlanView
+      <ChangePlanFlow
         content={content}
         locale={locale}
         localeTag={localeTag}
         email={email}
         subscription={subscription}
         plans={plans}
-        onBack={backToHub}
+        step={view === 'change-review' ? 'review' : 'select'}
+        selectedPlanId={selectedPlanId}
+        onSelectPlan={setSelectedPlanId}
+        onAdvance={() => setView('change-review')}
+        onBack={() => (view === 'change-review' ? setView('change-select') : backToHub())}
         onClose={onClose}
         onDone={onDone}
       />
@@ -639,7 +744,11 @@ function ManageSubscriptionDialog({
 
       <div className="manage-sub__actions">
         {!subscription.isEnding && (
-          <button type="button" className="manage-sub__action" onClick={() => setView('change')}>
+          <button
+            type="button"
+            className="manage-sub__action"
+            onClick={() => setView('change-select')}
+          >
             <span className="manage-sub__action-text">
               <span className="manage-sub__action-title">{c.changePlanButton}</span>
               <span className="manage-sub__action-desc">{c.manageDialog.changeDesc}</span>
@@ -651,7 +760,7 @@ function ManageSubscriptionDialog({
         <button
           type="button"
           className={`manage-sub__action ${subscription.isEnding ? '' : 'manage-sub__action--destructive'}`}
-          onClick={() => setView('confirm')}
+          onClick={() => setView('confirm-review')}
         >
           <span className="manage-sub__action-text">
             <span className="manage-sub__action-title">
@@ -668,13 +777,20 @@ function ManageSubscriptionDialog({
   )
 }
 
-/** Cancelar y reactivar comparten vista: son la misma confirmación en espejo. */
-function ConfirmCancelOrReactivateView({
+/**
+ * Cancelar y reactivar comparten flujo (son la misma confirmación en espejo),
+ * con DOS pasos reales: `review` explica el efecto (fecha, qué pasa con el
+ * acceso) y `final` pide una confirmación explícita separada antes de
+ * ejecutar. Evita que un doble clic accidental dé de baja la suscripción.
+ */
+function ConfirmCancelOrReactivateFlow({
   content,
   localeTag,
   email,
   subscription,
   planName,
+  step,
+  onAdvance,
   onBack,
   onClose,
   onDone,
@@ -684,6 +800,8 @@ function ConfirmCancelOrReactivateView({
   email: string
   subscription: Subscription
   planName: string
+  step: 'review' | 'final'
+  onAdvance: () => void
   onBack: () => void
   onClose: () => void
   onDone: () => Promise<void>
@@ -693,6 +811,30 @@ function ConfirmCancelOrReactivateView({
   const { pending, error, run } = useSubscriptionAction(onDone, onClose)
   const values = { plan: planName, date: formatDate(subscription.currentPeriodEnd, localeTag) }
 
+  if (step === 'review') {
+    return (
+      <Modal open title={d.title} onClose={onClose} closeLabel={d.cancel}>
+        <button type="button" className="modal-back" onClick={onBack}>
+          <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+          {content.billing.plan.manageDialog.backLabel}
+        </button>
+
+        <p>{fill(d.body, values)}</p>
+
+        <div className="modal-inline-actions">
+          <Button variant="ghost" onClick={onBack}>
+            {d.cancel}
+          </Button>
+          <Button variant={isReactivate ? 'primary' : 'destructive'} onClick={onAdvance}>
+            {content.billing.plan.manageDialog.continueLabel}
+          </Button>
+        </div>
+      </Modal>
+    )
+  }
+
+  // Paso final: resumen corto + un único botón de confirmación explícita, para
+  // que la acción irreversible no dependa de un solo clic desde el hub.
   return (
     <Modal open title={d.title} onClose={onClose} closeLabel={d.cancel}>
       <button type="button" className="modal-back" onClick={onBack} disabled={pending}>
@@ -700,7 +842,21 @@ function ConfirmCancelOrReactivateView({
         {content.billing.plan.manageDialog.backLabel}
       </button>
 
-      <p>{fill(d.body, values)}</p>
+      <div className="confirm-summary">
+        <div className="confirm-summary__row">
+          <span className="confirm-summary__label">{content.billing.plan.planLabel}</span>
+          <span className="confirm-summary__value">{planName}</span>
+        </div>
+        <div className="confirm-summary__row">
+          <span className="confirm-summary__label">
+            {isReactivate ? content.billing.plan.renewsAtLabel : content.billing.plan.endsAtLabel}
+          </span>
+          <span className="confirm-summary__value">
+            {formatDate(subscription.currentPeriodEnd, localeTag)}
+          </span>
+        </div>
+      </div>
+      <p className="plan-change-note">{d.finalNote}</p>
       {error && <p className="modal-error">{content.billing.plan.genericError}</p>}
 
       <div className="modal-inline-actions">
@@ -731,13 +887,22 @@ function ConfirmCancelOrReactivateView({
   )
 }
 
-function ChangePlanView({
+/**
+ * Cambio de plan en DOS pasos: `select` elige el plan de destino; `review`
+ * muestra el precio del plan nuevo, el tipo de cobro (prorrateo ahora vs. fin
+ * de periodo) y pide confirmación explícita antes de ejecutar el cambio.
+ */
+function ChangePlanFlow({
   content,
   locale,
   localeTag,
   email,
   subscription,
   plans,
+  step,
+  selectedPlanId,
+  onSelectPlan,
+  onAdvance,
   onBack,
   onClose,
   onDone,
@@ -748,36 +913,87 @@ function ChangePlanView({
   email: string
   subscription: Subscription
   plans: Plan[]
+  step: 'select' | 'review'
+  selectedPlanId: string | null
+  onSelectPlan: (planId: string) => void
+  onAdvance: () => void
   onBack: () => void
   onClose: () => void
   onDone: () => Promise<void>
 }) {
   const d = content.billing.plan.changeDialog
   const { pending, error, run } = useSubscriptionAction(onDone, onClose)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const currentPlan = plans.find((p) => p.id === subscription.planId) ?? null
+  const currentPlanName =
+    PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ?? subscription.planId
   // Planes a los que se puede cambiar: comprables (no a medida, con precio) y
   // distintos del actual.
   const targets = plans.filter(
     (p) => p.priceMonth !== null && !p.custom && p.id !== subscription.planId,
   )
-  const selected = targets.find((p) => p.id === selectedId) ?? null
+  const selected = targets.find((p) => p.id === selectedPlanId) ?? null
 
   // Aviso de timing según la regla de dominio (mejora vs. bajada).
   const timing = currentPlan && selected ? planChangeTiming(currentPlan, selected) : null
-  const note =
-    timing === 'now_prorated'
-      ? d.upgradeNote
-      : timing === 'at_period_end'
-        ? fill(d.downgradeNote, {
-            plan: PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ??
-              subscription.planId,
-            date: formatDate(subscription.currentPeriodEnd, localeTag),
-          })
-        : null
-
   const currencySymbol = (plan: Plan) => (plan.currency === 'EUR' ? '€' : plan.currency)
+
+  if (step === 'select') {
+    return (
+      <Modal
+        open
+        title={d.title}
+        onClose={onClose}
+        closeLabel={d.cancel}
+        footer={
+          <>
+            <Button variant="ghost" onClick={onBack}>
+              {d.cancel}
+            </Button>
+            <Button variant="primary" disabled={!selected} onClick={onAdvance}>
+              {content.billing.plan.manageDialog.continueLabel}
+            </Button>
+          </>
+        }
+      >
+        <button type="button" className="modal-back" onClick={onBack}>
+          <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+          {content.billing.plan.manageDialog.backLabel}
+        </button>
+
+        <p className="modal-intro">{d.intro}</p>
+        <ul className="plan-picker">
+          {targets.map((plan) => {
+            const name = PLAN_TRANSLATIONS[locale][plan.id as PlanId]?.name ?? plan.name
+            const isSelected = plan.id === selectedPlanId
+            return (
+              <li key={plan.id}>
+                <button
+                  type="button"
+                  className={`plan-option ${isSelected ? 'plan-option--selected' : ''}`}
+                  aria-pressed={isSelected}
+                  onClick={() => onSelectPlan(plan.id)}
+                >
+                  <span className="plan-option__body">
+                    <span className="plan-option__radio" aria-hidden />
+                    <span className="plan-option__name">{name}</span>
+                  </span>
+                  <span className="plan-option__price">
+                    {plan.priceMonth} {currencySymbol(plan)}
+                    {content.billing.plan.pricePeriodMonth}
+                  </span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </Modal>
+    )
+  }
+
+  // Paso de resumen: precio del plan de destino, tipo de cobro (prorrateo
+  // ahora / al final del periodo) y confirmación explícita antes de ejecutar.
+  if (!selected) return null // No debería alcanzarse: el paso anterior exige selección.
 
   return (
     <Modal
@@ -787,29 +1003,36 @@ function ChangePlanView({
       closeLabel={d.cancel}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose} disabled={pending}>
+          <Button variant="ghost" onClick={onBack} disabled={pending}>
             {d.cancel}
           </Button>
           <Button
             variant="primary"
-            disabled={pending || !selected}
-            onClick={() => {
-              if (!selected) return
+            disabled={pending}
+            onClick={() =>
               run(async () => {
                 // El periodo se mantiene mensual (el catálogo online solo tiene
                 // precios mensuales configurados); si en el futuro hay anual,
-                // se elegiría aquí. El timing lo recalcula el servidor; aquí no
-                // se necesita el valor devuelto.
-                await billingUseCases.changeSubscriptionPlan.execute({
+                // se elegiría aquí. El timing lo recalcula el servidor.
+                const { paymentUrl } = await billingUseCases.changeSubscriptionPlan.execute({
                   email,
                   subscriptionId: subscription.stripeSubscriptionId!,
                   planId: selected.id,
                   period: 'monthly' satisfies BillingPeriod,
                 })
+                // Upgrade con importe pendiente: se abre la página de factura
+                // de Stripe en una pestaña NUEVA (no se navega la actual), así
+                // el usuario confirma el cargo (o cambia de tarjeta) sin perder
+                // la app. El modal se cierra ya; la sección de facturación
+                // detecta cuando la pestaña recupera el foco y refresca sola
+                // el estado real (activo si pagó, past_due si no).
+                if (paymentUrl) {
+                  window.open(paymentUrl, '_blank', 'noopener,noreferrer')
+                }
               })
-            }}
+            }
           >
-            {d.confirm}
+            {timing === 'now_prorated' ? d.confirmUpgrade : d.confirm}
           </Button>
         </>
       }
@@ -819,33 +1042,36 @@ function ChangePlanView({
         {content.billing.plan.manageDialog.backLabel}
       </button>
 
-      <p className="modal-intro">{d.intro}</p>
-      <ul className="plan-picker">
-        {targets.map((plan) => {
-          const name = PLAN_TRANSLATIONS[locale][plan.id as PlanId]?.name ?? plan.name
-          const isSelected = plan.id === selectedId
-          return (
-            <li key={plan.id}>
-              <button
-                type="button"
-                className={`plan-option ${isSelected ? 'plan-option--selected' : ''}`}
-                aria-pressed={isSelected}
-                onClick={() => setSelectedId(plan.id)}
-              >
-                <span className="plan-option__body">
-                  <span className="plan-option__radio" aria-hidden />
-                  <span className="plan-option__name">{name}</span>
-                </span>
-                <span className="plan-option__price">
-                  {plan.priceMonth} {currencySymbol(plan)}
-                  {content.billing.plan.pricePeriodMonth}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-      {note && <p className="plan-change-note">{note}</p>}
+      <div className="confirm-summary">
+        <div className="confirm-summary__row">
+          <span className="confirm-summary__label">{d.currentBadge}</span>
+          <span className="confirm-summary__value">{currentPlanName}</span>
+        </div>
+        <div className="confirm-summary__row confirm-summary__row--highlight">
+          <span className="confirm-summary__label">
+            {content.billing.plan.manageDialog.newPlanLabel}
+          </span>
+          <span className="confirm-summary__value">{selected.name}</span>
+        </div>
+        <div className="confirm-summary__row">
+          <span className="confirm-summary__label">
+            {content.billing.plan.manageDialog.newPriceLabel}
+          </span>
+          <span className="confirm-summary__value confirm-summary__value--price">
+            {selected.priceMonth} {currencySymbol(selected)}
+            {content.billing.plan.pricePeriodMonth}
+          </span>
+        </div>
+      </div>
+
+      <p className="plan-change-note">
+        {timing === 'now_prorated'
+          ? d.upgradeNote
+          : fill(d.downgradeNote, {
+              plan: currentPlanName,
+              date: formatDate(subscription.currentPeriodEnd, localeTag),
+            })}
+      </p>
       {error && <p className="modal-error">{content.billing.plan.genericError}</p>}
     </Modal>
   )

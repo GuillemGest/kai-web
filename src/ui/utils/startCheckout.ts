@@ -8,9 +8,26 @@ interface StartCheckoutParams {
   /** Usuarios adicionales al incluido en el plan. */
   seats: number
   userId: string
+  /** Email de la cuenta: identifica al Customer para el límite de una suscripción por cuenta. */
+  email: string
   billingDetails: BillingDetailsPrimitive
   /** Idioma actual, para que las URLs de retorno de Stripe queden localizadas. */
   locale: Locale
+}
+
+/**
+ * Error tipado del checkout: cuando el servidor rechaza por `code` conocido
+ * (de momento solo el límite de una suscripción por cuenta), el island puede
+ * distinguirlo de un fallo genérico sin parsear el texto del mensaje.
+ */
+export class CheckoutError extends Error {
+  constructor(
+    message: string,
+    readonly code?: string,
+  ) {
+    super(message)
+    this.name = 'CheckoutError'
+  }
 }
 
 /**
@@ -19,9 +36,11 @@ interface StartCheckoutParams {
  *
  * Vive en `ui/utils` (fuera de `modules/`) porque solo orquesta una llamada de
  * red desde la vista; la lógica de negocio (validación de plan, resolución de
- * precio) está en el use case `CreateCheckoutSession` del servidor.
+ * precio, límite de suscripciones) está en el use case `CreateCheckoutSession`
+ * del servidor.
  *
- * Lanza si el endpoint responde error, para que el island muestre el fallo.
+ * Lanza `CheckoutError` si el endpoint responde error, para que el island
+ * muestre el fallo (y distinga el `code` si lo necesita).
  */
 export async function startCheckout(params: StartCheckoutParams): Promise<void> {
   const res = await fetch('/api/checkout', {
@@ -30,10 +49,14 @@ export async function startCheckout(params: StartCheckoutParams): Promise<void> 
     body: JSON.stringify(params),
   })
 
-  const data = (await res.json().catch(() => null)) as { url?: string; error?: string } | null
+  const data = (await res.json().catch(() => null)) as {
+    url?: string
+    error?: string
+    code?: string
+  } | null
 
   if (!res.ok || !data?.url) {
-    throw new Error(data?.error ?? 'No se pudo iniciar el pago.')
+    throw new CheckoutError(data?.error ?? 'No se pudo iniciar el pago.', data?.code)
   }
 
   window.location.href = data.url

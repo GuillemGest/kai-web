@@ -10,6 +10,12 @@ export interface PaymentMethodPrimitive {
   expYear: number
   /** Nombre del titular tal como figura en la tarjeta. */
   holderName: string
+  /**
+   * Es la tarjeta que Stripe usa para cobrar la renovación de la suscripción
+   * (`invoice_settings.default_payment_method` del Customer). Solo una tarjeta
+   * por Customer puede ser `true` a la vez.
+   */
+  isDefault: boolean
 }
 
 export class PaymentMethod {
@@ -21,6 +27,7 @@ export class PaymentMethod {
     readonly expMonth: number,
     readonly expYear: number,
     readonly holderName: string,
+    readonly isDefault: boolean,
   ) {}
 
   /** Caducidad formateada "MM/AA" para mostrar en UI. */
@@ -39,6 +46,7 @@ export class PaymentMethod {
       data.expMonth,
       data.expYear,
       data.holderName,
+      data.isDefault,
     )
   }
 
@@ -51,6 +59,7 @@ export class PaymentMethod {
       expMonth: this.expMonth,
       expYear: this.expYear,
       holderName: this.holderName,
+      isDefault: this.isDefault,
     }
   }
 }

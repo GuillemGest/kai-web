@@ -202,6 +202,24 @@
   color: var(--fg-muted);
   border-bottom: 1px solid var(--border);
 }
+/* Cabecera de panel con acción a la derecha (p. ej. "Añadir tarjeta"): el
+   título pierde su propio padding/borde, que pasan al contenedor. */
+.account-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.account-panel__title--flush {
+  padding: 0;
+  border-bottom: none;
+}
+.account-panel__inline-error {
+  margin: 0;
+  padding: var(--space-3) var(--space-4) 0;
+}
 
 /* --- Filas clave/valor ---------------------------------------------------- */
 .account-row {
@@ -390,6 +408,43 @@
   color: var(--fg-muted);
 }
 
+/* Resumen del paso final de confirmación (cancelar/reactivar/cambiar de plan):
+   filas etiqueta/valor, con la fila de plan nuevo destacada. */
+.confirm-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+.confirm-summary__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+}
+.confirm-summary__row--highlight {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: var(--space-1) 0;
+  padding: var(--space-2) 0;
+}
+.confirm-summary__label {
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+}
+.confirm-summary__value {
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.confirm-summary__value--price {
+  color: var(--accent);
+}
+
 /* Pie de las sub-vistas sin footer fijo del Modal (confirmación cancel/reactivar). */
 .modal-inline-actions {
   display: flex;
@@ -490,6 +545,13 @@
   flex-shrink: 0;
 }
 
+/* Nota de ayuda bajo el título de un panel (p. ej. qué hace la tarjeta predeterminada). */
+.account-panel__hint {
+  padding: var(--space-3) var(--space-4) 0;
+  color: var(--fg-muted);
+  font-size: 0.8125rem;
+}
+
 /* --- Método de pago ------------------------------------------------------- */
 .payment {
   display: flex;
@@ -498,6 +560,11 @@
   justify-content: space-between;
   gap: var(--space-3) var(--space-4);
   padding: var(--space-4);
+}
+/* Puede haber varias tarjetas guardadas: separador entre ellas (mismo patrón
+   que `.plan-summary + .plan-summary`). */
+.payment + .payment {
+  border-top: 1px solid var(--border);
 }
 .payment__card {
   display: flex;
