@@ -644,7 +644,7 @@ function ManageSubscriptionDialog({
               <span className="manage-sub__action-title">{c.changePlanButton}</span>
               <span className="manage-sub__action-desc">{c.manageDialog.changeDesc}</span>
             </span>
-            <ChevronRight size={18} strokeWidth={2} className="manage-sub__action-arrow" aria-hidden />
+            <ChevronRight size={16} strokeWidth={2} className="manage-sub__action-arrow" aria-hidden />
           </button>
         )}
 
@@ -661,7 +661,7 @@ function ManageSubscriptionDialog({
               {subscription.isEnding ? c.manageDialog.reactivateDesc : c.manageDialog.cancelDesc}
             </span>
           </span>
-          <ChevronRight size={18} strokeWidth={2} className="manage-sub__action-arrow" aria-hidden />
+          <ChevronRight size={16} strokeWidth={2} className="manage-sub__action-arrow" aria-hidden />
         </button>
       </div>
     </Modal>

@@ -305,55 +305,58 @@
 
 /* --- Diálogos de gestión de la suscripción ------------------------------- */
 .modal-intro {
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   color: var(--fg-muted);
+  font-size: 0.8125rem;
 }
 .modal-error {
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
   color: var(--error);
-  font: var(--type-body);
+  font-size: 0.8125rem;
 }
 .plan-change-note {
-  margin-top: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   color: var(--fg);
-  font: var(--type-body);
+  font-size: 0.8125rem;
 }
 
-/* Hub "Administrar suscripción": resumen + dos acciones grandes. */
+/* Hub "Administrar suscripción": resumen + dos acciones compactas.
+   Deliberadamente más denso que un `.account-panel` normal: es un modal, no
+   una sección de página, y aquí no hace falta tanto aire. */
 .manage-sub__summary {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-4);
-  margin-bottom: var(--space-4);
+  gap: var(--space-2);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
   border-bottom: 1px solid var(--border);
 }
 .manage-sub__plan-name {
-  font-size: var(--fs-sub);
+  font-size: 0.9375rem;
   font-weight: 700;
   color: var(--fg);
 }
 .manage-sub__meta {
   color: var(--fg-muted);
-  font: var(--type-body);
+  font-size: 0.8125rem;
 }
 .manage-sub__actions {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 .manage-sub__action {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  padding: var(--space-4);
+  padding: var(--space-2) var(--space-3);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -372,15 +375,15 @@
 .manage-sub__action-text {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: 2px;
 }
 .manage-sub__action-title {
   font-weight: 700;
-  font-size: var(--fs-sub);
+  font-size: 0.875rem;
 }
 .manage-sub__action-desc {
   color: var(--fg-muted);
-  font: var(--type-body);
+  font-size: 0.75rem;
 }
 .manage-sub__action-arrow {
   flex-shrink: 0;
@@ -391,8 +394,8 @@
 .modal-inline-actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-3);
-  margin-top: var(--space-5);
+  gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 /* Botón para volver a la vista hub desde una sub-vista del modal. */
@@ -400,12 +403,12 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   padding: 0;
   color: var(--fg-muted);
   background: transparent;
   border: none;
-  font: var(--type-body);
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: color 140ms var(--ease-out-quart);
@@ -422,7 +425,7 @@
 .plan-picker {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -431,9 +434,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: var(--r-md);
@@ -450,8 +453,8 @@
 }
 .plan-option__radio {
   flex-shrink: 0;
-  width: 1.125rem;
-  height: 1.125rem;
+  width: 0.9375rem;
+  height: 0.9375rem;
   border-radius: var(--r-full);
   border: 1.5px solid var(--fg-muted);
   display: inline-flex;
@@ -464,25 +467,26 @@
 }
 .plan-option--selected .plan-option__radio::after {
   content: '';
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: var(--r-full);
   background: var(--accent);
 }
 .plan-option__body {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   flex: 1;
   min-width: 0;
 }
 .plan-option__name {
   font-weight: 600;
+  font-size: 0.875rem;
   color: var(--fg);
 }
 .plan-option__price {
   color: var(--fg-muted);
-  font: var(--type-body);
+  font-size: 0.8125rem;
   flex-shrink: 0;
 }
 
