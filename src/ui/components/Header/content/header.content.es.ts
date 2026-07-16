@@ -24,6 +24,7 @@ export const headerContent = {
       removeAccountAria: 'Eliminar cuenta guardada {name}',
       addNew: 'Añadir cuenta nueva',
       switchErrorLabel: 'No se pudo cambiar de cuenta. Inténtalo de nuevo.',
+      settingsLabel: 'Ajustes de la cuenta',
     },
   },
   languageSelector: {

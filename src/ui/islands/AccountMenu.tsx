@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { ChevronDown, CircleUser, Plus, Trash2 } from 'lucide-react'
+import { ChevronDown, CircleUser, Plus, Settings, Trash2 } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import type { CachedSessionPrimitive } from '../../modules/auth/domain/AuthSession'
 import { Button } from '../components/Button/Button'
@@ -18,6 +18,8 @@ export interface AccountsMenuContent {
   removeAccountAria: string // "Eliminar cuenta guardada {name}"
   addNew: string
   switchErrorLabel: string
+  /** Enlace a los ajustes de la cuenta activa (/cuenta), dentro de la fila destacada. */
+  settingsLabel: string
 }
 
 interface AccountMenuProps {
@@ -184,23 +186,32 @@ export function AccountMenu({
           className="account-menu__panel"
         >
           {activeSession && (
-            <div
-              className="account-menu__row account-menu__row--active"
-              role="menuitem"
-              aria-current="true"
-            >
-              <AccountAvatar name={activeSession.user.name || activeSession.user.email} />
-              <div className="account-menu__info">
-                <div className="account-menu__title-line">
-                  <span className="account-menu__name">
-                    {activeSession.user.name || activeSession.user.email}
+            <div className="account-menu__row account-menu__row--active" role="none">
+              <div className="account-menu__row-main" role="menuitem" aria-current="true">
+                <AccountAvatar name={activeSession.user.name || activeSession.user.email} />
+                <div className="account-menu__info">
+                  <div className="account-menu__title-line">
+                    <span className="account-menu__name">
+                      {activeSession.user.name || activeSession.user.email}
+                    </span>
+                    <span className="account-menu__badge">{content.activeBadge}</span>
+                  </div>
+                  <span className="account-menu__org">
+                    {activeSession.organization?.name || content.noOrg}
                   </span>
-                  <span className="account-menu__badge">{content.activeBadge}</span>
                 </div>
-                <span className="account-menu__org">
-                  {activeSession.organization?.name || content.noOrg}
-                </span>
               </div>
+              {/* Único punto de entrada a /cuenta desde el header: sin este
+                  enlace no hay forma de llegar a los ajustes de la cuenta. */}
+              <a
+                href={getLocaleUrl('/cuenta', locale)}
+                className="account-menu__settings"
+                role="menuitem"
+                aria-label={content.settingsLabel}
+                title={content.settingsLabel}
+              >
+                <Settings size={16} strokeWidth={2} aria-hidden />
+              </a>
             </div>
           )}
 

@@ -418,19 +418,22 @@ function BillingSection({
   }
 
   const [addingCard, setAddingCard] = useState(false)
-  const [addCardError, setAddCardError] = useState(false)
+  // Mensaje real del servidor (no un booleano genérico): startCardSetup ya
+  // propaga el `error` del endpoint, y necesitamos verlo para diagnosticar
+  // fallos de Stripe en vez de mostrar siempre el mismo texto genérico.
+  const [addCardError, setAddCardError] = useState<string | null>(null)
 
   const handleAddCard = async () => {
     setAddingCard(true)
-    setAddCardError(false)
+    setAddCardError(null)
     try {
       // Página de Stripe (Checkout en modo `setup`) en pestaña NUEVA — mismo
       // patrón que el pago de un upgrade: no se pierde el panel de cuenta. Al
       // volver, el listener de focus/visibility ya existente refresca la lista.
       const url = await startCardSetup({ email, locale })
       window.open(url, '_blank', 'noopener,noreferrer')
-    } catch {
-      setAddCardError(true)
+    } catch (error) {
+      setAddCardError(error instanceof Error ? error.message : c.plan.genericError)
     } finally {
       setAddingCard(false)
     }
@@ -532,7 +535,9 @@ function BillingSection({
           </Button>
         </div>
         <p className="account-panel__hint">{c.paymentMethod.hint}</p>
-        {addCardError && <p className="modal-error account-panel__inline-error">{c.plan.genericError}</p>}
+        {addCardError && (
+          <p className="modal-error account-panel__inline-error">{addCardError}</p>
+        )}
         {paymentMethods.length > 0 ? (
           paymentMethods.map((pm) => (
             <div className="payment" key={pm.id}>

@@ -91,6 +91,35 @@
 
 .account-menu__row--active {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
+  padding-right: var(--space-1);
+}
+
+.account-menu__row-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Enlace a /cuenta desde la fila de la sesión activa. */
+.account-menu__settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  color: var(--fg-muted);
+  text-decoration: none;
+  transition: background-color 0.15s var(--ease-out-quart), color 0.15s var(--ease-out-quart);
+}
+.account-menu__settings:hover,
+.account-menu__settings:focus-visible {
+  background: var(--surface);
+  color: var(--fg);
+  outline: none;
 }
 
 .account-menu__row--switchable {

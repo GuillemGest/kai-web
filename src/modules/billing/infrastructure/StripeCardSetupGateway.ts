@@ -28,7 +28,12 @@ export class StripeCardSetupGateway implements ICardSetupGateway {
     const session = await this.stripe.checkout.sessions.create({
       mode: 'setup',
       customer: customerId,
-      // No incluir payment_method_types: se deja que Stripe los resuelva dinámicamente.
+      // No incluir payment_method_types: se deja que Stripe los resuelva
+      // dinámicamente. A cambio, en modo `setup` (a diferencia de `payment`/
+      // `subscription`) Stripe exige `currency` explícita para poder resolver
+      // qué métodos son compatibles sin esa lista fija. Única moneda del
+      // proyecto (ver planes en InMemoryPlanRepository).
+      currency: 'eur',
       success_url: successUrl,
       cancel_url: cancelUrl,
     })

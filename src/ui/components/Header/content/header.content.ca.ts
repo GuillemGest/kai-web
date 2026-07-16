@@ -24,6 +24,7 @@ export const headerContent = {
       removeAccountAria: 'Eliminar compte desat {name}',
       addNew: 'Afegir compte nou',
       switchErrorLabel: 'No s’ha pogut canviar de compte. Torna-ho a provar.',
+      settingsLabel: 'Ajustos del compte',
     },
   },
   languageSelector: {

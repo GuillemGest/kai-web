@@ -24,6 +24,7 @@ export const headerContent = {
       removeAccountAria: 'Remove saved account {name}',
       addNew: 'Add new account',
       switchErrorLabel: 'Could not switch account. Please try again.',
+      settingsLabel: 'Account settings',
     },
   },
   languageSelector: {
