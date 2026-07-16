@@ -44,6 +44,25 @@ export interface PlanPrimitive {
 
 export type BillingPeriod = 'monthly' | 'yearly'
 
+/**
+ * Cuándo se aplica un cambio de plan sobre una suscripción activa:
+ *  - `now_prorated`: al momento, cobrando ya SOLO la diferencia prorrateada
+ *    del periodo en curso (upgrades: el usuario recibe más valor hoy).
+ *  - `at_period_end`: en la siguiente renovación; hasta entonces se mantiene
+ *    el plan actual ya pagado (downgrades: no se regala ni se reembolsa nada).
+ */
+export type PlanChangeTiming = 'now_prorated' | 'at_period_end'
+
+/**
+ * Regla de negocio del cambio de plan. Subir de precio → cobro inmediato de la
+ * diferencia prorrateada; bajar (o mismo precio / sin precio fijo) → el cambio
+ * espera al fin del periodo ya pagado.
+ */
+export function planChangeTiming(current: Plan, target: Plan): PlanChangeTiming {
+  if (current.priceMonth === null || target.priceMonth === null) return 'at_period_end'
+  return target.priceMonth > current.priceMonth ? 'now_prorated' : 'at_period_end'
+}
+
 export class Plan {
   constructor(
     readonly id: string,

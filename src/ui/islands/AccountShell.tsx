@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  ArrowLeft,
+  ChevronRight,
   CreditCard,
   Download,
   Laptop,
@@ -17,12 +19,15 @@ import type { User } from '../../modules/auth/domain/User'
 import type { DeviceSession } from '../../modules/auth/domain/DeviceSession'
 import { billingUseCases } from '../../modules/billing/application/factory'
 import type { Subscription } from '../../modules/billing/domain/Subscription'
+import type { Plan, BillingPeriod } from '../../modules/billing/domain/Plan'
+import { planChangeTiming } from '../../modules/billing/domain/Plan'
 import type { Invoice } from '../../modules/billing/domain/Invoice'
 import type { PaymentMethod } from '../../modules/billing/domain/PaymentMethod'
 import { adminUseCases } from '../../modules/admin/application/factory'
 import type { ManagedUser } from '../../modules/admin/domain/ManagedUser'
 import { organizationIdsOf, usersInOrganization } from '../../modules/admin/domain/managedUsers'
 import { Button } from '../components/Button/Button'
+import { Modal } from '../components/Modal/Modal'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOCALE_LABELS } from '../../i18n/locales'
@@ -101,6 +106,7 @@ export function AccountShell({ locale }: AccountShellProps) {
   const [showTrialBanner, setShowTrialBanner] = useState(trialStartedFromQuery)
   const [user, setUser] = useState<User | null>(null)
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([])
+  const [plans, setPlans] = useState<Plan[]>([])
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null)
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
@@ -119,10 +125,12 @@ export function AccountShell({ locale }: AccountShellProps) {
       }
       // El listado de usuarios requiere el JWT de la sesión (endpoint admin).
       const session = authUseCases.getCurrentSessionSync.execute()
-      const [sub, pm, invs, users, sess] = await Promise.all([
+      const [sub, allPlans, pm, invs, users, sess] = await Promise.all([
         // Suscripciones reales de Stripe por email (identidad de facturación);
         // puede haber varias a la vez (un plan por producción, por ejemplo).
         billingUseCases.getSubscriptions.execute(currentUser.email).catch(() => []),
+        // Catálogo de planes: alimenta el diálogo de cambio de plan.
+        billingUseCases.getPlans.execute().catch(() => []),
         billingUseCases.getPaymentMethod.execute(currentUser.id),
         // Facturas reales de Stripe: la identidad de facturación es el email
         // (el checkout crea el Customer por email). Si falla, historial vacío.
@@ -134,6 +142,7 @@ export function AccountShell({ locale }: AccountShellProps) {
       ])
       if (!active) return
       setSubscriptions(sub)
+      setPlans(allPlans)
       setPaymentMethod(pm)
       setInvoices(invs)
       setManagedUsers(users)
@@ -159,6 +168,15 @@ export function AccountShell({ locale }: AccountShellProps) {
     if (window.location.hash.replace('#', '') !== id) {
       window.history.pushState(null, '', `#${id}`)
     }
+  }
+
+  // Tras cancelar/reactivar/cambiar de plan se recargan las suscripciones para
+  // reflejar el nuevo estado (baja programada, plan pendiente…) sin recargar
+  // toda la página.
+  const refreshSubscriptions = async () => {
+    if (!user) return
+    const fresh = await billingUseCases.getSubscriptions.execute(user.email).catch(() => null)
+    if (fresh) setSubscriptions(fresh)
   }
 
   const dismissTrialBanner = () => {
@@ -249,14 +267,17 @@ export function AccountShell({ locale }: AccountShellProps) {
         {activeSection === 'account' && (
           <AccountSection content={content} user={user} localeTag={localeTag} locale={locale} />
         )}
-        {activeSection === 'billing' && (
+        {activeSection === 'billing' && user && (
           <BillingSection
             content={content}
             locale={locale}
             localeTag={localeTag}
+            email={user.email}
             subscriptions={subscriptions}
+            plans={plans}
             paymentMethod={paymentMethod}
             invoices={invoices}
+            onSubscriptionsChanged={refreshSubscriptions}
           />
         )}
         {activeSection === 'team' && (
@@ -327,22 +348,37 @@ function AccountSection({
 }
 
 // --- Sección: Facturación --------------------------------------------------
+// Un único punto de entrada ("Administrar suscripción") por suscripción; el
+// modal resultante navega internamente entre hub / cancelar / reactivar /
+// cambiar de plan, en vez de abrir varios modales sueltos.
+type PlanDialog = { subscription: Subscription } | null
+
 function BillingSection({
   content,
   locale,
   localeTag,
+  email,
   subscriptions,
+  plans,
   paymentMethod,
   invoices,
+  onSubscriptionsChanged,
 }: {
   content: Content
   locale: Locale
   localeTag: string
+  email: string
   subscriptions: Subscription[]
+  plans: Plan[]
   paymentMethod: PaymentMethod | null
   invoices: Invoice[]
+  onSubscriptionsChanged: () => Promise<void>
 }) {
   const c = content.billing
+  const [dialog, setDialog] = useState<PlanDialog>(null)
+
+  const planNameOf = (planId: string): string =>
+    PLAN_TRANSLATIONS[locale][planId as PlanId]?.name ?? planId
 
   return (
     <section className="account-view" aria-label={c.title}>
@@ -359,30 +395,46 @@ function BillingSection({
         <p className="account-panel__title">{c.plan.title}</p>
         {subscriptions.length > 0 ? (
           subscriptions.map((subscription) => {
-            const planName =
-              PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ??
-              subscription.planId
+            const planName = planNameOf(subscription.planId)
             const statusTone =
               subscription.status === 'active'
-                ? 'status-chip--active'
+                ? subscription.cancelAtPeriodEnd
+                  ? 'status-chip--warning'
+                  : 'status-chip--active'
                 : subscription.status === 'past_due'
                   ? 'status-chip--warning'
                   : 'status-chip--neutral'
+            // Metadato principal: baja programada, cambio pendiente, o renovación.
+            const meta = subscription.isEnding
+              ? `${c.plan.endsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
+              : subscription.status === 'canceled'
+                ? `${c.plan.canceledAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
+                : `${c.plan.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
             return (
               <div className="plan-summary" key={subscription.id}>
                 <div>
                   <p className="plan-summary__name">{planName}</p>
-                  <p className="plan-summary__meta">
-                    {subscription.status === 'canceled'
-                      ? `${c.plan.canceledAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
-                      : `${c.plan.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`}
-                  </p>
+                  <p className="plan-summary__meta">{meta}</p>
+                  {subscription.pendingPlanId && (
+                    <p className="plan-summary__pending">
+                      {fill(c.plan.pendingChangeLabel, {
+                        plan: planNameOf(subscription.pendingPlanId),
+                        date: formatDate(subscription.currentPeriodEnd, localeTag),
+                      })}
+                    </p>
+                  )}
                 </div>
                 <div className="plan-summary__aside">
                   <span className={`status-chip ${statusTone}`}>
                     {c.plan.statusLabels[subscription.status]}
                   </span>
-                  <Button variant="secondary">{c.plan.changePlanButton}</Button>
+                  {subscription.isManageable && (
+                    <div className="plan-summary__actions">
+                      <Button variant="secondary" onClick={() => setDialog({ subscription })}>
+                        {c.plan.manageButton}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -391,6 +443,20 @@ function BillingSection({
           <p className="account-empty">{c.plan.empty}</p>
         )}
       </div>
+
+      {dialog && (
+        <ManageSubscriptionDialog
+          content={content}
+          locale={locale}
+          localeTag={localeTag}
+          email={email}
+          subscription={dialog.subscription}
+          plans={plans}
+          planName={planNameOf(dialog.subscription.planId)}
+          onClose={() => setDialog(null)}
+          onDone={onSubscriptionsChanged}
+        />
+      )}
 
       {/* Método de pago */}
       <div className="account-panel">
@@ -473,6 +539,315 @@ function BillingSection({
         )}
       </div>
     </section>
+  )
+}
+
+// --- Diálogos de gestión de la suscripción ---------------------------------
+// Estado compartido de una operación asíncrona sobre la suscripción.
+function useSubscriptionAction(onDone: () => Promise<void>, onClose: () => void) {
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState(false)
+
+  const run = async (op: () => Promise<void>) => {
+    setPending(true)
+    setError(false)
+    try {
+      await op()
+      await onDone()
+      onClose()
+    } catch {
+      setError(true)
+      setPending(false)
+    }
+  }
+
+  return { pending, error, run }
+}
+
+// Vista interna del modal de administración: hub con las dos acciones, o una
+// de las dos sub-vistas (cancelar/reactivar comparten vista de confirmación).
+type ManageView = 'hub' | 'confirm' | 'change'
+
+function ManageSubscriptionDialog({
+  content,
+  locale,
+  localeTag,
+  email,
+  subscription,
+  plans,
+  planName,
+  onClose,
+  onDone,
+}: {
+  content: Content
+  locale: Locale
+  localeTag: string
+  email: string
+  subscription: Subscription
+  plans: Plan[]
+  planName: string
+  onClose: () => void
+  onDone: () => Promise<void>
+}) {
+  const c = content.billing.plan
+  const [view, setView] = useState<ManageView>('hub')
+  const backToHub = () => setView('hub')
+
+  if (view === 'confirm') {
+    return (
+      <ConfirmCancelOrReactivateView
+        content={content}
+        localeTag={localeTag}
+        email={email}
+        subscription={subscription}
+        planName={planName}
+        onBack={backToHub}
+        onClose={onClose}
+        onDone={onDone}
+      />
+    )
+  }
+
+  if (view === 'change') {
+    return (
+      <ChangePlanView
+        content={content}
+        locale={locale}
+        localeTag={localeTag}
+        email={email}
+        subscription={subscription}
+        plans={plans}
+        onBack={backToHub}
+        onClose={onClose}
+        onDone={onDone}
+      />
+    )
+  }
+
+  // Hub: resumen de la suscripción + dos acciones grandes (cambiar / cancelar
+  // o reanudar). Un único punto de entrada en vez de botones sueltos en la lista.
+  return (
+    <Modal open title={c.manageDialog.title} onClose={onClose} closeLabel={c.changeDialog.cancel}>
+      <div className="manage-sub__summary">
+        <span className="manage-sub__plan-name">{planName}</span>
+        <span className="manage-sub__meta">
+          {subscription.isEnding
+            ? `${c.endsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`
+            : `${c.renewsAtLabel} ${formatDate(subscription.currentPeriodEnd, localeTag)}`}
+        </span>
+      </div>
+
+      <div className="manage-sub__actions">
+        {!subscription.isEnding && (
+          <button type="button" className="manage-sub__action" onClick={() => setView('change')}>
+            <span className="manage-sub__action-text">
+              <span className="manage-sub__action-title">{c.changePlanButton}</span>
+              <span className="manage-sub__action-desc">{c.manageDialog.changeDesc}</span>
+            </span>
+            <ChevronRight size={18} strokeWidth={2} className="manage-sub__action-arrow" aria-hidden />
+          </button>
+        )}
+
+        <button
+          type="button"
+          className={`manage-sub__action ${subscription.isEnding ? '' : 'manage-sub__action--destructive'}`}
+          onClick={() => setView('confirm')}
+        >
+          <span className="manage-sub__action-text">
+            <span className="manage-sub__action-title">
+              {subscription.isEnding ? c.reactivateButton : c.cancelButton}
+            </span>
+            <span className="manage-sub__action-desc">
+              {subscription.isEnding ? c.manageDialog.reactivateDesc : c.manageDialog.cancelDesc}
+            </span>
+          </span>
+          <ChevronRight size={18} strokeWidth={2} className="manage-sub__action-arrow" aria-hidden />
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+/** Cancelar y reactivar comparten vista: son la misma confirmación en espejo. */
+function ConfirmCancelOrReactivateView({
+  content,
+  localeTag,
+  email,
+  subscription,
+  planName,
+  onBack,
+  onClose,
+  onDone,
+}: {
+  content: Content
+  localeTag: string
+  email: string
+  subscription: Subscription
+  planName: string
+  onBack: () => void
+  onClose: () => void
+  onDone: () => Promise<void>
+}) {
+  const isReactivate = subscription.isEnding
+  const d = isReactivate ? content.billing.plan.reactivateDialog : content.billing.plan.cancelDialog
+  const { pending, error, run } = useSubscriptionAction(onDone, onClose)
+  const values = { plan: planName, date: formatDate(subscription.currentPeriodEnd, localeTag) }
+
+  return (
+    <Modal open title={d.title} onClose={onClose} closeLabel={d.cancel}>
+      <button type="button" className="modal-back" onClick={onBack} disabled={pending}>
+        <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+        {content.billing.plan.manageDialog.backLabel}
+      </button>
+
+      <p>{fill(d.body, values)}</p>
+      {error && <p className="modal-error">{content.billing.plan.genericError}</p>}
+
+      <div className="modal-inline-actions">
+        <Button variant="ghost" onClick={onBack} disabled={pending}>
+          {d.cancel}
+        </Button>
+        <Button
+          variant={isReactivate ? 'primary' : 'destructive'}
+          disabled={pending}
+          onClick={() =>
+            run(() =>
+              isReactivate
+                ? billingUseCases.reactivateSubscription.execute(
+                    email,
+                    subscription.stripeSubscriptionId!,
+                  )
+                : billingUseCases.cancelSubscription.execute(
+                    email,
+                    subscription.stripeSubscriptionId!,
+                  ),
+            )
+          }
+        >
+          {d.confirm}
+        </Button>
+      </div>
+    </Modal>
+  )
+}
+
+function ChangePlanView({
+  content,
+  locale,
+  localeTag,
+  email,
+  subscription,
+  plans,
+  onBack,
+  onClose,
+  onDone,
+}: {
+  content: Content
+  locale: Locale
+  localeTag: string
+  email: string
+  subscription: Subscription
+  plans: Plan[]
+  onBack: () => void
+  onClose: () => void
+  onDone: () => Promise<void>
+}) {
+  const d = content.billing.plan.changeDialog
+  const { pending, error, run } = useSubscriptionAction(onDone, onClose)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const currentPlan = plans.find((p) => p.id === subscription.planId) ?? null
+  // Planes a los que se puede cambiar: comprables (no a medida, con precio) y
+  // distintos del actual.
+  const targets = plans.filter(
+    (p) => p.priceMonth !== null && !p.custom && p.id !== subscription.planId,
+  )
+  const selected = targets.find((p) => p.id === selectedId) ?? null
+
+  // Aviso de timing según la regla de dominio (mejora vs. bajada).
+  const timing = currentPlan && selected ? planChangeTiming(currentPlan, selected) : null
+  const note =
+    timing === 'now_prorated'
+      ? d.upgradeNote
+      : timing === 'at_period_end'
+        ? fill(d.downgradeNote, {
+            plan: PLAN_TRANSLATIONS[locale][subscription.planId as PlanId]?.name ??
+              subscription.planId,
+            date: formatDate(subscription.currentPeriodEnd, localeTag),
+          })
+        : null
+
+  const currencySymbol = (plan: Plan) => (plan.currency === 'EUR' ? '€' : plan.currency)
+
+  return (
+    <Modal
+      open
+      title={d.title}
+      onClose={onClose}
+      closeLabel={d.cancel}
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose} disabled={pending}>
+            {d.cancel}
+          </Button>
+          <Button
+            variant="primary"
+            disabled={pending || !selected}
+            onClick={() => {
+              if (!selected) return
+              run(async () => {
+                // El periodo se mantiene mensual (el catálogo online solo tiene
+                // precios mensuales configurados); si en el futuro hay anual,
+                // se elegiría aquí. El timing lo recalcula el servidor; aquí no
+                // se necesita el valor devuelto.
+                await billingUseCases.changeSubscriptionPlan.execute({
+                  email,
+                  subscriptionId: subscription.stripeSubscriptionId!,
+                  planId: selected.id,
+                  period: 'monthly' satisfies BillingPeriod,
+                })
+              })
+            }}
+          >
+            {d.confirm}
+          </Button>
+        </>
+      }
+    >
+      <button type="button" className="modal-back" onClick={onBack} disabled={pending}>
+        <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+        {content.billing.plan.manageDialog.backLabel}
+      </button>
+
+      <p className="modal-intro">{d.intro}</p>
+      <ul className="plan-picker">
+        {targets.map((plan) => {
+          const name = PLAN_TRANSLATIONS[locale][plan.id as PlanId]?.name ?? plan.name
+          const isSelected = plan.id === selectedId
+          return (
+            <li key={plan.id}>
+              <button
+                type="button"
+                className={`plan-option ${isSelected ? 'plan-option--selected' : ''}`}
+                aria-pressed={isSelected}
+                onClick={() => setSelectedId(plan.id)}
+              >
+                <span className="plan-option__body">
+                  <span className="plan-option__radio" aria-hidden />
+                  <span className="plan-option__name">{name}</span>
+                </span>
+                <span className="plan-option__price">
+                  {plan.priceMonth} {currencySymbol(plan)}
+                  {content.billing.plan.pricePeriodMonth}
+                </span>
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+      {note && <p className="plan-change-note">{note}</p>}
+      {error && <p className="modal-error">{content.billing.plan.genericError}</p>}
+    </Modal>
   )
 }
 

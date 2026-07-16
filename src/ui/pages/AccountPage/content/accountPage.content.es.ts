@@ -59,13 +59,57 @@ export const accountPageContent = {
       planLabel: 'Plan',
       renewsAtLabel: 'Renueva el',
       canceledAtLabel: 'Finaliza el',
+      endsAtLabel: 'Acaba el',
+      pendingChangeLabel: 'Cambiará a {plan} el {date}',
       changePlanButton: 'Cambiar de plan',
+      cancelButton: 'Cancelar suscripción',
+      reactivateButton: 'Reanudar suscripción',
+      /** Botón único que abre el hub de administración (cambiar / cancelar / reanudar). */
+      manageButton: 'Administrar suscripción',
       statusLabels: {
         active: 'Activa',
         canceled: 'Cancelada',
         past_due: 'Pago pendiente',
         none: 'Sin suscripción',
       } satisfies Record<Subscription['status'], string>,
+      /** Hub del modal "Administrar suscripción": resumen + dos acciones. */
+      manageDialog: {
+        title: 'Administrar suscripción',
+        changeDesc: 'Sube o baja de plan',
+        cancelDesc: 'Deja de renovarse al final de este periodo',
+        reactivateDesc: 'Vuelve a activar la renovación automática',
+        backLabel: 'Atrás',
+      },
+      /** Diálogo de cancelación (baja a fin de periodo). */
+      cancelDialog: {
+        title: 'Cancelar suscripción',
+        body: '¿Seguro que quieres cancelar {plan}? Seguirás teniendo acceso hasta el {date}; a partir de esa fecha no se renovará y perderás el acceso. No se hace ningún cargo ni reembolso ahora.',
+        confirm: 'Sí, cancelar',
+        cancel: 'No, mantener',
+        success: 'Tu suscripción se cancelará el {date}.',
+      },
+      /** Diálogo de reactivación (revertir baja programada). */
+      reactivateDialog: {
+        title: 'Reanudar suscripción',
+        body: 'Tu suscripción a {plan} volverá a renovarse con normalidad el {date}.',
+        confirm: 'Reanudar',
+        cancel: 'Cerrar',
+        success: 'Tu suscripción vuelve a estar activa.',
+      },
+      /** Diálogo de cambio de plan. */
+      changeDialog: {
+        title: 'Cambiar de plan',
+        intro: 'Elige el plan al que quieres cambiar. Las mejoras se aplican al momento cobrando solo la diferencia de este mes; las bajadas se aplican en la próxima renovación.',
+        currentBadge: 'Plan actual',
+        upgradeNote: 'Mejora: se aplica ya y se cobra solo la diferencia prorrateada de este periodo.',
+        downgradeNote: 'Bajada: sigues con {plan} hasta el {date} y el nuevo plan entra en la siguiente renovación.',
+        confirm: 'Confirmar cambio',
+        cancel: 'Cancelar',
+        successNow: 'Plan cambiado. El nuevo plan ya está activo.',
+        successLater: 'Cambio programado: entrará en vigor el {date}.',
+      },
+      genericError: 'No se pudo completar la operación. Inténtalo de nuevo.',
+      pricePeriodMonth: '/mes',
     },
     paymentMethod: {
       title: 'Método de pago',

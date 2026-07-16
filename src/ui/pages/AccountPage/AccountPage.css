@@ -290,6 +290,201 @@
   align-items: flex-end;
   gap: var(--space-3);
 }
+/* Aviso de cambio de plan programado (downgrade pendiente). */
+.plan-summary__pending {
+  margin-top: var(--space-1);
+  color: var(--info);
+  font: var(--type-body);
+}
+.plan-summary__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* --- Diálogos de gestión de la suscripción ------------------------------- */
+.modal-intro {
+  margin-bottom: var(--space-4);
+  color: var(--fg-muted);
+}
+.modal-error {
+  margin-top: var(--space-3);
+  color: var(--error);
+  font: var(--type-body);
+}
+.plan-change-note {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--fg);
+  font: var(--type-body);
+}
+
+/* Hub "Administrar suscripción": resumen + dos acciones grandes. */
+.manage-sub__summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
+}
+.manage-sub__plan-name {
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  color: var(--fg);
+}
+.manage-sub__meta {
+  color: var(--fg-muted);
+  font: var(--type-body);
+}
+.manage-sub__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.manage-sub__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--fg);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 140ms var(--ease-out-quart), background 140ms var(--ease-out-quart);
+}
+.manage-sub__action:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+.manage-sub__action--destructive:hover {
+  border-color: var(--error);
+}
+.manage-sub__action-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.manage-sub__action-title {
+  font-weight: 700;
+  font-size: var(--fs-sub);
+}
+.manage-sub__action-desc {
+  color: var(--fg-muted);
+  font: var(--type-body);
+}
+.manage-sub__action-arrow {
+  flex-shrink: 0;
+  color: var(--fg-muted);
+}
+
+/* Pie de las sub-vistas sin footer fijo del Modal (confirmación cancel/reactivar). */
+.modal-inline-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+/* Botón para volver a la vista hub desde una sub-vista del modal. */
+.modal-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-4);
+  padding: 0;
+  color: var(--fg-muted);
+  background: transparent;
+  border: none;
+  font: var(--type-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 140ms var(--ease-out-quart);
+}
+.modal-back:hover {
+  color: var(--fg);
+}
+.modal-back:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Selector de plan de destino dentro del diálogo de cambio. */
+.plan-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plan-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 140ms var(--ease-out-quart), background 140ms var(--ease-out-quart);
+}
+.plan-option:hover {
+  border-color: var(--accent);
+}
+.plan-option--selected {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+.plan-option__radio {
+  flex-shrink: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--fg-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 140ms var(--ease-out-quart);
+}
+.plan-option--selected .plan-option__radio {
+  border-color: var(--accent);
+}
+.plan-option--selected .plan-option__radio::after {
+  content: '';
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: var(--r-full);
+  background: var(--accent);
+}
+.plan-option__body {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+.plan-option__name {
+  font-weight: 600;
+  color: var(--fg);
+}
+.plan-option__price {
+  color: var(--fg-muted);
+  font: var(--type-body);
+  flex-shrink: 0;
+}
 
 /* --- Método de pago ------------------------------------------------------- */
 .payment {

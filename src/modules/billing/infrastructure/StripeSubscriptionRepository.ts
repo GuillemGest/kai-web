@@ -2,7 +2,12 @@ import Stripe from 'stripe'
 import type { ISubscriptionRepository } from '../domain/ISubscriptionRepository'
 import { Subscription, type SubscriptionStatus } from '../domain/Subscription'
 import type { IPlanRepository } from '../domain/IPlanRepository'
-import type { Plan } from '../domain/Plan'
+import type { BillingPeriod, Plan, PlanChangeTiming } from '../domain/Plan'
+import {
+  SeatLimitExceededError,
+  SubscriptionNotFoundError,
+  SubscriptionNotManageableError,
+} from '../domain/subscriptionErrors'
 
 /**
  * Suscripciones desde Stripe. SOLO servidor: instancia el SDK con la clave
@@ -14,6 +19,11 @@ import type { Plan } from '../domain/Plan'
  * la vez — agregando las de todos los Customers con ese email, ordenadas por
  * relevancia (activas > con impago > canceladas) y, a igualdad, más recientes
  * primero.
+ *
+ * Las operaciones de gestión (cancelar, reactivar, cambiar de plan) verifican
+ * SIEMPRE la titularidad: la suscripción debe pertenecer a un Customer con el
+ * email indicado; si no, SubscriptionNotFoundError (misma respuesta exista o
+ * no, para no revelar suscripciones ajenas).
  */
 export class StripeSubscriptionRepository implements ISubscriptionRepository {
   private readonly stripe: Stripe
@@ -32,7 +42,14 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
 
     const subscriptionsPerCustomer = await Promise.all(
       customers.data.map((customer) =>
-        this.stripe.subscriptions.list({ customer: customer.id, status: 'all', limit: 20 }),
+        this.stripe.subscriptions.list({
+          customer: customer.id,
+          status: 'all',
+          limit: 20,
+          // El schedule expandido permite detectar downgrades programados sin
+          // una llamada extra por suscripción.
+          expand: ['data.schedule'],
+        }),
       ),
     )
 
@@ -57,9 +74,170 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
           status,
           currentPeriodEnd: currentPeriodEndOf(sub),
           stripeSubscriptionId: sub.id,
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+          pendingPlanId: resolvePendingPlanId(sub, plans),
         }),
       )
   }
+
+  async cancelAtPeriodEnd(email: string, subscriptionId: string): Promise<void> {
+    const sub = await this.findOwnedSubscription(email, subscriptionId)
+    if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
+
+    // Un downgrade programado ya no tiene sentido si el usuario se da de baja:
+    // se libera el schedule antes de programar la cancelación.
+    await this.releaseScheduleIfAny(sub)
+    await this.stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true })
+  }
+
+  async reactivate(email: string, subscriptionId: string): Promise<void> {
+    const sub = await this.findOwnedSubscription(email, subscriptionId)
+    if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
+
+    await this.stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false })
+  }
+
+  async changePlan(
+    email: string,
+    subscriptionId: string,
+    target: Plan,
+    period: BillingPeriod,
+    timing: PlanChangeTiming,
+  ): Promise<void> {
+    const sub = await this.findOwnedSubscription(email, subscriptionId)
+    if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
+
+    const priceId = target.stripePriceIdFor(period)
+    if (!priceId) {
+      throw new Error(`El plan ${target.id} no tiene price de Stripe para el periodo ${period}`)
+    }
+
+    // Distinguimos la línea del plan de las líneas de usuarios extra: la del
+    // plan es la que casa con algún price del catálogo.
+    const plans = await this.planRepository.getAll()
+    const planItem = sub.items.data.find((item) => planIdForPriceIds([item.price?.id], plans))
+    if (!planItem) throw new SubscriptionNotManageableError(subscriptionId)
+    const seatItems = sub.items.data.filter((item) => item.id !== planItem.id)
+
+    // Los asientos contratados deben caber en el plan de destino.
+    const extraSeats = seatItems.reduce((total, item) => total + (item.quantity ?? 0), 0)
+    if (!target.allowsExtraSeats(extraSeats)) throw new SeatLimitExceededError(target.id)
+
+    if (timing === 'now_prorated') {
+      // Upgrade: se aplica ya y se factura al momento SOLO la diferencia
+      // prorrateada del periodo en curso. Si había un downgrade programado o
+      // una baja pendiente, cambiar de plan implica continuar: se limpian.
+      await this.releaseScheduleIfAny(sub)
+      await this.stripe.subscriptions.update(subscriptionId, {
+        items: [{ id: planItem.id, price: priceId }],
+        proration_behavior: 'always_invoice',
+        // Si el cobro de la diferencia falla, la operación falla entera (no
+        // dejamos el plan cambiado con una factura impagada colgando).
+        payment_behavior: 'error_if_incomplete',
+        cancel_at_period_end: false,
+        metadata: { ...sub.metadata, planId: target.id },
+      })
+      return
+    }
+
+    // Downgrade: el plan actual (ya pagado) se mantiene hasta fin de periodo y
+    // el nuevo entra en la siguiente renovación, sin cobros ni abonos ahora.
+    // Se modela con un Subscription Schedule de dos fases.
+    if (sub.cancel_at_period_end) {
+      await this.stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false })
+    }
+    const schedule = await this.findOrCreateSchedule(sub)
+    const currentPhase = schedule.phases[0]
+    const carriedSeats = seatItems.map((item) => ({
+      price: item.price.id,
+      quantity: item.quantity ?? 1,
+    }))
+    await this.stripe.subscriptionSchedules.update(schedule.id, {
+      phases: [
+        {
+          items: sub.items.data.map((item) => ({
+            price: item.price.id,
+            quantity: item.quantity ?? 1,
+          })),
+          start_date: currentPhase.start_date,
+          end_date: currentPeriodEndUnix(sub),
+        },
+        {
+          items: [{ price: priceId, quantity: 1 }, ...carriedSeats],
+          proration_behavior: 'none',
+          // Al entrar la fase, Stripe vuelca esta metadata a la suscripción:
+          // así `resolvePlanId` seguirá siendo correcto tras la renovación.
+          metadata: { ...sub.metadata, planId: target.id },
+        },
+      ],
+      // Tras la última fase el schedule se libera y la suscripción sigue
+      // renovándose sola con el plan nuevo.
+      end_behavior: 'release',
+    })
+  }
+
+  /**
+   * Recupera la suscripción verificando que pertenece al email indicado. La
+   * comparación es contra el email del Customer (identidad de facturación).
+   */
+  private async findOwnedSubscription(
+    email: string,
+    subscriptionId: string,
+  ): Promise<Stripe.Subscription> {
+    let sub: Stripe.Subscription
+    try {
+      sub = await this.stripe.subscriptions.retrieve(subscriptionId, { expand: ['customer'] })
+    } catch {
+      throw new SubscriptionNotFoundError(subscriptionId)
+    }
+
+    const customer = sub.customer as Stripe.Customer | Stripe.DeletedCustomer
+    const ownerEmail = 'email' in customer ? customer.email : null
+    if (!ownerEmail || ownerEmail.toLowerCase() !== email.toLowerCase()) {
+      throw new SubscriptionNotFoundError(subscriptionId)
+    }
+    return sub
+  }
+
+  /** Libera (sin cancelar la suscripción) el schedule asociado, si existe. */
+  private async releaseScheduleIfAny(sub: Stripe.Subscription): Promise<void> {
+    const scheduleId = typeof sub.schedule === 'string' ? sub.schedule : sub.schedule?.id
+    if (!scheduleId) return
+    const schedule = await this.stripe.subscriptionSchedules.retrieve(scheduleId)
+    if (schedule.status === 'active' || schedule.status === 'not_started') {
+      await this.stripe.subscriptionSchedules.release(scheduleId)
+    }
+  }
+
+  /** Schedule ya asociado a la suscripción, o uno nuevo creado a partir de ella. */
+  private async findOrCreateSchedule(
+    sub: Stripe.Subscription,
+  ): Promise<Stripe.SubscriptionSchedule> {
+    const scheduleId = typeof sub.schedule === 'string' ? sub.schedule : sub.schedule?.id
+    if (scheduleId) {
+      const existing = await this.stripe.subscriptionSchedules.retrieve(scheduleId)
+      if (existing.status === 'active' || existing.status === 'not_started') return existing
+    }
+    return this.stripe.subscriptionSchedules.create({ from_subscription: sub.id })
+  }
+}
+
+/** Estados de Stripe sobre los que tiene sentido operar (cancelar/cambiar). */
+function isManageableStatus(status: Stripe.Subscription.Status): boolean {
+  return status === 'active' || status === 'trialing' || status === 'past_due'
+}
+
+/** planId del catálogo cuyo price mensual o anual esté entre los indicados, o null. */
+function planIdForPriceIds(
+  priceIds: readonly (string | undefined)[],
+  plans: Plan[],
+): string | null {
+  const match = plans.find((plan) =>
+    priceIds.some(
+      (id) => id && (id === plan.stripePriceIdMonthly || id === plan.stripePriceIdYearly),
+    ),
+  )
+  return match?.id ?? null
 }
 
 /**
@@ -71,11 +249,24 @@ function resolvePlanId(sub: Stripe.Subscription, plans: Plan[]): string {
   const fromMetadata = sub.metadata?.planId
   if (fromMetadata) return fromMetadata
 
-  const priceIds = sub.items.data.map((item) => item.price?.id).filter(Boolean)
-  const match = plans.find((plan) =>
-    priceIds.some((id) => id === plan.stripePriceIdMonthly || id === plan.stripePriceIdYearly),
+  const priceIds = sub.items.data.map((item) => item.price?.id)
+  return planIdForPriceIds(priceIds, plans) ?? ''
+}
+
+/**
+ * Downgrade programado: si la suscripción tiene un schedule activo cuya última
+ * fase apunta a un plan distinto del actual, ese es el plan pendiente.
+ */
+function resolvePendingPlanId(sub: Stripe.Subscription, plans: Plan[]): string | null {
+  const schedule = typeof sub.schedule === 'object' ? sub.schedule : null
+  if (!schedule || schedule.status !== 'active' || schedule.phases.length < 2) return null
+
+  const lastPhase = schedule.phases[schedule.phases.length - 1]
+  const priceIds = lastPhase.items.map((item) =>
+    typeof item.price === 'string' ? item.price : item.price?.id,
   )
-  return match?.id ?? ''
+  const pending = planIdForPriceIds(priceIds, plans)
+  return pending && pending !== resolvePlanId(sub, plans) ? pending : null
 }
 
 /** Menor = más relevante al listar suscripciones. */
@@ -113,8 +304,14 @@ function mapStatus(status: Stripe.Subscription.Status): SubscriptionStatus | nul
  * comparten intervalo en nuestro caso: plan + asientos van al mismo ciclo).
  */
 function currentPeriodEndOf(sub: Stripe.Subscription): string {
-  const periodEnd =
+  const periodEnd = currentPeriodEndUnix(sub)
+  return periodEnd ? new Date(periodEnd * 1000).toISOString() : ''
+}
+
+/** Fin del periodo actual en epoch (segundos), como lo espera el API de Stripe. */
+function currentPeriodEndUnix(sub: Stripe.Subscription): number | undefined {
+  return (
     sub.items?.data?.[0]?.current_period_end ??
     (sub as unknown as { current_period_end?: number }).current_period_end
-  return periodEnd ? new Date(periodEnd * 1000).toISOString() : ''
+  )
 }

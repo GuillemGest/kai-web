@@ -1,0 +1,103 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.55);
+  animation: modal-overlay-in 160ms var(--ease-out-quart);
+}
+
+.modal {
+  width: 100%;
+  max-width: 30rem;
+  max-height: calc(100vh - var(--space-7));
+  display: flex;
+  flex-direction: column;
+  /* Fondo OPACO (no `--surface`, que es translúcido y dejaría ver la página
+     de detrás): un modal es una superficie elevada sobre el overlay. */
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  outline: none;
+  animation: modal-in 200ms var(--ease-out-expo);
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-5) var(--space-3);
+}
+
+.modal__title {
+  font: var(--type-title);
+  font-size: var(--fs-h3);
+  color: var(--fg);
+  margin: 0;
+}
+
+.modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  color: var(--fg-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-full);
+  cursor: pointer;
+  transition: background 140ms var(--ease-out-quart), color 140ms var(--ease-out-quart);
+}
+
+.modal__close:hover {
+  background: var(--surface-2);
+  color: var(--fg);
+}
+
+.modal__body {
+  padding: 0 var(--space-5) var(--space-5);
+  overflow-y: auto;
+  color: var(--fg-muted);
+  font: var(--type-body);
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+@keyframes modal-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal {
+    animation: none;
+  }
+}

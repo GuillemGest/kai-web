@@ -1,0 +1,99 @@
+import type { APIRoute } from 'astro'
+import { createChangeSubscriptionPlanUseCase } from '../../../modules/billing/application/subscriptionFactory'
+import {
+  SamePlanError,
+  SeatLimitExceededError,
+  SubscriptionNotFoundError,
+  SubscriptionNotManageableError,
+} from '../../../modules/billing/domain/subscriptionErrors'
+import {
+  PlanNotFoundError,
+  PlanNotPurchasableError,
+} from '../../../modules/billing/application/CreateCheckoutSession'
+import type { BillingPeriod } from '../../../modules/billing/domain/Plan'
+
+// Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
+export const prerender = false
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function isPeriod(value: unknown): value is BillingPeriod {
+  return value === 'monthly' || value === 'yearly'
+}
+
+function json(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+/**
+ * Cambia el plan de una suscripción. El TIMING (upgrade prorrateado ya vs.
+ * downgrade a fin de periodo) lo decide SIEMPRE el use case en el servidor a
+ * partir de los precios reales: el cliente solo dice a qué plan quiere ir. Se
+ * devuelve el timing aplicado para que la UI informe de cuándo entra en vigor.
+ *
+ * Misma limitación de auth que el resto de /api/*: el email llega del cliente y
+ * la titularidad se verifica contra el Customer de Stripe.
+ */
+export const POST: APIRoute = async ({ request }) => {
+  const secretKey = import.meta.env.STRIPE_SECRET_KEY
+  if (!secretKey) {
+    return json({ error: 'Stripe no está configurado en el servidor.' }, 500)
+  }
+
+  let body: { email?: unknown; subscriptionId?: unknown; planId?: unknown; period?: unknown }
+  try {
+    body = (await request.json()) as typeof body
+  } catch {
+    return json({ error: 'Body inválido.' }, 400)
+  }
+
+  const email = typeof body.email === 'string' ? body.email.trim() : ''
+  const subscriptionId = typeof body.subscriptionId === 'string' ? body.subscriptionId.trim() : ''
+  const planId = typeof body.planId === 'string' ? body.planId.trim() : ''
+  if (!EMAIL_PATTERN.test(email)) {
+    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  }
+  if (!subscriptionId) {
+    return json({ error: 'subscriptionId es obligatorio.' }, 400)
+  }
+  if (!planId) {
+    return json({ error: 'planId es obligatorio.' }, 400)
+  }
+  if (!isPeriod(body.period)) {
+    return json({ error: "period debe ser 'monthly' o 'yearly'." }, 400)
+  }
+
+  try {
+    const timing = await createChangeSubscriptionPlanUseCase(secretKey).execute({
+      email,
+      subscriptionId,
+      planId,
+      period: body.period,
+    })
+    return json({ ok: true, timing }, 200)
+  } catch (error) {
+    if (error instanceof SubscriptionNotFoundError) {
+      return json({ error: 'Suscripción no encontrada.' }, 404)
+    }
+    if (error instanceof SubscriptionNotManageableError) {
+      return json({ error: 'Esta suscripción no se puede modificar.' }, 409)
+    }
+    if (error instanceof SamePlanError) {
+      return json({ error: 'La suscripción ya está en ese plan.' }, 409)
+    }
+    if (error instanceof SeatLimitExceededError) {
+      return json({ error: 'El plan elegido no admite los usuarios adicionales contratados.' }, 409)
+    }
+    if (error instanceof PlanNotFoundError) {
+      return json({ error: 'Plan no encontrado.' }, 404)
+    }
+    if (error instanceof PlanNotPurchasableError) {
+      return json({ error: 'Este plan no se puede contratar online.' }, 409)
+    }
+    console.error('[subscriptions/change-plan] error cambiando de plan:', error)
+    return json({ error: 'No se pudo cambiar de plan.' }, 502)
+  }
+}
