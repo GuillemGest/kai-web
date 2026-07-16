@@ -15,6 +15,16 @@ export const headerContent = {
     loginLabel: 'Sign in',
     ctaLabel: 'Start free trial',
     accountLabel: 'My account',
+    accountsMenu: {
+      triggerAriaLabel: 'Open account menu',
+      menuAriaLabel: 'Saved accounts',
+      activeBadge: 'Active account',
+      noOrg: 'No organization selected',
+      switchToAria: 'Switch to {name}',
+      removeAccountAria: 'Remove saved account {name}',
+      addNew: 'Add new account',
+      switchErrorLabel: 'Could not switch account. Please try again.',
+    },
   },
   languageSelector: {
     triggerAriaLabel: 'Change language',

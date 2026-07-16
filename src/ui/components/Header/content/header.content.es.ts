@@ -15,6 +15,16 @@ export const headerContent = {
     loginLabel: 'Iniciar sesión',
     ctaLabel: 'Prueba gratis',
     accountLabel: 'Mi cuenta',
+    accountsMenu: {
+      triggerAriaLabel: 'Abrir menú de cuenta',
+      menuAriaLabel: 'Cuentas guardadas',
+      activeBadge: 'Cuenta activa',
+      noOrg: 'Sin organización seleccionada',
+      switchToAria: 'Cambiar a {name}',
+      removeAccountAria: 'Eliminar cuenta guardada {name}',
+      addNew: 'Añadir cuenta nueva',
+      switchErrorLabel: 'No se pudo cambiar de cuenta. Inténtalo de nuevo.',
+    },
   },
   languageSelector: {
     triggerAriaLabel: 'Cambiar idioma',

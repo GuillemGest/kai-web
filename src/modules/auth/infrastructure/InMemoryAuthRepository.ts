@@ -1,5 +1,9 @@
 import { AuthSession, type CachedSessionPrimitive } from '../domain/AuthSession'
-import type { IAuthRepository, LoginResult } from '../domain/IAuthRepository'
+import type {
+  IAuthRepository,
+  LoginResult,
+  SwitchAccountResult,
+} from '../domain/IAuthRepository'
 import { InvalidCodeError } from '../domain/InvalidCodeError'
 import { InvalidCredentialsError } from '../domain/InvalidCredentialsError'
 import { Organization } from '../domain/Organization'
@@ -107,6 +111,23 @@ export class InMemoryAuthRepository implements IAuthRepository {
 
   getCurrentSessionSync(): AuthSession | null {
     return this.readSession()
+  }
+
+  getSavedAccounts(): CachedSessionPrimitive[] {
+    // Mock: el prototipo no mantiene roster; expone la activa si existe para
+    // que el header pueda pintar el desplegable en tests sin flakear.
+    const session = this.readSession()
+    return session ? [session.toStoragePrimitive()] : []
+  }
+
+  async switchToSavedAccount(entry: CachedSessionPrimitive): Promise<SwitchAccountResult> {
+    const session = AuthSession.fromStoragePrimitive(entry)
+    this.persist(session)
+    return { ok: true, session }
+  }
+
+  removeSavedAccount(_email: string, _organizationId?: string): void {
+    // No-op: sin roster real en el mock.
   }
 
   private persist(session: AuthSession): void {

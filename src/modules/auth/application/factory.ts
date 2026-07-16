@@ -4,9 +4,12 @@ import { GetActiveSessions } from './GetActiveSessions'
 import { GetCurrentSessionSync } from './GetCurrentSessionSync'
 import { GetCurrentUser } from './GetCurrentUser'
 import { GetCurrentUserSync } from './GetCurrentUserSync'
+import { GetSavedAccounts } from './GetSavedAccounts'
 import { Login } from './Login'
 import { Logout } from './Logout'
 import { PreparePanelHandoff } from './PreparePanelHandoff'
+import { RemoveSavedAccount } from './RemoveSavedAccount'
+import { SwitchAccount } from './SwitchAccount'
 import { ValidateLoginCode } from './ValidateLoginCode'
 import { VerifyCurrentSession } from './VerifyCurrentSession'
 
@@ -23,4 +26,7 @@ export const authUseCases = {
   verifyCurrentSession: new VerifyCurrentSession(authRepository),
   preparePanelHandoff: new PreparePanelHandoff(authRepository),
   getActiveSessions: new GetActiveSessions(deviceSessionRepository),
+  getSavedAccounts: new GetSavedAccounts(authRepository),
+  switchAccount: new SwitchAccount(authRepository),
+  removeSavedAccount: new RemoveSavedAccount(authRepository),
 }

@@ -28,6 +28,7 @@ import type { ManagedUser } from '../../modules/admin/domain/ManagedUser'
 import { organizationIdsOf, usersInOrganization } from '../../modules/admin/domain/managedUsers'
 import { Button } from '../components/Button/Button'
 import { Modal } from '../components/Modal/Modal'
+import { initials } from '../utils/initials'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
 import { LOCALE_LABELS } from '../../i18n/locales'
@@ -68,15 +69,6 @@ function formatAmount(cents: number, currency: string, localeTag: string): strin
 /** Rellena plantillas tipo "Descargar factura {number}". */
 function fill(template: string, values: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_, key) => values[key] ?? `{${key}}`)
-}
-
-/** Iniciales para el avatar de un miembro. */
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w[0] ?? '')
-    .join('')
 }
 
 // Todas las secciones son visibles para cualquier usuario con sesión; el rol
