@@ -15,6 +15,16 @@ export const headerContent = {
     loginLabel: 'Iniciar sessió',
     ctaLabel: 'Prova gratuïta',
     accountLabel: 'El meu compte',
+    accountsMenu: {
+      triggerAriaLabel: 'Obrir menú de compte',
+      menuAriaLabel: 'Comptes desats',
+      activeBadge: 'Compte actiu',
+      noOrg: 'Sense organització seleccionada',
+      switchToAria: 'Canviar a {name}',
+      removeAccountAria: 'Eliminar compte desat {name}',
+      addNew: 'Afegir compte nou',
+      switchErrorLabel: 'No s’ha pogut canviar de compte. Torna-ho a provar.',
+    },
   },
   languageSelector: {
     triggerAriaLabel: 'Canviar idioma',

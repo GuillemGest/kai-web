@@ -1,5 +1,9 @@
 import { AuthSession, type CachedSessionPrimitive } from '../domain/AuthSession'
-import type { IAuthRepository, LoginResult } from '../domain/IAuthRepository'
+import type {
+  IAuthRepository,
+  LoginResult,
+  SwitchAccountResult,
+} from '../domain/IAuthRepository'
 import { InvalidCodeError } from '../domain/InvalidCodeError'
 import { InvalidCredentialsError } from '../domain/InvalidCredentialsError'
 import { Organization, type OrganizationPrimitive } from '../domain/Organization'
@@ -23,6 +27,15 @@ const TOKEN_COOKIE_KEY = 'kai_auth_token'
 
 /** Días de vida de la cookie de token en el origin de kai-web. */
 const TOKEN_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30 // 30 días
+
+/**
+ * Roster local (no compartido con frontend-kai) con las cuentas que el usuario
+ * ha usado en este origin. Permite el multi-cuenta desde el header sin
+ * romper el contrato SSO de `cached_session`. Contiene N JWTs; mismo modelo
+ * de amenazas XSS que hoy, blast radius × N — cap `MAX_SAVED_ACCOUNTS`.
+ */
+const SAVED_ACCOUNTS_KEY = 'kai_saved_accounts'
+const MAX_SAVED_ACCOUNTS = 5
 
 /** Marcador que el backend usa cuando exige elegir organización. */
 const SELECT_ORG_MARKER = 'SELECT_ORGANIZATION'
@@ -216,10 +229,113 @@ export class HttpAuthRepository implements IAuthRepository {
   }
 
   private persist(session: AuthSession): void {
+    const storagePrimitive = session.toStoragePrimitive()
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session.toStoragePrimitive()))
+      localStorage.setItem(SESSION_KEY, JSON.stringify(storagePrimitive))
     }
     setCookie(TOKEN_COOKIE_KEY, session.token, TOKEN_COOKIE_MAX_AGE_SECONDS)
+    this.upsertRoster(storagePrimitive)
+  }
+
+  getSavedAccounts(): CachedSessionPrimitive[] {
+    return this.readRoster()
+  }
+
+  removeSavedAccount(email: string, organizationId?: string): void {
+    const roster = this.readRoster()
+    const filtered = roster.filter(
+      (entry) => !sameRosterKey(entry, email, organizationId),
+    )
+    this.writeRoster(filtered)
+  }
+
+  async switchToSavedAccount(entry: CachedSessionPrimitive): Promise<SwitchAccountResult> {
+    // Preflight: no tocamos la sesión activa hasta confirmar que el token
+    // guardado sigue siendo válido. Así "fallo de switch → mantén la activa"
+    // sale gratis sin un baile de restore.
+    let res: Response
+    try {
+      res = await fetch(`${AUTH_API_BASE}/login/session/current`, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${entry.token}` },
+        credentials: 'include',
+      })
+    } catch (err) {
+      console.warn('switchToSavedAccount preflight network error', err)
+      return { ok: false, reason: 'network' }
+    }
+
+    if (res.status === 401 || res.status === 403) {
+      this.removeSavedAccount(entry.email, entry.organizationId)
+      return { ok: false, reason: 'expired' }
+    }
+
+    if (!res.ok) return { ok: false, reason: 'network' }
+
+    let payload: SessionCurrentResponse
+    try {
+      payload = (await res.json()) as SessionCurrentResponse
+    } catch {
+      return { ok: false, reason: 'network' }
+    }
+
+    if (!payload.success) {
+      this.removeSavedAccount(entry.email, entry.organizationId)
+      return { ok: false, reason: 'expired' }
+    }
+
+    // El backend puede rotar el token en la respuesta; adóptalo para no dejar
+    // uno próximo a expirar.
+    const refreshed =
+      typeof payload.message === 'string' && isJwt(payload.message)
+        ? payload.message
+        : entry.token
+
+    // Reconstruye la sesión preservando el shape rico guardado (organizationName,
+    // organizationDatabaseId). Reusamos `fromStoragePrimitive` con el token
+    // final para no perder metadatos. `persist()` escribe cached_session ANTES
+    // que la cookie, evitando el "token cookie ≠ localStorage" de readSession().
+    const session = AuthSession.fromStoragePrimitive({
+      ...entry,
+      token: refreshed,
+      timestamp: Date.now(),
+    })
+    this.persist(session)
+    // Actualiza la cookie SSO del backend con el token final, best-effort.
+    this.setSsoCookie(refreshed).catch(() => undefined)
+    return { ok: true, session }
+  }
+
+  private readRoster(): CachedSessionPrimitive[] {
+    if (typeof localStorage === 'undefined') return []
+    const raw = localStorage.getItem(SAVED_ACCOUNTS_KEY)
+    if (!raw) return []
+    try {
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return []
+      return parsed.filter(isRosterEntry)
+    } catch {
+      return []
+    }
+  }
+
+  private writeRoster(entries: CachedSessionPrimitive[]): void {
+    if (typeof localStorage === 'undefined') return
+    if (entries.length === 0) {
+      localStorage.removeItem(SAVED_ACCOUNTS_KEY)
+      return
+    }
+    localStorage.setItem(SAVED_ACCOUNTS_KEY, JSON.stringify(entries))
+  }
+
+  private upsertRoster(entry: CachedSessionPrimitive): void {
+    const roster = this.readRoster()
+    const others = roster.filter(
+      (e) => !sameRosterKey(e, entry.email, entry.organizationId),
+    )
+    // La nueva entrada al frente (más reciente); truncamos a MAX (LRU).
+    const next = [entry, ...others].slice(0, MAX_SAVED_ACCOUNTS)
+    this.writeRoster(next)
   }
 
   /**
@@ -268,6 +384,26 @@ export class HttpAuthRepository implements IAuthRepository {
 
 function isJwt(value: string): boolean {
   return typeof value === 'string' && value.split('.').length === 3
+}
+
+/** Dedup en el roster: misma cuenta si coinciden email + organizationId. */
+function sameRosterKey(
+  entry: CachedSessionPrimitive,
+  email: string,
+  organizationId?: string,
+): boolean {
+  return entry.email === email && (entry.organizationId ?? '') === (organizationId ?? '')
+}
+
+function isRosterEntry(value: unknown): value is CachedSessionPrimitive {
+  if (!value || typeof value !== 'object') return false
+  const v = value as Record<string, unknown>
+  return (
+    typeof v.email === 'string' &&
+    typeof v.token === 'string' &&
+    isJwt(v.token) &&
+    typeof v.timestamp === 'number'
+  )
 }
 
 function readLocalStorage(key: string): string | null {

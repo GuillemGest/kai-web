@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { AlertCircle, Check, Building2, ArrowLeft } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import type { LoginResult } from '../../modules/auth/domain/IAuthRepository'
@@ -25,6 +25,19 @@ export function LoginApp({ locale }: LoginAppProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [code, setCode] = useState('')
+  // Flujo "añadir cuenta" desde el header multi-cuenta: mantiene la sesión
+  // activa durante el proceso y, al terminar, aterriza en /cuenta en vez del
+  // panel externo (la nueva cuenta ya queda persistida como activa).
+  const [isAddFlow, setIsAddFlow] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    setIsAddFlow(params.get('add') === '1')
+    const prefill = params.get('email') ?? ''
+    // Sanitización defensiva contra prefill malicioso desde la URL.
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(prefill)) setEmail(prefill)
+  }, [])
   // Paso del login: credenciales → (posible selección de org) → código (2FA) → sesión.
   const [step, setStep] = useState<Step>('credentials')
   const [orgs, setOrgs] = useState<Organization[]>([])
@@ -106,6 +119,13 @@ export function LoginApp({ locale }: LoginAppProps) {
   //  - plan free o sin plan → handoff SSO al panel de frontend-kai
   //    (kai.amplifysoft.io).
   async function continueAfterAuth(_userId: string, _userEmail: string) {
+    // Flujo "añadir cuenta desde el header": vuelve a la web (/cuenta) con la
+    // nueva cuenta ya activa; el roster local en localStorage conserva la
+    // anterior, así el dropdown del header podrá cambiar entre ambas.
+    if (isAddFlow) {
+      window.location.href = getLocaleUrl('/cuenta', locale)
+      return
+    }
     const pending = pendingPlanFromQuery()
     // Plan de pago pendiente (?plan=<id> distinto de free): al wizard, donde se
     // eligen usuarios y datos de facturación antes del pago en Stripe.

@@ -1,6 +1,11 @@
-import type { AuthSession } from './AuthSession'
+import type { AuthSession, CachedSessionPrimitive } from './AuthSession'
 import type { Organization } from './Organization'
 import type { User } from './User'
+
+/** Resultado del intento de cambio a una cuenta guardada. */
+export type SwitchAccountResult =
+  | { ok: true; session: AuthSession }
+  | { ok: false; reason: 'expired' | 'network' }
 
 /**
  * Resultado del primer paso del login. El backend Amplify puede responder de
@@ -55,4 +60,19 @@ export interface IAuthRepository {
    * SSO (`setSsoCookie`) antes de saltar a otra app del ecosistema Amplify.
    */
   getCurrentSessionSync(): AuthSession | null
+  /**
+   * Lista de cuentas guardadas en cliente (roster local a kai-web, key
+   * `kai_saved_accounts`). Incluye la cuenta activa; el consumidor filtra
+   * por email+orgId contra `getCurrentSessionSync()` si necesita "otras".
+   */
+  getSavedAccounts(): CachedSessionPrimitive[]
+  /**
+   * Intenta cambiar la sesión activa a una guardada. Preflight contra
+   * `/login/session/current`: si el token está expirado, retira la entrada
+   * del roster y devuelve `expired`; si falla la red, deja la sesión activa
+   * intacta y devuelve `network`.
+   */
+  switchToSavedAccount(entry: CachedSessionPrimitive): Promise<SwitchAccountResult>
+  /** Elimina una cuenta del roster local. No toca cookie ni cached_session. */
+  removeSavedAccount(email: string, organizationId?: string): void
 }

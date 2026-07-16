@@ -1,0 +1,281 @@
+.account-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+.account-menu--block {
+  display: block;
+  width: 100%;
+}
+
+.account-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+}
+
+.account-menu__chev {
+  opacity: 0.65;
+  transition: transform 0.24s var(--ease-out-expo), opacity 0.15s var(--ease-out-quart);
+}
+.account-menu__trigger[aria-expanded='true'] .account-menu__chev {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.account-menu__block-header {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-1);
+  color: var(--fg-muted);
+  font: var(--type-ui);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.78rem;
+}
+
+/* Panel — variantes -------------------------------------------------------- */
+.account-menu__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  color: var(--fg);
+  min-width: 288px;
+}
+
+.account-menu--inline .account-menu__panel {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  z-index: 20;
+  transform-origin: top right;
+}
+
+.account-menu--block .account-menu__panel {
+  position: static;
+  margin-top: var(--space-1);
+  box-shadow: none;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .account-menu--inline .account-menu__panel {
+    transition: opacity 0.2s var(--ease-out-quart),
+      transform 0.24s var(--ease-out-expo);
+  }
+  @starting-style {
+    .account-menu--inline.is-open .account-menu__panel {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.96);
+    }
+  }
+}
+
+/* Filas -------------------------------------------------------------------- */
+.account-menu__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--r-sm, 6px);
+  min-height: 56px;
+}
+
+.account-menu__row--active {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.account-menu__row--switchable {
+  position: relative;
+  padding: 0;
+}
+
+.account-menu__switch {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm, 6px);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-out-quart);
+}
+.account-menu__switch:hover,
+.account-menu__switch:focus-visible {
+  background: var(--surface);
+  outline: none;
+}
+.account-menu__switch:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.account-menu__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-1);
+  margin-top: var(--space-1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .account-menu--inline.is-open .account-menu__list > li {
+    animation: account-menu-item-in 0.28s var(--ease-out-expo) both;
+    animation-delay: calc(80ms + var(--acc-i, 0) * 45ms);
+  }
+}
+@keyframes account-menu-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Avatar ------------------------------------------------------------------- */
+.account-menu__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--accent) 20%, var(--surface));
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+/* Info + títulos ----------------------------------------------------------- */
+.account-menu__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.account-menu__title-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.account-menu__name {
+  font: var(--type-ui);
+  font-weight: 600;
+  color: var(--fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__org {
+  font: var(--type-secondary, var(--type-ui));
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__error {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: #ff8a8a;
+}
+
+/* Badge "activa" ----------------------------------------------------------- */
+.account-menu__badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  white-space: nowrap;
+}
+
+/* Eliminar ----------------------------------------------------------------- */
+.account-menu__remove {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-md);
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease-out-quart),
+    background-color 0.15s var(--ease-out-quart),
+    color 0.15s var(--ease-out-quart);
+}
+.account-menu__row--switchable:hover .account-menu__remove,
+.account-menu__row--switchable:focus-within .account-menu__remove,
+.account-menu__remove:focus-visible {
+  opacity: 1;
+}
+.account-menu__remove:hover {
+  background: color-mix(in srgb, #ff8a8a 18%, transparent);
+  color: #ff8a8a;
+}
+@media (hover: none) {
+  .account-menu__remove {
+    opacity: 1;
+  }
+}
+
+/* Footer ------------------------------------------------------------------- */
+.account-menu__footer {
+  border-top: 1px solid var(--border);
+  padding-top: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.account-menu__add-link {
+  display: block;
+  width: 100%;
+  text-decoration: none;
+}
+
+.account-menu__add-btn {
+  width: 100%;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* En touch, el trigger inline solo abre por click (React desmonta el panel).
+   La variante block (drawer móvil) mantiene el panel siempre visible. */

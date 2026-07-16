@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { CircleUser } from 'lucide-react'
 import { authUseCases } from '../../modules/auth/application/factory'
 import { Button } from '../components/Button/Button'
+import { AccountMenu, type AccountsMenuContent } from './AccountMenu'
 import { FreeTrialButton } from './FreeTrialButton'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
 import type { Locale } from '../../i18n/locales'
@@ -14,6 +14,7 @@ interface HeaderActionsProps {
   loginLabel: string
   ctaLabel: string
   accountLabel: string
+  accountsMenu: Omit<AccountsMenuContent, 'accountLabel'>
 }
 
 /**
@@ -22,7 +23,7 @@ interface HeaderActionsProps {
  * El header se renderiza en el servidor (SSG) y no conoce la sesión, que vive
  * en el cliente (localStorage). Esta isla resuelve el estado:
  * - Sin sesión → "Iniciar sesión" (ghost) + CTA de prueba (primary).
- * - Con sesión → un único botón "Mi cuenta" que lleva a /cuenta.
+ * - Con sesión → desplegable multi-cuenta (AccountMenu) + CTA.
  *
  * Se monta como `client:only`, así que no hay HTML de servidor para esta isla:
  * el estado inicial se lee de forma SÍNCRONA (getCurrentUserSync) en el primer
@@ -36,6 +37,7 @@ export function HeaderActions({
   loginLabel,
   ctaLabel,
   accountLabel,
+  accountsMenu,
 }: HeaderActionsProps) {
   // Lectura síncrona en el primer render: como la isla es client:only, no hay
   // HTML de servidor con el que discrepar, así que este valor es autoritativo.
@@ -65,25 +67,19 @@ export function HeaderActions({
   // La prueba gratis sin sesión arrastra el plan gratuito al login (?plan=free);
   // con sesión, FreeTrialButton hace el handoff al panel de KAI.
   const freeTrialLoginHref = getLocaleUrl('/login?plan=free', locale)
-  const accountHref = getLocaleUrl('/cuenta', locale)
   const large = variant === 'block'
   const linkClass = large ? 'header__drawer-cta' : undefined
   const btnSize = large ? 'large' : 'default'
-  // ¿Estamos en la página de cuenta? Marca el botón como activo.
-  const onAccount = currentPath === '/cuenta' || currentPath.startsWith('/cuenta')
 
   if (authed) {
-    const btnClass = ['header__account-btn', onAccount ? 'is-active' : '', linkClass ?? '']
-      .filter(Boolean)
-      .join(' ')
     return (
       <>
-        <a href={accountHref} className={linkClass} aria-current={onAccount ? 'page' : undefined}>
-          <Button variant="secondary" size={btnSize} className={btnClass}>
-            <CircleUser size={18} strokeWidth={2} aria-hidden />
-            {accountLabel}
-          </Button>
-        </a>
+        <AccountMenu
+          locale={locale}
+          currentPath={currentPath}
+          variant={variant}
+          content={{ ...accountsMenu, accountLabel }}
+        />
         <FreeTrialButton
           locale={locale}
           label={ctaLabel}
