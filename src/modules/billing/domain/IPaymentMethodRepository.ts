@@ -14,4 +14,10 @@ export interface IPaymentMethodRepository {
    * operación falla.
    */
   setDefault(email: string, paymentMethodId: string): Promise<void>
+
+  /**
+   * Elimina `paymentMethodId` (la desvincula del Customer en Stripe). El
+   * email verifica la titularidad, igual que en `setDefault`.
+   */
+  remove(email: string, paymentMethodId: string): Promise<void>
 }

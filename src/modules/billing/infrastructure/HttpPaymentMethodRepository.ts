@@ -33,4 +33,16 @@ export class HttpPaymentMethodRepository implements IPaymentMethodRepository {
       throw new Error(data?.error ?? 'No se pudo actualizar la tarjeta predeterminada.')
     }
   }
+
+  async remove(email: string, paymentMethodId: string): Promise<void> {
+    const res = await fetch('/api/payment-methods/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, paymentMethodId }),
+    })
+    if (!res.ok) {
+      const data = (await res.json().catch(() => null)) as { error?: string } | null
+      throw new Error(data?.error ?? 'No se pudo eliminar la tarjeta.')
+    }
+  }
 }

@@ -10,6 +10,7 @@ import {
   PartyPopper,
   Shield,
   Smartphone,
+  Trash2,
   User as UserIcon,
   Users,
   X,
@@ -417,6 +418,26 @@ function BillingSection({
     }
   }
 
+  // Tarjeta pendiente de confirmar eliminación (modal aparte, misma lógica
+  // que cancelar suscripción: acción destructiva, requiere paso explícito).
+  const [removeTarget, setRemoveTarget] = useState<PaymentMethod | null>(null)
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const [removeError, setRemoveError] = useState<string | null>(null)
+
+  const handleRemove = async (paymentMethodId: string) => {
+    setRemovingId(paymentMethodId)
+    setRemoveError(null)
+    try {
+      await billingUseCases.removePaymentMethod.execute(email, paymentMethodId)
+      await onPaymentMethodsChanged()
+      setRemoveTarget(null)
+    } catch (error) {
+      setRemoveError(error instanceof Error ? error.message : c.paymentMethod.removeGenericError)
+    } finally {
+      setRemovingId(null)
+    }
+  }
+
   const [addingCard, setAddingCard] = useState(false)
   // Mensaje real del servidor (no un booleano genérico): startCardSetup ya
   // propaga el `error` del endpoint, y necesitamos verlo para diagnosticar
@@ -550,19 +571,33 @@ function BillingSection({
                   </p>
                 </div>
               </div>
-              {pm.isDefault ? (
-                <span className="status-chip status-chip--active">
-                  {c.paymentMethod.defaultLabel}
-                </span>
-              ) : (
-                <Button
-                  variant="ghost"
-                  disabled={settingDefaultId === pm.id}
-                  onClick={() => handleSetDefault(pm.id)}
+              <div className="payment__actions">
+                {pm.isDefault ? (
+                  <span className="status-chip status-chip--active">
+                    {c.paymentMethod.defaultLabel}
+                  </span>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    disabled={settingDefaultId === pm.id}
+                    onClick={() => handleSetDefault(pm.id)}
+                  >
+                    {c.paymentMethod.makeDefaultButton}
+                  </Button>
+                )}
+                <button
+                  type="button"
+                  className="payment__remove"
+                  aria-label={c.paymentMethod.removeButton}
+                  disabled={removingId === pm.id}
+                  onClick={() => {
+                    setRemoveError(null)
+                    setRemoveTarget(pm)
+                  }}
                 >
-                  {c.paymentMethod.makeDefaultButton}
-                </Button>
-              )}
+                  <Trash2 size={16} strokeWidth={2} aria-hidden />
+                </button>
+              </div>
             </div>
           ))
         ) : (
@@ -570,6 +605,36 @@ function BillingSection({
         )}
         {setDefaultError && <p className="modal-error">{c.plan.genericError}</p>}
       </div>
+
+      {removeTarget && (
+        <Modal
+          open
+          title={c.paymentMethod.removeConfirmTitle}
+          onClose={() => setRemoveTarget(null)}
+          closeLabel={c.paymentMethod.removeConfirmCancel}
+        >
+          <p>{fill(c.paymentMethod.removeConfirmBody, { last4: removeTarget.last4 })}</p>
+          {removeError && <p className="modal-error">{removeError}</p>}
+          <div className="modal-inline-actions">
+            <Button
+              variant="ghost"
+              disabled={removingId === removeTarget.id}
+              onClick={() => setRemoveTarget(null)}
+            >
+              {c.paymentMethod.removeConfirmCancel}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={removingId === removeTarget.id}
+              onClick={() => handleRemove(removeTarget.id)}
+            >
+              {removingId === removeTarget.id
+                ? c.paymentMethod.removingButton
+                : c.paymentMethod.removeConfirmButton}
+            </Button>
+          </div>
+        </Modal>
+      )}
 
       {/* Historial de facturas */}
       <div className="account-panel">

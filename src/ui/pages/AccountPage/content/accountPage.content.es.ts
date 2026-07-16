@@ -126,6 +126,14 @@ export const accountPageContent = {
       addCardButton: 'Añadir tarjeta',
       /** Se abre en pestaña nueva; este texto es breve porque no bloquea la interfaz. */
       addingCardButton: 'Abriendo Stripe…',
+      removeButton: 'Eliminar',
+      removingButton: 'Eliminando…',
+      removeConfirmTitle: 'Eliminar tarjeta',
+      removeConfirmBody: 'Vas a eliminar la tarjeta terminada en {last4}. Esta acción no se puede deshacer.',
+      removeConfirmButton: 'Eliminar tarjeta',
+      removeConfirmCancel: 'Cancelar',
+      removeBlockedError: 'No se puede eliminar la tarjeta predeterminada mientras tengas suscripciones activas. Marca otra como predeterminada primero.',
+      removeGenericError: 'No se pudo eliminar la tarjeta. Inténtalo de nuevo.',
     },
     invoices: {
       title: 'Historial de facturas',

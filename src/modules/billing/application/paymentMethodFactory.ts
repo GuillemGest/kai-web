@@ -2,6 +2,7 @@ import { StripePaymentMethodRepository } from '../infrastructure/StripePaymentMe
 import { StripeCardSetupGateway } from '../infrastructure/StripeCardSetupGateway'
 import { GetPaymentMethods } from './GetPaymentMethods'
 import { SetDefaultPaymentMethod } from './SetDefaultPaymentMethod'
+import { RemovePaymentMethod } from './RemovePaymentMethod'
 import { CreateCardSetupSession } from './CreateCardSetupSession'
 
 /**
@@ -24,4 +25,8 @@ export function createSetDefaultPaymentMethodUseCase(
 
 export function createCardSetupSessionUseCase(secretKey: string): CreateCardSetupSession {
   return new CreateCardSetupSession(new StripeCardSetupGateway(secretKey))
+}
+
+export function createRemovePaymentMethodUseCase(secretKey: string): RemovePaymentMethod {
+  return new RemovePaymentMethod(new StripePaymentMethodRepository(secretKey))
 }

@@ -1,7 +1,10 @@
 import Stripe from 'stripe'
 import type { IPaymentMethodRepository } from '../domain/IPaymentMethodRepository'
 import { PaymentMethod, type CardBrand } from '../domain/PaymentMethod'
-import { PaymentMethodNotFoundError } from '../domain/paymentMethodErrors'
+import {
+  PaymentMethodNotFoundError,
+  CannotRemoveOnlyPaymentMethodError,
+} from '../domain/paymentMethodErrors'
 
 /**
  * Tarjetas guardadas desde Stripe. SOLO servidor: instancia el SDK con la
@@ -55,6 +58,40 @@ export class StripePaymentMethodRepository implements IPaymentMethodRepository {
       await this.stripe.customers.update(customer.id, {
         invoice_settings: { default_payment_method: paymentMethodId },
       })
+      return
+    }
+
+    // Ninguno de los Customers de este email tiene esa tarjeta.
+    throw new PaymentMethodNotFoundError(paymentMethodId)
+  }
+
+  async remove(email: string, paymentMethodId: string): Promise<void> {
+    const customers = await this.stripe.customers.list({ email, limit: 10 })
+
+    for (const customer of customers.data) {
+      const methods = await this.stripe.paymentMethods.list({
+        customer: customer.id,
+        type: 'card',
+      })
+      const owns = methods.data.some((pm) => pm.id === paymentMethodId)
+      if (!owns) continue
+
+      // Si es la predeterminada, eliminarla dejaría sin tarjeta de cobro la
+      // próxima renovación mientras haya suscripciones activas: se bloquea
+      // aquí en vez de dejar que Stripe se quede sin `default_payment_method`.
+      const isDefault = defaultPaymentMethodIdOf(customer) === paymentMethodId
+      if (isDefault) {
+        const subscriptions = await this.stripe.subscriptions.list({
+          customer: customer.id,
+          status: 'active',
+          limit: 1,
+        })
+        if (subscriptions.data.length > 0) {
+          throw new CannotRemoveOnlyPaymentMethodError(paymentMethodId)
+        }
+      }
+
+      await this.stripe.paymentMethods.detach(paymentMethodId)
       return
     }
 
