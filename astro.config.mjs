@@ -2,15 +2,18 @@ import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
 import node from '@astrojs/node'
 
+const isPagesBuild = process.env.DEPLOY_TARGET === 'pages'
+
 export default defineConfig({
   integrations: [react()],
-  // El sitio es estatico por defecto (todas las paginas de contenido se
-  // prerenderizan). Solo los endpoints de Stripe (/api/*) se ejecutan en el
-  // servidor: se marcan con `export const prerender = false` en cada archivo.
-  // El adapter Node atiende esas rutas on-demand.
+  // Local / hosts con Node: SSR para endpoints /api/* (prerender = false).
+  // GitHub Pages: build 100% estatico. El workflow elimina src/pages/api
+  // antes de compilar (Stripe no funciona en Pages, es solo demo visual).
   output: 'static',
-  adapter: node({ mode: 'standalone' }),
-  base: '/',
+  base: isPagesBuild ? '/kai-web/' : '/',
+  ...(isPagesBuild
+    ? { site: 'https://guillemgest.github.io' }
+    : { adapter: node({ mode: 'standalone' }) }),
   i18n: {
     defaultLocale: 'es',
     locales: ['es', 'en', 'ca'],
