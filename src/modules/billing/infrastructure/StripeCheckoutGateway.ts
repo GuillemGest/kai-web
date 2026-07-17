@@ -5,6 +5,8 @@ import type {
   CheckoutSession,
 } from '../domain/ICheckoutGateway'
 import type { BillingDetails } from '../domain/BillingDetails'
+import type { IOrganizationBillingRepository } from '../domain/IOrganizationBillingRepository'
+import { resolveCustomerId } from './resolveCustomerId'
 
 /**
  * Implementación del puerto de checkout con Stripe Billing + Checkout Sessions.
@@ -27,16 +29,23 @@ import type { BillingDetails } from '../domain/BillingDetails'
 export class StripeCheckoutGateway implements ICheckoutGateway {
   private readonly stripe: Stripe
 
-  constructor(secretKey: string) {
+  constructor(
+    secretKey: string,
+    private readonly organizationBillingRepository: IOrganizationBillingRepository,
+  ) {
     this.stripe = new Stripe(secretKey)
   }
 
   async createSubscriptionSession(request: CheckoutRequest): Promise<CheckoutSession> {
-    const customerId = await this.findOrCreateCustomer(request.userId, request.billingDetails)
+    const customerId = await this.findOrCreateCustomer(
+      request.organizationId,
+      request.billingDetails,
+    )
 
     // Metadata aplanada: es lo que consumirán el webhook y el backoffice para
     // reconciliar la compra y emitir factura (límite Stripe: 500 chars/valor).
     const metadata: Record<string, string> = {
+      organizationId: request.organizationId,
       userId: request.userId,
       planId: request.planId,
       period: request.period,
@@ -76,12 +85,25 @@ export class StripeCheckoutGateway implements ICheckoutGateway {
   }
 
   /**
-   * Reutiliza el Customer del email de facturación si ya existe (evita duplicar
-   * clientes en reintentos/cancelaciones) y refresca sus datos fiscales; si no,
-   * lo crea. El NIF se registra best-effort: Stripe valida el checksum y un tax
-   * id que rechace no debe bloquear la compra (queda igualmente en metadata).
+   * Reutiliza el Customer de la organización si ya existe (resuelto vía
+   * `resolveCustomerId`, evita duplicar clientes en reintentos/cancelaciones)
+   * y refresca sus datos fiscales; si no, lo crea. El email de facturación
+   * (que puede no coincidir con el del usuario que compra, ver
+   * docs/billing-multi-organizacion.md §4.1) se sigue mandando a Stripe para
+   * recibos, pero deja de ser la clave de búsqueda. El NIF se registra
+   * best-effort: Stripe valida el checksum y un tax id que rechace no debe
+   * bloquear la compra (queda igualmente en metadata).
    */
-  private async findOrCreateCustomer(userId: string, billing: BillingDetails): Promise<string> {
+  private async findOrCreateCustomer(
+    organizationId: string,
+    billing: BillingDetails,
+  ): Promise<string> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
+    )
+
     const fiscalData = {
       name: billing.legalName,
       email: billing.billingEmail,
@@ -92,16 +114,15 @@ export class StripeCheckoutGateway implements ICheckoutGateway {
         state: billing.province,
         country: billing.country,
       },
-      metadata: { userId },
+      metadata: { organizationId },
     }
 
     // `tax_ids` no viene en la respuesta por defecto: se expande para poder
     // comprobar si el NIF ya está registrado sin una llamada extra.
-    const expand = ['tax_ids']
-    const existing = await this.stripe.customers.list({ email: billing.billingEmail, limit: 1 })
-    const customer = existing.data[0]
-      ? await this.stripe.customers.update(existing.data[0].id, { ...fiscalData, expand })
-      : await this.stripe.customers.create({ ...fiscalData, expand })
+    const customer = await this.stripe.customers.update(customerId, {
+      ...fiscalData,
+      expand: ['tax_ids'],
+    })
 
     try {
       const alreadyRegistered = customer.tax_ids?.data?.some((t) => t.value === billing.taxId)

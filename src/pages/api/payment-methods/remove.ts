@@ -8,8 +8,6 @@ import {
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -19,13 +17,14 @@ function json(body: unknown, status: number): Response {
 
 /**
  * Elimina una tarjeta guardada del Customer en Stripe. El use case, vía el
- * repo de Stripe, verifica que la tarjeta pertenece al email indicado y
- * bloquea el borrado si es la predeterminada y hay suscripciones activas.
+ * repo de Stripe, verifica que la tarjeta pertenece a la organización
+ * indicada y bloquea el borrado si es la predeterminada y hay suscripciones
+ * activas.
  *
- * Misma limitación de auth que el resto de /api/*: la sesión vive en
- * localStorage, así que el email llega del cliente. La titularidad se
- * comprueba contra Stripe (email del Customer ↔ tarjeta), pero en producción
- * conviene validar además el token de sesión contra el backend de auth.
+ * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
+ * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
+ * contra el token `Authorization: Bearer`, ver
+ * docs/billing-multi-organizacion.md §6 y §7.1.
  */
 export const POST: APIRoute = async ({ request }) => {
   const secretKey = import.meta.env.STRIPE_SECRET_KEY
@@ -33,25 +32,25 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'Stripe no está configurado en el servidor.' }, 500)
   }
 
-  let body: { email?: unknown; paymentMethodId?: unknown }
+  let body: { organizationId?: unknown; paymentMethodId?: unknown }
   try {
-    body = (await request.json()) as { email?: unknown; paymentMethodId?: unknown }
+    body = (await request.json()) as { organizationId?: unknown; paymentMethodId?: unknown }
   } catch {
     return json({ error: 'Body inválido.' }, 400)
   }
 
-  const email = typeof body.email === 'string' ? body.email.trim() : ''
+  const organizationId = typeof body.organizationId === 'string' ? body.organizationId.trim() : ''
   const paymentMethodId =
     typeof body.paymentMethodId === 'string' ? body.paymentMethodId.trim() : ''
-  if (!EMAIL_PATTERN.test(email)) {
-    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  if (!organizationId) {
+    return json({ error: 'organizationId es obligatorio.' }, 400)
   }
   if (!paymentMethodId) {
     return json({ error: 'paymentMethodId es obligatorio.' }, 400)
   }
 
   try {
-    await createRemovePaymentMethodUseCase(secretKey).execute(email, paymentMethodId)
+    await createRemovePaymentMethodUseCase(secretKey).execute(organizationId, paymentMethodId)
     return json({ ok: true }, 200)
   } catch (error) {
     if (error instanceof PaymentMethodNotFoundError) {

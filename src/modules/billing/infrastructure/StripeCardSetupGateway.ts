@@ -1,12 +1,15 @@
 import Stripe from 'stripe'
 import type { ICardSetupGateway } from '../domain/ICardSetupGateway'
+import type { IOrganizationBillingRepository } from '../domain/IOrganizationBillingRepository'
+import { resolveCustomerId } from './resolveCustomerId'
 
 /**
  * Implementación del puerto de guardado de tarjeta con Stripe Checkout en
  * modo `setup`: sesión alojada donde el usuario introduce la tarjeta y Stripe
  * la guarda en el Customer, SIN cobrar nada. Mismo patrón que
  * `StripeCheckoutGateway` (página alojada por Stripe, PCI fuera de nuestro
- * lado), pero sin líneas de precio ni datos fiscales — el Customer ya existe.
+ * lado), pero sin líneas de precio ni datos fiscales — el Customer ya existe
+ * o se crea vía `resolveCustomerId`.
  *
  * La clave secreta se inyecta por constructor (nunca se lee aquí de env): el
  * adapter no debe conocer el origen del secreto, solo usarlo.
@@ -14,16 +17,23 @@ import type { ICardSetupGateway } from '../domain/ICardSetupGateway'
 export class StripeCardSetupGateway implements ICardSetupGateway {
   private readonly stripe: Stripe
 
-  constructor(secretKey: string) {
+  constructor(
+    secretKey: string,
+    private readonly organizationBillingRepository: IOrganizationBillingRepository,
+  ) {
     this.stripe = new Stripe(secretKey)
   }
 
   async createSetupSession(
-    email: string,
+    organizationId: string,
     successUrl: string,
     cancelUrl: string,
   ): Promise<{ url: string }> {
-    const customerId = await this.findOrCreateCustomer(email)
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
+    )
 
     const session = await this.stripe.checkout.sessions.create({
       mode: 'setup',
@@ -43,19 +53,5 @@ export class StripeCardSetupGateway implements ICardSetupGateway {
     }
 
     return { url: session.url }
-  }
-
-  /**
-   * Reutiliza el Customer del email si ya existe (mismo email que usan
-   * suscripciones/facturas); si no, lo crea. A diferencia de
-   * `StripeCheckoutGateway`, aquí NO se tocan datos fiscales: guardar una
-   * tarjeta no es una compra, solo necesita un Customer al que asociarla.
-   */
-  private async findOrCreateCustomer(email: string): Promise<string> {
-    const existing = await this.stripe.customers.list({ email, limit: 1 })
-    if (existing.data[0]) return existing.data[0].id
-
-    const customer = await this.stripe.customers.create({ email })
-    return customer.id
   }
 }

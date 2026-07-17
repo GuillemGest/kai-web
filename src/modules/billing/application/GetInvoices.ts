@@ -4,7 +4,7 @@ import type { Invoice } from '../domain/Invoice'
 export class GetInvoices {
   constructor(private readonly repository: IInvoiceRepository) {}
 
-  execute(email: string): Promise<Invoice[]> {
-    return this.repository.listByEmail(email)
+  execute(organizationId: string): Promise<Invoice[]> {
+    return this.repository.listByOrganization(organizationId)
   }
 }

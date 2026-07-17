@@ -1,6 +1,8 @@
 import Stripe from 'stripe'
 import type { IInvoiceRepository } from '../domain/IInvoiceRepository'
 import { Invoice, type InvoicePrimitive, type InvoiceStatus } from '../domain/Invoice'
+import type { IOrganizationBillingRepository } from '../domain/IOrganizationBillingRepository'
+import { resolveCustomerId } from './resolveCustomerId'
 
 /**
  * Facturas reales desde Stripe. SOLO servidor: instancia el SDK con la clave
@@ -8,30 +10,29 @@ import { Invoice, type InvoicePrimitive, type InvoiceStatus } from '../domain/In
  * usarse únicamente detrás de endpoints SSR (`src/pages/api/*`) vía
  * `invoicesFactory`, nunca desde el bundle del navegador.
  *
- * La búsqueda es por email porque es la identidad de facturación: el checkout
- * crea/reutiliza el Customer de Stripe por email (ver findOrCreateCustomer).
+ * La búsqueda es por `stripeCustomerId` de la organización porque es la
+ * identidad de facturación: un único Customer por organización, resuelto vía
+ * `resolveCustomerId`.
  */
 export class StripeInvoiceRepository implements IInvoiceRepository {
   private readonly stripe: Stripe
 
-  constructor(secretKey: string) {
+  constructor(
+    secretKey: string,
+    private readonly organizationBillingRepository: IOrganizationBillingRepository,
+  ) {
     this.stripe = new Stripe(secretKey)
   }
 
-  async listByEmail(email: string): Promise<Invoice[]> {
-    // Puede haber más de un Customer con el mismo email (reintentos antiguos,
-    // altas manuales en el dashboard): se agregan las facturas de todos.
-    const customers = await this.stripe.customers.list({ email, limit: 10 })
-    if (customers.data.length === 0) return []
-
-    const invoicesPerCustomer = await Promise.all(
-      customers.data.map((customer) =>
-        this.stripe.invoices.list({ customer: customer.id, limit: 20 }),
-      ),
+  async listByOrganization(organizationId: string): Promise<Invoice[]> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
     )
+    const page = await this.stripe.invoices.list({ customer: customerId, limit: 20 })
 
-    return invoicesPerCustomer
-      .flatMap((page) => page.data)
+    return page.data
       .map((invoice) => toPrimitive(invoice))
       .filter((primitive): primitive is InvoicePrimitive => primitive !== null)
       .sort((a, b) => b.issuedAt.localeCompare(a.issuedAt))

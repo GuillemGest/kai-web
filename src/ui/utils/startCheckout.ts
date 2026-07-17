@@ -8,8 +8,8 @@ interface StartCheckoutParams {
   /** Usuarios adicionales al incluido en el plan. */
   seats: number
   userId: string
-  /** Email de la cuenta: identifica al Customer para el límite de una suscripción por cuenta. */
-  email: string
+  /** Organización (identidad de facturación): identifica al Customer para el límite de una suscripción. */
+  organizationId: string
   billingDetails: BillingDetailsPrimitive
   /** Idioma actual, para que las URLs de retorno de Stripe queden localizadas. */
   locale: Locale

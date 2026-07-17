@@ -66,7 +66,7 @@ export class AuthSession {
     const user = User.fromJwt(data.token)
     const organization =
       data.organizationId && data.organizationName
-        ? new Organization(data.organizationId, data.organizationName)
+        ? new Organization(data.organizationId, data.organizationName, null)
         : undefined
     return new AuthSession(user, data.token, organization, data.organizationDatabaseId)
   }

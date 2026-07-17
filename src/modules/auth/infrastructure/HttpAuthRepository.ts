@@ -223,7 +223,7 @@ export class HttpAuthRepository implements IAuthRepository {
   private buildSession(token: string, organizationId?: string): AuthSession {
     const user = User.fromJwt(token)
     const organization = organizationId
-      ? new Organization(organizationId, organizationId)
+      ? new Organization(organizationId, organizationId, null)
       : undefined
     return new AuthSession(user, token, organization)
   }

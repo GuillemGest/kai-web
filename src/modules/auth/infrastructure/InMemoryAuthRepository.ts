@@ -68,7 +68,7 @@ export class InMemoryAuthRepository implements IAuthRepository {
     }
 
     const { password: _password, ...userPrimitive } = account
-    const org = organization ? new Organization(organization, organization) : undefined
+    const org = organization ? new Organization(organization, organization, null) : undefined
     const session = new AuthSession(
       User.fromPrimitive(userPrimitive),
       `mock-token-${account.id}`,
@@ -153,7 +153,7 @@ export class InMemoryAuthRepository implements IAuthRepository {
       if (parsed.__mockUser) {
         const org =
           parsed.organizationId && parsed.organizationName
-            ? new Organization(parsed.organizationId, parsed.organizationName)
+            ? new Organization(parsed.organizationId, parsed.organizationName, null)
             : undefined
         return new AuthSession(
           User.fromPrimitive(parsed.__mockUser),

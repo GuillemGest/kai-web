@@ -268,6 +268,13 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
   // Paso 3: pide la sesión de Stripe al servidor y redirige a la pasarela.
   async function handlePay() {
     if (!user || !selectedPlan) return
+    // Identidad de facturación: la organización de la sesión actual, NO el
+    // email del usuario (ver docs/billing-multi-organizacion.md).
+    const organizationId = authUseCases.getCurrentSessionSync.execute()?.organization?.id
+    if (!organizationId) {
+      setPayError(content.payment.errorGeneric)
+      return
+    }
     setPayError(null)
     setSubscriptionLimitHit(false)
     setSubmitting(true)
@@ -277,7 +284,7 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
         period: 'monthly',
         seats: effectiveSeats,
         userId: user.id,
-        email: user.email,
+        organizationId,
         billingDetails: billing,
         locale,
       })

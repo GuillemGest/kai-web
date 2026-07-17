@@ -7,7 +7,7 @@ import type { ISubscriptionRepository } from '../domain/ISubscriptionRepository'
 export class ReactivateSubscription {
   constructor(private readonly repository: ISubscriptionRepository) {}
 
-  execute(email: string, subscriptionId: string): Promise<void> {
-    return this.repository.reactivate(email, subscriptionId)
+  execute(organizationId: string, subscriptionId: string): Promise<void> {
+    return this.repository.reactivate(organizationId, subscriptionId)
   }
 }

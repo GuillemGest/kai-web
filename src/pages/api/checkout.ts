@@ -16,14 +16,12 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from '../../i18n/locales'
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 interface CheckoutBody {
   planId?: unknown
   period?: unknown
   seats?: unknown
   userId?: unknown
-  email?: unknown
+  organizationId?: unknown
   billingDetails?: unknown
   locale?: unknown
 }
@@ -73,11 +71,12 @@ function json(body: unknown, status: number): Response {
  * las líneas de cobro se resuelven SIEMPRE en el servidor (use case) a partir
  * de los `price_...` de entorno: un total manipulado en cliente no afecta.
  *
- * Nota de seguridad: la sesión de KAI vive en localStorage (cliente), así que el
- * servidor no puede derivar el usuario aquí; el island envía `userId` en el
- * body. Es suficiente para la demo en modo test. Para producción conviene
- * mover la sesión a cookie httpOnly y validar aquí el token contra el backend
- * de auth antes de cobrar (evita que alguien inicie checkouts a nombre de otro).
+ * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
+ * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
+ * contra el token `Authorization: Bearer`, ver
+ * docs/billing-multi-organizacion.md §6 y §7.1 (aquí el riesgo es aún mayor:
+ * sin esa verificación, cualquiera puede iniciar un checkout que cargue a la
+ * tarjeta de otra organización).
  */
 export const POST: APIRoute = async ({ request, url }) => {
   const secretKey = import.meta.env.STRIPE_SECRET_KEY
@@ -92,7 +91,7 @@ export const POST: APIRoute = async ({ request, url }) => {
     return json({ error: 'Body inválido.' }, 400)
   }
 
-  const { planId, period, seats, userId, email, billingDetails, locale } = body
+  const { planId, period, seats, userId, organizationId, billingDetails, locale } = body
   if (typeof planId !== 'string' || !planId) {
     return json({ error: 'planId es obligatorio.' }, 400)
   }
@@ -108,12 +107,9 @@ export const POST: APIRoute = async ({ request, url }) => {
   if (typeof userId !== 'string' || !userId) {
     return json({ error: 'Debes iniciar sesión para comprar.' }, 401)
   }
-  // Email de la CUENTA (no el de facturación del formulario, que el usuario
-  // puede cambiar libremente): identifica al Customer de Stripe para el límite
-  // de una suscripción por cuenta.
-  const accountEmail = typeof email === 'string' ? email.trim() : ''
-  if (!EMAIL_PATTERN.test(accountEmail)) {
-    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  const orgId = typeof organizationId === 'string' ? organizationId.trim() : ''
+  if (!orgId) {
+    return json({ error: 'organizationId es obligatorio.' }, 400)
   }
   const parsedBilling = parseBillingDetails(billingDetails)
   if (!parsedBilling) {
@@ -130,7 +126,7 @@ export const POST: APIRoute = async ({ request, url }) => {
       period,
       extraSeats,
       userId,
-      accountEmail,
+      organizationId: orgId,
       billingDetails: parsedBilling,
       successUrl: `${origin}/${lang}/checkout/gracias?session_id={CHECKOUT_SESSION_ID}`,
       // Cancelar en Stripe devuelve al wizard con el plan y asientos elegidos.

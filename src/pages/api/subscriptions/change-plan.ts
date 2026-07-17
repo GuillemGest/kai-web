@@ -15,8 +15,6 @@ import type { BillingPeriod } from '../../../modules/billing/domain/Plan'
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 function isPeriod(value: unknown): value is BillingPeriod {
   return value === 'monthly' || value === 'yearly'
 }
@@ -39,8 +37,10 @@ function json(body: unknown, status: number): Response {
  * `null` si no aplica. El cliente debe redirigir a esa URL si viene informada
  * — el cambio de plan no se da por completado hasta que esa factura se paga.
  *
- * Misma limitación de auth que el resto de /api/*: el email llega del cliente y
- * la titularidad se verifica contra el Customer de Stripe.
+ * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
+ * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
+ * contra el token `Authorization: Bearer`, ver
+ * docs/billing-multi-organizacion.md §6 y §7.1.
  */
 export const POST: APIRoute = async ({ request }) => {
   const secretKey = import.meta.env.STRIPE_SECRET_KEY
@@ -48,18 +48,23 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ error: 'Stripe no está configurado en el servidor.' }, 500)
   }
 
-  let body: { email?: unknown; subscriptionId?: unknown; planId?: unknown; period?: unknown }
+  let body: {
+    organizationId?: unknown
+    subscriptionId?: unknown
+    planId?: unknown
+    period?: unknown
+  }
   try {
     body = (await request.json()) as typeof body
   } catch {
     return json({ error: 'Body inválido.' }, 400)
   }
 
-  const email = typeof body.email === 'string' ? body.email.trim() : ''
+  const organizationId = typeof body.organizationId === 'string' ? body.organizationId.trim() : ''
   const subscriptionId = typeof body.subscriptionId === 'string' ? body.subscriptionId.trim() : ''
   const planId = typeof body.planId === 'string' ? body.planId.trim() : ''
-  if (!EMAIL_PATTERN.test(email)) {
-    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  if (!organizationId) {
+    return json({ error: 'organizationId es obligatorio.' }, 400)
   }
   if (!subscriptionId) {
     return json({ error: 'subscriptionId es obligatorio.' }, 400)
@@ -73,7 +78,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   try {
     const { timing, paymentUrl } = await createChangeSubscriptionPlanUseCase(secretKey).execute({
-      email,
+      organizationId,
       subscriptionId,
       planId,
       period: body.period,

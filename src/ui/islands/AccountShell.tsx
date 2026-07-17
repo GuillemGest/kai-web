@@ -105,6 +105,9 @@ export function AccountShell({ locale }: AccountShellProps) {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [managedUsers, setManagedUsers] = useState<ManagedUser[]>([])
   const [selectedOrg, setSelectedOrg] = useState<string | null>(null)
+  // Identidad de facturación (distinta de `selectedOrg`, que es el selector
+  // de organización de la sección Team): la organización de la sesión actual.
+  const [organizationId, setOrganizationId] = useState<string | null>(null)
   const [sessions, setSessions] = useState<DeviceSession[]>([])
   const [loaded, setLoaded] = useState(false)
 
@@ -119,18 +122,30 @@ export function AccountShell({ locale }: AccountShellProps) {
       }
       // El listado de usuarios requiere el JWT de la sesión (endpoint admin).
       const session = authUseCases.getCurrentSessionSync.execute()
+      // Identidad de facturación: la organización de la sesión actual, NO el
+      // email del usuario (ver docs/billing-multi-organizacion.md). Si el
+      // usuario no tiene organización en sesión, la facturación queda vacía
+      // en vez de fallar — caso a resolver cuando el backend garantice
+      // "toda cuenta tiene organización" (ver doc §8).
+      const billingOrgId = session?.organization?.id ?? null
       const [sub, allPlans, pms, invs, users, sess] = await Promise.all([
-        // Suscripciones reales de Stripe por email (identidad de facturación);
-        // puede haber varias a la vez (un plan por producción, por ejemplo).
-        billingUseCases.getSubscriptions.execute(currentUser.email).catch(() => []),
+        // Suscripciones reales de Stripe por organización (identidad de
+        // facturación); puede haber varias a la vez (un plan por producción).
+        billingOrgId
+          ? billingUseCases.getSubscriptions.execute(billingOrgId).catch(() => [])
+          : Promise.resolve([]),
         // Catálogo de planes: alimenta el diálogo de cambio de plan.
         billingUseCases.getPlans.execute().catch(() => []),
-        // Tarjetas reales de Stripe por email; puede haber varias, una marcada
-        // como predeterminada (la que cobra la renovación).
-        billingUseCases.getPaymentMethods.execute(currentUser.email).catch(() => []),
-        // Facturas reales de Stripe: la identidad de facturación es el email
-        // (el checkout crea el Customer por email). Si falla, historial vacío.
-        billingUseCases.getInvoices.execute(currentUser.email).catch(() => []),
+        // Tarjetas reales de Stripe por organización; puede haber varias, una
+        // marcada como predeterminada (la que cobra la renovación).
+        billingOrgId
+          ? billingUseCases.getPaymentMethods.execute(billingOrgId).catch(() => [])
+          : Promise.resolve([]),
+        // Facturas reales de Stripe: la identidad de facturación es la
+        // organización (el checkout crea el Customer por organización).
+        billingOrgId
+          ? billingUseCases.getInvoices.execute(billingOrgId).catch(() => [])
+          : Promise.resolve([]),
         session
           ? adminUseCases.getManagedUsers.execute(session.token).catch(() => [])
           : Promise.resolve([]),
@@ -142,6 +157,7 @@ export function AccountShell({ locale }: AccountShellProps) {
       setPaymentMethods(pms)
       setInvoices(invs)
       setManagedUsers(users)
+      setOrganizationId(billingOrgId)
       // Preselecciona la primera organización disponible.
       setSelectedOrg(organizationIdsOf(users)[0] ?? null)
       setSessions(sess)
@@ -170,16 +186,20 @@ export function AccountShell({ locale }: AccountShellProps) {
   // reflejar el nuevo estado (baja programada, plan pendiente…) sin recargar
   // toda la página.
   const refreshSubscriptions = async () => {
-    if (!user) return
-    const fresh = await billingUseCases.getSubscriptions.execute(user.email).catch(() => null)
+    const organizationId = authUseCases.getCurrentSessionSync.execute()?.organization?.id
+    if (!organizationId) return
+    const fresh = await billingUseCases.getSubscriptions.execute(organizationId).catch(() => null)
     if (fresh) setSubscriptions(fresh)
   }
 
   // Tras marcar una tarjeta como predeterminada se recarga la lista para
   // reflejar el nuevo `isDefault` sin recargar toda la página.
   const refreshPaymentMethods = async () => {
-    if (!user) return
-    const fresh = await billingUseCases.getPaymentMethods.execute(user.email).catch(() => null)
+    const organizationId = authUseCases.getCurrentSessionSync.execute()?.organization?.id
+    if (!organizationId) return
+    const fresh = await billingUseCases.getPaymentMethods
+      .execute(organizationId)
+      .catch(() => null)
     if (fresh) setPaymentMethods(fresh)
   }
 
@@ -288,12 +308,12 @@ export function AccountShell({ locale }: AccountShellProps) {
         {activeSection === 'account' && (
           <AccountSection content={content} user={user} localeTag={localeTag} locale={locale} />
         )}
-        {activeSection === 'billing' && user && (
+        {activeSection === 'billing' && user && organizationId && (
           <BillingSection
             content={content}
             locale={locale}
             localeTag={localeTag}
-            email={user.email}
+            organizationId={organizationId}
             subscriptions={subscriptions}
             plans={plans}
             paymentMethods={paymentMethods}
@@ -379,7 +399,7 @@ function BillingSection({
   content,
   locale,
   localeTag,
-  email,
+  organizationId,
   subscriptions,
   plans,
   paymentMethods,
@@ -390,7 +410,7 @@ function BillingSection({
   content: Content
   locale: Locale
   localeTag: string
-  email: string
+  organizationId: string
   subscriptions: Subscription[]
   plans: Plan[]
   paymentMethods: PaymentMethod[]
@@ -409,7 +429,7 @@ function BillingSection({
     setSettingDefaultId(paymentMethodId)
     setSetDefaultError(false)
     try {
-      await billingUseCases.setDefaultPaymentMethod.execute(email, paymentMethodId)
+      await billingUseCases.setDefaultPaymentMethod.execute(organizationId, paymentMethodId)
       await onPaymentMethodsChanged()
     } catch {
       setSetDefaultError(true)
@@ -428,7 +448,7 @@ function BillingSection({
     setRemovingId(paymentMethodId)
     setRemoveError(null)
     try {
-      await billingUseCases.removePaymentMethod.execute(email, paymentMethodId)
+      await billingUseCases.removePaymentMethod.execute(organizationId, paymentMethodId)
       await onPaymentMethodsChanged()
       setRemoveTarget(null)
     } catch (error) {
@@ -451,7 +471,7 @@ function BillingSection({
       // Página de Stripe (Checkout en modo `setup`) en pestaña NUEVA — mismo
       // patrón que el pago de un upgrade: no se pierde el panel de cuenta. Al
       // volver, el listener de focus/visibility ya existente refresca la lista.
-      const url = await startCardSetup({ email, locale })
+      const url = await startCardSetup({ organizationId, locale })
       window.open(url, '_blank', 'noopener,noreferrer')
     } catch (error) {
       setAddCardError(error instanceof Error ? error.message : c.plan.genericError)
@@ -534,7 +554,7 @@ function BillingSection({
           content={content}
           locale={locale}
           localeTag={localeTag}
-          email={email}
+          organizationId={organizationId}
           subscription={dialog.subscription}
           plans={plans}
           planName={planNameOf(dialog.subscription.planId)}
@@ -730,7 +750,7 @@ function ManageSubscriptionDialog({
   content,
   locale,
   localeTag,
-  email,
+  organizationId,
   subscription,
   plans,
   planName,
@@ -740,7 +760,7 @@ function ManageSubscriptionDialog({
   content: Content
   locale: Locale
   localeTag: string
-  email: string
+  organizationId: string
   subscription: Subscription
   plans: Plan[]
   planName: string
@@ -759,7 +779,7 @@ function ManageSubscriptionDialog({
       <ConfirmCancelOrReactivateFlow
         content={content}
         localeTag={localeTag}
-        email={email}
+        organizationId={organizationId}
         subscription={subscription}
         planName={planName}
         step={view === 'confirm-final' ? 'final' : 'review'}
@@ -777,7 +797,7 @@ function ManageSubscriptionDialog({
         content={content}
         locale={locale}
         localeTag={localeTag}
-        email={email}
+        organizationId={organizationId}
         subscription={subscription}
         plans={plans}
         step={view === 'change-review' ? 'review' : 'select'}
@@ -848,7 +868,7 @@ function ManageSubscriptionDialog({
 function ConfirmCancelOrReactivateFlow({
   content,
   localeTag,
-  email,
+  organizationId,
   subscription,
   planName,
   step,
@@ -859,7 +879,7 @@ function ConfirmCancelOrReactivateFlow({
 }: {
   content: Content
   localeTag: string
-  email: string
+  organizationId: string
   subscription: Subscription
   planName: string
   step: 'review' | 'final'
@@ -932,11 +952,11 @@ function ConfirmCancelOrReactivateFlow({
             run(() =>
               isReactivate
                 ? billingUseCases.reactivateSubscription.execute(
-                    email,
+                    organizationId,
                     subscription.stripeSubscriptionId!,
                   )
                 : billingUseCases.cancelSubscription.execute(
-                    email,
+                    organizationId,
                     subscription.stripeSubscriptionId!,
                   ),
             )
@@ -958,7 +978,7 @@ function ChangePlanFlow({
   content,
   locale,
   localeTag,
-  email,
+  organizationId,
   subscription,
   plans,
   step,
@@ -972,7 +992,7 @@ function ChangePlanFlow({
   content: Content
   locale: Locale
   localeTag: string
-  email: string
+  organizationId: string
   subscription: Subscription
   plans: Plan[]
   step: 'select' | 'review'
@@ -1077,7 +1097,7 @@ function ChangePlanFlow({
                 // precios mensuales configurados); si en el futuro hay anual,
                 // se elegiría aquí. El timing lo recalcula el servidor.
                 const { paymentUrl } = await billingUseCases.changeSubscriptionPlan.execute({
-                  email,
+                  organizationId,
                   subscriptionId: subscription.stripeSubscriptionId!,
                   planId: selected.id,
                   period: 'monthly' satisfies BillingPeriod,

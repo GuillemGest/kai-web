@@ -6,10 +6,16 @@ import { Invoice, type InvoicePrimitive } from '../domain/Invoice'
  * SSR `/api/invoices`, que es quien habla con Stripe usando la clave secreta.
  * Así el island sigue llamando a `billingUseCases.getInvoices` sin saber de
  * dónde salen los datos, y la secret key nunca entra al bundle del navegador.
+ *
+ * TODO(billing-multi-org): el endpoint SSR todavía recibe `email` en vez de
+ * `organizationId` y no verifica pertenencia a la organización (ver
+ * docs/billing-multi-organizacion.md §6 y §7.1) — pendiente de actualizar
+ * junto con `assertOrganizationAccess`. Este repo ya expone el contrato final
+ * (`organizationId`) para que el dominio no dependa de ese paso.
  */
 export class HttpInvoiceRepository implements IInvoiceRepository {
-  async listByEmail(email: string): Promise<Invoice[]> {
-    const res = await fetch(`/api/invoices?email=${encodeURIComponent(email)}`)
+  async listByOrganization(organizationId: string): Promise<Invoice[]> {
+    const res = await fetch(`/api/invoices?organizationId=${encodeURIComponent(organizationId)}`)
 
     const data = (await res.json().catch(() => null)) as {
       invoices?: InvoicePrimitive[]

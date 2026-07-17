@@ -1,6 +1,7 @@
 import { InMemoryPlanRepository } from '../infrastructure/InMemoryPlanRepository'
 import { StripeCheckoutGateway } from '../infrastructure/StripeCheckoutGateway'
 import { StripeSubscriptionRepository } from '../infrastructure/StripeSubscriptionRepository'
+import { StripeMetadataOrganizationBillingRepository } from '../infrastructure/StripeMetadataOrganizationBillingRepository'
 import { CreateCheckoutSession } from './CreateCheckoutSession'
 
 /**
@@ -18,8 +19,18 @@ import { CreateCheckoutSession } from './CreateCheckoutSession'
  */
 export function createCheckoutUseCase(secretKey: string) {
   const planRepository = new InMemoryPlanRepository()
-  const subscriptionRepository = new StripeSubscriptionRepository(secretKey, planRepository)
-  const checkoutGateway = new StripeCheckoutGateway(secretKey)
+  // StripeMetadataOrganizationBillingRepository: el backend Amplify aún no
+  // expone cómo leer/persistir stripeCustomerId (ver
+  // docs/billing-multi-organizacion.md §10 paso 1). Mientras tanto resuelve
+  // el Customer buscando en Stripe por metadata['organizationId']. Sustituir
+  // por la implementación HTTP real en cuanto exista.
+  const organizationBillingRepository = new StripeMetadataOrganizationBillingRepository(secretKey)
+  const subscriptionRepository = new StripeSubscriptionRepository(
+    secretKey,
+    planRepository,
+    organizationBillingRepository,
+  )
+  const checkoutGateway = new StripeCheckoutGateway(secretKey, organizationBillingRepository)
   // Precio recurrente del asiento extra (10 €/usuario/mes), leído aquí en el
   // composition root igual que la secret key: el use case no conoce env vars.
   const extraSeatPriceIds = {

@@ -5,98 +5,104 @@ import {
   PaymentMethodNotFoundError,
   CannotRemoveOnlyPaymentMethodError,
 } from '../domain/paymentMethodErrors'
+import type { IOrganizationBillingRepository } from '../domain/IOrganizationBillingRepository'
+import { resolveCustomerId } from './resolveCustomerId'
 
 /**
  * Tarjetas guardadas desde Stripe. SOLO servidor: instancia el SDK con la
  * clave secreta (inyectada por constructor), así que debe usarse únicamente
  * detrás de endpoints SSR (`src/pages/api/*`) vía `paymentMethodFactory`.
  *
- * La búsqueda es por email (identidad de facturación, igual que suscripciones
- * y facturas): agrega las tarjetas de todos los Customers con ese email. La
- * tarjeta "por defecto" es la que cobra la renovación automática —
- * `invoice_settings.default_payment_method` del Customer, NO la más reciente
- * añadida.
+ * La búsqueda es por `stripeCustomerId` de la organización (identidad de
+ * facturación, igual que suscripciones y facturas) — un Customer 1:1 por
+ * organización, resuelto vía `resolveCustomerId`. La tarjeta "por defecto" es
+ * la que cobra la renovación automática — `invoice_settings.default_payment_method`
+ * del Customer, NO la más reciente añadida.
  */
 export class StripePaymentMethodRepository implements IPaymentMethodRepository {
   private readonly stripe: Stripe
 
-  constructor(secretKey: string) {
+  constructor(
+    secretKey: string,
+    private readonly organizationBillingRepository: IOrganizationBillingRepository,
+  ) {
     this.stripe = new Stripe(secretKey)
   }
 
-  async listByEmail(email: string): Promise<PaymentMethod[]> {
-    const customers = await this.stripe.customers.list({ email, limit: 10 })
-    if (customers.data.length === 0) return []
-
-    const methodsPerCustomer = await Promise.all(
-      customers.data.map(async (customer) => {
-        const methods = await this.stripe.paymentMethods.list({
-          customer: customer.id,
-          type: 'card',
-        })
-        const defaultId = defaultPaymentMethodIdOf(customer)
-        return methods.data.map((pm) => toDomain(pm, pm.id === defaultId))
-      }),
+  async listByOrganization(organizationId: string): Promise<PaymentMethod[]> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
     )
+    const customer = await this.stripe.customers.retrieve(customerId)
+    if (customer.deleted) return []
 
-    // Predeterminada primero; a igualdad, sin orden garantizado más allá del
-    // que devuelve Stripe (inserción).
-    return methodsPerCustomer.flat().sort((a, b) => Number(b.isDefault) - Number(a.isDefault))
+    const methods = await this.stripe.paymentMethods.list({ customer: customerId, type: 'card' })
+    const defaultId = defaultPaymentMethodIdOf(customer)
+
+    return methods.data
+      .map((pm) => toDomain(pm, pm.id === defaultId))
+      .sort((a, b) => Number(b.isDefault) - Number(a.isDefault))
   }
 
-  async setDefault(email: string, paymentMethodId: string): Promise<void> {
-    const customers = await this.stripe.customers.list({ email, limit: 10 })
+  async setDefault(organizationId: string, paymentMethodId: string): Promise<void> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
+    )
+    await this.assertOwnsPaymentMethod(customerId, paymentMethodId)
 
-    for (const customer of customers.data) {
-      const methods = await this.stripe.paymentMethods.list({
-        customer: customer.id,
-        type: 'card',
-      })
-      const owns = methods.data.some((pm) => pm.id === paymentMethodId)
-      if (!owns) continue
-
-      await this.stripe.customers.update(customer.id, {
-        invoice_settings: { default_payment_method: paymentMethodId },
-      })
-      return
-    }
-
-    // Ninguno de los Customers de este email tiene esa tarjeta.
-    throw new PaymentMethodNotFoundError(paymentMethodId)
+    await this.stripe.customers.update(customerId, {
+      invoice_settings: { default_payment_method: paymentMethodId },
+    })
   }
 
-  async remove(email: string, paymentMethodId: string): Promise<void> {
-    const customers = await this.stripe.customers.list({ email, limit: 10 })
+  async remove(organizationId: string, paymentMethodId: string): Promise<void> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
+    )
+    const customer = await this.assertOwnsPaymentMethod(customerId, paymentMethodId)
 
-    for (const customer of customers.data) {
-      const methods = await this.stripe.paymentMethods.list({
-        customer: customer.id,
-        type: 'card',
+    // Si es la predeterminada, eliminarla dejaría sin tarjeta de cobro la
+    // próxima renovación mientras haya suscripciones activas: se bloquea
+    // aquí en vez de dejar que Stripe se quede sin `default_payment_method`.
+    const isDefault = defaultPaymentMethodIdOf(customer) === paymentMethodId
+    if (isDefault) {
+      const subscriptions = await this.stripe.subscriptions.list({
+        customer: customerId,
+        status: 'active',
+        limit: 1,
       })
-      const owns = methods.data.some((pm) => pm.id === paymentMethodId)
-      if (!owns) continue
-
-      // Si es la predeterminada, eliminarla dejaría sin tarjeta de cobro la
-      // próxima renovación mientras haya suscripciones activas: se bloquea
-      // aquí en vez de dejar que Stripe se quede sin `default_payment_method`.
-      const isDefault = defaultPaymentMethodIdOf(customer) === paymentMethodId
-      if (isDefault) {
-        const subscriptions = await this.stripe.subscriptions.list({
-          customer: customer.id,
-          status: 'active',
-          limit: 1,
-        })
-        if (subscriptions.data.length > 0) {
-          throw new CannotRemoveOnlyPaymentMethodError(paymentMethodId)
-        }
+      if (subscriptions.data.length > 0) {
+        throw new CannotRemoveOnlyPaymentMethodError(paymentMethodId)
       }
-
-      await this.stripe.paymentMethods.detach(paymentMethodId)
-      return
     }
 
-    // Ninguno de los Customers de este email tiene esa tarjeta.
-    throw new PaymentMethodNotFoundError(paymentMethodId)
+    await this.stripe.paymentMethods.detach(paymentMethodId)
+  }
+
+  /**
+   * Verifica que `paymentMethodId` pertenece al Customer resuelto de la
+   * organización antes de actuar sobre él — un id de otro Customer no debe
+   * poder tocarse solo porque el caller conoce su valor (ver
+   * docs/billing-multi-organizacion.md §7.2).
+   */
+  private async assertOwnsPaymentMethod(
+    customerId: string,
+    paymentMethodId: string,
+  ): Promise<Stripe.Customer> {
+    const customer = await this.stripe.customers.retrieve(customerId)
+    if (customer.deleted) throw new PaymentMethodNotFoundError(paymentMethodId)
+
+    const methods = await this.stripe.paymentMethods.list({ customer: customerId, type: 'card' })
+    const owns = methods.data.some((pm) => pm.id === paymentMethodId)
+    if (!owns) throw new PaymentMethodNotFoundError(paymentMethodId)
+
+    return customer
   }
 }
 
@@ -108,9 +114,9 @@ function defaultPaymentMethodIdOf(customer: Stripe.Customer): string | null {
 
 function toDomain(pm: Stripe.PaymentMethod, isDefault: boolean): PaymentMethod {
   const card = pm.card
-  // `userId` aquí es solo informativo (el email es la identidad real de
-  // titularidad, verificada en el repo); se guarda el id del Customer sin
-  // asumir que venga expandido.
+  // `userId` aquí es solo informativo (el `stripeCustomerId` de la organización
+  // es la identidad real de titularidad, verificada en el repo); se guarda el
+  // id del Customer sin asumir que venga expandido.
   const customerId = typeof pm.customer === 'string' ? pm.customer : (pm.customer?.id ?? '')
   return PaymentMethod.fromPrimitive({
     id: pm.id,
