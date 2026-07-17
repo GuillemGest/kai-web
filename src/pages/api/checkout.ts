@@ -8,7 +8,10 @@ import {
 import { SubscriptionLimitExceededError } from '../../modules/billing/domain/subscriptionErrors'
 import {
   InvalidBillingDetailsError,
+  REQUIRED_FIELDS_BY_TYPE,
+  type BillingDetailsField,
   type BillingDetailsPrimitive,
+  type CustomerType,
 } from '../../modules/billing/domain/BillingDetails'
 import type { BillingPeriod } from '../../modules/billing/domain/Plan'
 import { DEFAULT_LOCALE, isLocale, type Locale } from '../../i18n/locales'
@@ -28,7 +31,8 @@ interface CheckoutBody {
   locale?: unknown
 }
 
-const BILLING_FIELDS: readonly (keyof BillingDetailsPrimitive)[] = [
+const ALL_BILLING_FIELDS: readonly BillingDetailsField[] = [
+  'fullName',
   'legalName',
   'taxId',
   'billingEmail',
@@ -43,20 +47,41 @@ function isPeriod(value: unknown): value is BillingPeriod {
   return value === 'monthly' || value === 'yearly'
 }
 
+function isCustomerType(value: unknown): value is CustomerType {
+  return value === 'personal' || value === 'company'
+}
+
 /**
- * Comprobación de FORMA (todas las claves son string): la validación de
- * contenido (patrones, normalización) la hace el value object BillingDetails
- * dentro del use case. Aquí solo se descarta un body malformado.
+ * Comprobación de FORMA: exige `customerType` y string en los campos que ese
+ * tipo requiere; los no requeridos se ignoran (el cliente no debería enviarlos)
+ * y quedan como cadena vacía. La validación de contenido (patrones, mínimos)
+ * la hace el value object `BillingDetails` dentro del use case.
  */
 function parseBillingDetails(value: unknown): BillingDetailsPrimitive | null {
   if (typeof value !== 'object' || value === null) return null
   const record = value as Record<string, unknown>
-  for (const field of BILLING_FIELDS) {
+  if (!isCustomerType(record.customerType)) return null
+  const required = REQUIRED_FIELDS_BY_TYPE[record.customerType]
+  for (const field of required) {
     if (typeof record[field] !== 'string') return null
   }
-  return Object.fromEntries(
-    BILLING_FIELDS.map((field) => [field, record[field] as string]),
-  ) as unknown as BillingDetailsPrimitive
+  const primitive: BillingDetailsPrimitive = {
+    customerType: record.customerType,
+    fullName: '',
+    legalName: '',
+    taxId: '',
+    billingEmail: '',
+    addressLine: '',
+    city: '',
+    postalCode: '',
+    province: '',
+    country: '',
+  }
+  for (const field of ALL_BILLING_FIELDS) {
+    const raw = record[field]
+    if (typeof raw === 'string') primitive[field] = raw
+  }
+  return primitive
 }
 
 function json(body: unknown, status: number): Response {

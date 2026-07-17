@@ -39,11 +39,21 @@ export const checkoutPageContent = {
   },
 
   billing: {
-    title: 'Datos de compra',
-    subtitle: 'Los necesitamos para emitir tu factura. Todos los campos son obligatorios.',
+    title: 'Información de facturación',
+    subtitle: 'Elige tipo de comprador. Los campos marcados son obligatorios.',
+    tabs: {
+      personal: 'Uso personal',
+      company: 'Uso empresa',
+      ariaLabel: 'Tipo de comprador',
+    },
     // ⚠️ PROVISIONAL: botón de desarrollo para rellenar el formulario en pruebas.
     devFillButton: 'Rellenar con datos de prueba',
     fields: {
+      fullName: {
+        label: 'Nombre completo',
+        placeholder: 'Nombre y apellidos',
+        error: 'Indica tu nombre completo.',
+      },
       legalName: {
         label: 'Razón social',
         placeholder: 'Nombre legal de la empresa o autónomo',
@@ -112,9 +122,9 @@ export const checkoutPageContent = {
     billingTitle: 'Facturar a',
     totalLabel: 'Total',
     pricePeriodMonth: '/mes',
-    payIdle: 'Pagar con Stripe',
-    payLoading: 'Redirigiendo a Stripe…',
-    secureNote: 'Pago seguro gestionado por Stripe. No guardamos tu tarjeta.',
+    payIdle: 'Pagar',
+    payLoading: 'Redirigiendo…',
+    secureNote: 'Pago seguro. No guardamos tu tarjeta.',
     errorGeneric: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
     /** Se muestra cuando la cuenta ya tiene una suscripción (máximo una por cuenta). */
     errorSubscriptionLimit: 'Ya tienes una suscripción activa. Solo se permite una por cuenta.',

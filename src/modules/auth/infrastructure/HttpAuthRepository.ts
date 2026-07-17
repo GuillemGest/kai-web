@@ -76,14 +76,14 @@ export class HttpAuthRepository implements IAuthRepository {
   async login(
     email: string,
     password: string,
-    organization?: string,
+    organization?: Organization,
   ): Promise<LoginResult> {
     // El backend espera el email literal en la ruta (con `@`, no `%40`).
     const res = await fetch(`${AUTH_API_BASE}/login/${email}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
-      body: JSON.stringify({ password, organization }),
+      body: JSON.stringify({ password, organization: organization?.id }),
     })
 
     if (!res.ok) throw new Error(`Login failed (${res.status})`)
@@ -113,7 +113,7 @@ export class HttpAuthRepository implements IAuthRepository {
     email: string,
     code: string,
     password: string,
-    organization?: string,
+    organization?: Organization,
   ): Promise<AuthSession> {
     const res = await fetch(
       `${AUTH_API_BASE}/login/${email}/validate/${encodeURIComponent(code)}`,
@@ -121,7 +121,7 @@ export class HttpAuthRepository implements IAuthRepository {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ password, organization }),
+        body: JSON.stringify({ password, organization: organization?.id }),
       },
     )
 
@@ -184,10 +184,7 @@ export class HttpAuthRepository implements IAuthRepository {
 
       // Si el backend refresca el token, lo aceptamos.
       if (data.message && isJwt(data.message) && data.message !== session.token) {
-        const refreshed = this.buildSession(
-          data.message,
-          session.organization?.id,
-        )
+        const refreshed = this.buildSession(data.message, session.organization)
         this.persist(refreshed)
         return refreshed
       }
@@ -220,12 +217,13 @@ export class HttpAuthRepository implements IAuthRepository {
     return this.readSession()
   }
 
-  private buildSession(token: string, organizationId?: string): AuthSession {
+  private buildSession(token: string, organization?: Organization): AuthSession {
     const user = User.fromJwt(token)
-    const organization = organizationId
-      ? new Organization(organizationId, organizationId)
-      : undefined
-    return new AuthSession(user, token, organization)
+    // Si el backend no dio el objeto Organization (single-org sin picker o
+    // sesión directa) intentamos rescatarlo del propio JWT para no persistir
+    // una sesión "sin organización" cuando el token la lleva embebida.
+    const resolved = organization ?? Organization.fromJwt(token)
+    return new AuthSession(user, token, resolved)
   }
 
   private persist(session: AuthSession): void {

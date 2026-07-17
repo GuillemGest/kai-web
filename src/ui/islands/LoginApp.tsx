@@ -41,7 +41,7 @@ export function LoginApp({ locale }: LoginAppProps) {
   // Paso del login: credenciales → (posible selección de org) → código (2FA) → sesión.
   const [step, setStep] = useState<Step>('credentials')
   const [orgs, setOrgs] = useState<Organization[]>([])
-  const [selectedOrg, setSelectedOrg] = useState<string | undefined>(undefined)
+  const [selectedOrg, setSelectedOrg] = useState<Organization | undefined>(undefined)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -62,7 +62,7 @@ export function LoginApp({ locale }: LoginAppProps) {
     if (result.kind === 'select_org') {
       // Una sola organización: entra automáticamente sin mostrar picker.
       if (result.orgs.length === 1) {
-        const only = result.orgs[0].id
+        const only = result.orgs[0]
         setSelectedOrg(only)
         try {
           const next = await authUseCases.login.execute(email, password, only)
@@ -260,7 +260,7 @@ export function LoginApp({ locale }: LoginAppProps) {
 
             <ul className="login__org-list" role="radiogroup" aria-label={form.orgSelectLabel}>
               {orgs.map((o) => {
-                const checked = selectedOrg === o.id
+                const checked = selectedOrg?.id === o.id
                 return (
                   <li key={o.id}>
                     <label className={`login__org-option${checked ? ' is-selected' : ''}`}>
@@ -269,7 +269,7 @@ export function LoginApp({ locale }: LoginAppProps) {
                         name="organization"
                         value={o.id}
                         checked={checked}
-                        onChange={() => setSelectedOrg(o.id)}
+                        onChange={() => setSelectedOrg(o)}
                         disabled={submitting}
                         className="login__org-radio"
                       />

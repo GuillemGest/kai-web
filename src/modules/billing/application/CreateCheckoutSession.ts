@@ -114,6 +114,7 @@ export class CreateCheckoutSession {
       period: input.period,
       extraSeats: input.extraSeats,
       userId: input.userId,
+      accountEmail: input.accountEmail,
       billingDetails,
       successUrl: input.successUrl,
       cancelUrl: input.cancelUrl,

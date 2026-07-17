@@ -208,8 +208,14 @@ export function AccountShell({ locale }: AccountShellProps) {
   }
 
   const handleLogout = async () => {
-    await authUseCases.logout.execute()
-    // Sesión cerrada: volvemos a la home (donde el header ya mostrará "Iniciar sesión").
+    const result = await authUseCases.logout.execute()
+    if (result.kind === 'switched') {
+      // Había otra cuenta guardada: se activó automáticamente. Recargamos
+      // /cuenta para que las islas vean la nueva sesión.
+      window.location.href = getLocaleUrl('/cuenta', locale)
+      return
+    }
+    // Sin cuentas guardadas: volvemos a la home (header mostrará "Iniciar sesión").
     window.location.href = getLocaleUrl('/', locale)
   }
 

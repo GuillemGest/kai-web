@@ -33,11 +33,21 @@ export const checkoutPageContent = {
   },
 
   billing: {
-    title: 'Dades de compra',
-    subtitle: 'Les necessitem per emetre la teva factura. Tots els camps són obligatoris.',
+    title: 'Informació de facturació',
+    subtitle: 'Tria el tipus de comprador. Els camps marcats són obligatoris.',
+    tabs: {
+      personal: 'Ús personal',
+      company: 'Ús empresa',
+      ariaLabel: 'Tipus de comprador',
+    },
     // ⚠️ PROVISIONAL: botó de desenvolupament per omplir el formulari en proves.
     devFillButton: 'Omple amb dades de prova',
     fields: {
+      fullName: {
+        label: 'Nom complet',
+        placeholder: 'Nom i cognoms',
+        error: 'Indica el teu nom complet.',
+      },
       legalName: {
         label: 'Raó social',
         placeholder: 'Nom legal de l’empresa o autònom',
@@ -106,9 +116,9 @@ export const checkoutPageContent = {
     billingTitle: 'Facturar a',
     totalLabel: 'Total',
     pricePeriodMonth: '/mes',
-    payIdle: 'Paga amb Stripe',
-    payLoading: 'Redirigint a Stripe…',
-    secureNote: 'Pagament segur gestionat per Stripe. No guardem la teva targeta.',
+    payIdle: 'Paga',
+    payLoading: 'Redirigint…',
+    secureNote: 'Pagament segur. No guardem la teva targeta.',
     errorGeneric: 'No s’ha pogut iniciar el pagament. Torna-ho a provar.',
     errorSubscriptionLimit: 'Ja tens una subscripció activa. Només se’n permet una per compte.',
     manageSubscriptionLink: 'Administra la meva subscripció',

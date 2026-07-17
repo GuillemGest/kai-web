@@ -105,10 +105,10 @@ export const accountPageContent = {
         title: 'Cambiar de plan',
         intro: 'Elige el plan al que quieres cambiar. Las mejoras se aplican al momento cobrando solo la diferencia de este mes; las bajadas se aplican en la próxima renovación.',
         currentBadge: 'Plan actual',
-        upgradeNote: 'Mejora: se abrirá una pestaña de Stripe para confirmar el cobro de la diferencia prorrateada de este periodo (ahí también puedes cambiar la tarjeta). Esta pantalla se actualizará sola cuando termines.',
+        upgradeNote: 'Mejora: se abrirá una pestaña para confirmar el cobro de la diferencia prorrateada de este periodo (ahí también puedes cambiar la tarjeta). Esta pantalla se actualizará sola cuando termines.',
         downgradeNote: 'Bajada: sigues con {plan} hasta el {date} y el nuevo plan entra en la siguiente renovación.',
         confirm: 'Confirmar cambio',
-        confirmUpgrade: 'Continuar a pagar en Stripe',
+        confirmUpgrade: 'Continuar al pago',
         cancel: 'Cancelar',
         successNow: 'Plan cambiado. El nuevo plan ya está activo.',
         successLater: 'Cambio programado: entrará en vigor el {date}.',
@@ -125,7 +125,7 @@ export const accountPageContent = {
       makeDefaultButton: 'Usar para cobros',
       addCardButton: 'Añadir tarjeta',
       /** Se abre en pestaña nueva; este texto es breve porque no bloquea la interfaz. */
-      addingCardButton: 'Abriendo Stripe…',
+      addingCardButton: 'Abriendo…',
     },
     invoices: {
       title: 'Historial de facturas',

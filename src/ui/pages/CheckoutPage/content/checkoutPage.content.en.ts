@@ -33,11 +33,21 @@ export const checkoutPageContent = {
   },
 
   billing: {
-    title: 'Purchase details',
-    subtitle: 'We need them to issue your invoice. All fields are required.',
+    title: 'Billing information',
+    subtitle: 'Choose customer type. Marked fields are required.',
+    tabs: {
+      personal: 'Personal use',
+      company: 'Company use',
+      ariaLabel: 'Customer type',
+    },
     // ⚠️ PROVISIONAL: dev-only button to autofill the form while testing.
     devFillButton: 'Fill with test data',
     fields: {
+      fullName: {
+        label: 'Full name',
+        placeholder: 'First and last name',
+        error: 'Enter your full name.',
+      },
       legalName: {
         label: 'Legal name',
         placeholder: 'Company or freelancer legal name',
@@ -106,9 +116,9 @@ export const checkoutPageContent = {
     billingTitle: 'Invoice to',
     totalLabel: 'Total',
     pricePeriodMonth: '/mo',
-    payIdle: 'Pay with Stripe',
-    payLoading: 'Redirecting to Stripe…',
-    secureNote: 'Secure payment handled by Stripe. We never store your card.',
+    payIdle: 'Pay',
+    payLoading: 'Redirecting...',
+    secureNote: 'Secure payment. We never store your card.',
     errorGeneric: 'The payment could not be started. Please try again.',
     errorSubscriptionLimit: 'You already have an active subscription. Only one is allowed per account.',
     manageSubscriptionLink: 'Manage my subscription',

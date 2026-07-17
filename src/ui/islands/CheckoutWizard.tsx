@@ -7,8 +7,10 @@ import { billingUseCases } from '../../modules/billing/application/factory'
 import { EXTRA_SEAT_PRICE_MONTH, Plan } from '../../modules/billing/domain/Plan'
 import {
   BILLING_FIELD_VALIDATORS,
+  REQUIRED_FIELDS_BY_TYPE,
   type BillingDetailsField,
   type BillingDetailsPrimitive,
+  type CustomerType,
 } from '../../modules/billing/domain/BillingDetails'
 import type { PlanId } from '../../modules/content/domain/types'
 import { Button } from '../components/Button/Button'
@@ -30,6 +32,8 @@ const DEFAULT_PLAN_ID: PlanId = 'fullPro'
 const BILLING_STORAGE_KEY = 'kai.checkout.billing'
 
 const EMPTY_BILLING: BillingDetailsPrimitive = {
+  customerType: 'personal',
+  fullName: '',
   legalName: '',
   taxId: '',
   billingEmail: '',
@@ -47,6 +51,8 @@ const EMPTY_BILLING: BillingDetailsPrimitive = {
  * sesión al rellenar si está disponible.
  */
 const DEV_FILL_BILLING: BillingDetailsPrimitive = {
+  customerType: 'company',
+  fullName: 'Ada Demo',
   legalName: 'Amplify Demo SL',
   taxId: 'B12345678',
   billingEmail: 'facturas@demo.kai',
@@ -57,19 +63,35 @@ const DEV_FILL_BILLING: BillingDetailsPrimitive = {
   country: 'ES',
 }
 
-const BILLING_FIELD_ORDER: readonly BillingDetailsField[] = [
+/**
+ * Orden de renderizado por tipo de comprador. La fila de código postal + país
+ * va primero (imita el layout de WeTransfer); el resto de campos company
+ * aparece debajo cuando aplica.
+ */
+const BILLING_FIELD_ORDER_BY_TYPE: Record<CustomerType, readonly BillingDetailsField[]> = {
+  personal: ['fullName', 'postalCode', 'country'],
+  company: [
+    'postalCode',
+    'country',
+    'legalName',
+    'taxId',
+    'addressLine',
+    'city',
+    'province',
+    'billingEmail',
+  ],
+}
+
+/** Campos que ocupan las dos columnas del grid. */
+const FULL_WIDTH_FIELDS: ReadonlySet<BillingDetailsField> = new Set([
+  'fullName',
   'legalName',
-  'taxId',
-  'billingEmail',
   'addressLine',
-  'city',
-  'postalCode',
-  'province',
-  'country',
-]
+])
 
 /** Autocomplete HTML por campo (mejor UX de relleno en navegadores). */
 const BILLING_AUTOCOMPLETE: Record<BillingDetailsField, string> = {
+  fullName: 'name',
   legalName: 'organization',
   taxId: 'off',
   billingEmail: 'email',
@@ -78,6 +100,23 @@ const BILLING_AUTOCOMPLETE: Record<BillingDetailsField, string> = {
   postalCode: 'postal-code',
   province: 'address-level1',
   country: 'country',
+}
+
+/**
+ * Devuelve una copia del billing con SOLO los campos requeridos por el tipo de
+ * comprador seleccionado. Evita enviar cadenas vacías del otro modo a la API
+ * (que a su vez las omitiría de la metadata de Stripe).
+ */
+function pickRelevantBilling(billing: BillingDetailsPrimitive): Partial<BillingDetailsPrimitive> & {
+  customerType: CustomerType
+} {
+  const payload: Partial<BillingDetailsPrimitive> & { customerType: CustomerType } = {
+    customerType: billing.customerType,
+  }
+  for (const field of REQUIRED_FIELDS_BY_TYPE[billing.customerType]) {
+    payload[field] = billing[field]
+  }
+  return payload
 }
 
 function fill(template: string, values: Record<string, string | number>): string {
@@ -247,12 +286,13 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
     setFieldErrors({})
   }
 
-  // Paso 2: valida los 8 campos con las MISMAS reglas que el value object del
-  // dominio (BILLING_FIELD_VALIDATORS) y persiste para sobrevivir navegaciones.
+  // Paso 2: valida los campos requeridos por el tipo de comprador con las
+  // MISMAS reglas que el value object del dominio (BILLING_FIELD_VALIDATORS)
+  // y persiste para sobrevivir navegaciones.
   function handleBillingSubmit(event: FormEvent) {
     event.preventDefault()
     const errors: Partial<Record<BillingDetailsField, boolean>> = {}
-    for (const field of BILLING_FIELD_ORDER) {
+    for (const field of REQUIRED_FIELDS_BY_TYPE[billing.customerType]) {
       if (!BILLING_FIELD_VALIDATORS[field](billing[field].trim())) errors[field] = true
     }
     setFieldErrors(errors)
@@ -263,6 +303,13 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
       // Sin sessionStorage (modo privado restrictivo) el wizard sigue funcionando.
     }
     setStep('payment')
+  }
+
+  function handleCustomerTypeChange(type: CustomerType) {
+    if (type === billing.customerType) return
+    setBilling((prev) => ({ ...prev, customerType: type }))
+    // Los errores del otro tipo dejan de aplicar al cambiar de pestaña.
+    setFieldErrors({})
   }
 
   // Paso 3: pide la sesión de Stripe al servidor y redirige a la pasarela.
@@ -278,7 +325,7 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
         seats: effectiveSeats,
         userId: user.id,
         email: user.email,
-        billingDetails: billing,
+        billingDetails: pickRelevantBilling(billing),
         locale,
       })
       // Redirección en marcha: los datos fiscales ya viajaron a Stripe.
@@ -462,6 +509,29 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
               <h2 className="checkout__panel-title">{content.billing.title}</h2>
               <p className="checkout__panel-sub">{content.billing.subtitle}</p>
 
+              {/* Selector Personal / Empresa (estilo pill, tipo WeTransfer). */}
+              <div
+                className="checkout__type-tabs"
+                role="tablist"
+                aria-label={content.billing.tabs.ariaLabel}
+              >
+                {(['personal', 'company'] as const).map((type) => {
+                  const active = billing.customerType === type
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className={`checkout__type-tab${active ? ' is-active' : ''}`}
+                      onClick={() => handleCustomerTypeChange(type)}
+                    >
+                      {content.billing.tabs[type]}
+                    </button>
+                  )
+                })}
+              </div>
+
               {/* ⚠️ PROVISIONAL: autorrelleno de pruebas (mismo patrón que el
                   enlace dev del registro). Retirar al cerrar la demo. */}
               <button type="button" className="checkout__dev-fill" onClick={handleDevFill}>
@@ -470,14 +540,14 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
 
               <form className="checkout__form" onSubmit={handleBillingSubmit} noValidate>
                 <div className="checkout__form-grid">
-                  {BILLING_FIELD_ORDER.map((field) => {
+                  {BILLING_FIELD_ORDER_BY_TYPE[billing.customerType].map((field) => {
                     const copy = content.billing.fields[field]
                     const hasError = Boolean(fieldErrors[field])
                     const inputId = `checkout-${field}`
                     return (
                       <div
                         key={field}
-                        className={`checkout__field${field === 'legalName' || field === 'addressLine' ? ' checkout__field--span2' : ''}`}
+                        className={`checkout__field${FULL_WIDTH_FIELDS.has(field) ? ' checkout__field--span2' : ''}`}
                       >
                         <label className="checkout__label" htmlFor={inputId}>
                           {copy.label} <span className="checkout__required">*</span>
@@ -599,14 +669,26 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
               {/* Snapshot de facturación introducida en el paso 2. */}
               <div className="checkout__billing-snapshot">
                 <h3 className="checkout__snapshot-title">{content.payment.billingTitle}</h3>
-                <p className="checkout__snapshot-line">
-                  {billing.legalName} · {billing.taxId.toUpperCase()}
-                </p>
-                <p className="checkout__snapshot-line">
-                  {billing.addressLine}, {billing.postalCode} {billing.city} ({billing.province},{' '}
-                  {billing.country.toUpperCase()})
-                </p>
-                <p className="checkout__snapshot-line">{billing.billingEmail}</p>
+                {billing.customerType === 'company' ? (
+                  <>
+                    <p className="checkout__snapshot-line">
+                      {billing.legalName} · {billing.taxId.toUpperCase()}
+                    </p>
+                    <p className="checkout__snapshot-line">
+                      {billing.addressLine}, {billing.postalCode} {billing.city} (
+                      {billing.province}, {billing.country.toUpperCase()})
+                    </p>
+                    <p className="checkout__snapshot-line">{billing.billingEmail}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="checkout__snapshot-line">{billing.fullName}</p>
+                    <p className="checkout__snapshot-line">
+                      {billing.postalCode} · {billing.country.toUpperCase()}
+                    </p>
+                    <p className="checkout__snapshot-line">{user.email}</p>
+                  </>
+                )}
               </div>
 
               {payError && (

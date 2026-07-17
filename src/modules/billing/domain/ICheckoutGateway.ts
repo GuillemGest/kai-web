@@ -21,6 +21,11 @@ export interface CheckoutRequest {
   extraSeats: number
   /** Identificador del usuario que compra, para asociar la suscripción. */
   userId: string
+  /**
+   * Email de la cuenta del usuario. Se usa como email del Customer de Stripe
+   * cuando el modo personal no aporta email de facturación propio.
+   */
+  accountEmail: string
   /** Datos fiscales del comprador, ya validados (value object). */
   billingDetails: BillingDetails
   /** URL absoluta a la que volver tras un pago con éxito. */

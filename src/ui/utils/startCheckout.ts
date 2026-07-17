@@ -1,6 +1,18 @@
 import type { BillingPeriod } from '../../modules/billing/domain/Plan'
-import type { BillingDetailsPrimitive } from '../../modules/billing/domain/BillingDetails'
+import type {
+  BillingDetailsPrimitive,
+  CustomerType,
+} from '../../modules/billing/domain/BillingDetails'
 import type { Locale } from '../../i18n/locales'
+
+/**
+ * Payload de facturación: `customerType` obligatorio + solo los campos
+ * aplicables al modo elegido. Los del otro modo se omiten para no viajar
+ * cadenas vacías al servidor (que ya no los espera).
+ */
+export type StartCheckoutBillingPayload = Partial<Omit<BillingDetailsPrimitive, 'customerType'>> & {
+  customerType: CustomerType
+}
 
 interface StartCheckoutParams {
   planId: string
@@ -10,7 +22,7 @@ interface StartCheckoutParams {
   userId: string
   /** Email de la cuenta: identifica al Customer para el límite de una suscripción por cuenta. */
   email: string
-  billingDetails: BillingDetailsPrimitive
+  billingDetails: StartCheckoutBillingPayload
   /** Idioma actual, para que las URLs de retorno de Stripe queden localizadas. */
   locale: Locale
 }

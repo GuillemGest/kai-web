@@ -25,7 +25,7 @@ export interface IAuthRepository {
    * Primer paso del login: valida credenciales. Puede devolver estado de "envío
    * de código 2FA", "selección de organización" o sesión ya autenticada.
    */
-  login(email: string, password: string, organization?: string): Promise<LoginResult>
+  login(email: string, password: string, organization?: Organization): Promise<LoginResult>
   /**
    * Segundo paso del login (2FA): valida el código recibido y, si es correcto,
    * devuelve la sesión autenticada. Reenvía password y organization al backend.
@@ -34,7 +34,7 @@ export interface IAuthRepository {
     email: string,
     code: string,
     password: string,
-    organization?: string,
+    organization?: Organization,
   ): Promise<AuthSession>
   /**
    * Best-effort: pide al backend que emita una cookie HttpOnly de SSO. Falla

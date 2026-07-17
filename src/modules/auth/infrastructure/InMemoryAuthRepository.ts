@@ -36,7 +36,7 @@ export class InMemoryAuthRepository implements IAuthRepository {
   async login(
     email: string,
     password: string,
-    _organization?: string,
+    _organization?: Organization,
   ): Promise<LoginResult> {
     const account = this.findAccount(email)
 
@@ -53,7 +53,7 @@ export class InMemoryAuthRepository implements IAuthRepository {
     email: string,
     code: string,
     password: string,
-    organization?: string,
+    organization?: Organization,
   ): Promise<AuthSession> {
     const account = this.findAccount(email)
     const normalizedEmail = email.trim().toLowerCase()
@@ -68,11 +68,10 @@ export class InMemoryAuthRepository implements IAuthRepository {
     }
 
     const { password: _password, ...userPrimitive } = account
-    const org = organization ? new Organization(organization, organization) : undefined
     const session = new AuthSession(
       User.fromPrimitive(userPrimitive),
       `mock-token-${account.id}`,
-      org,
+      organization,
     )
     this.pendingEmail = null
     this.pendingPassword = null

@@ -305,6 +305,42 @@
 }
 
 /* --------------------------------------------------------------------------
+   Paso 2 — selector tipo comprador (pill Personal / Empresa, tipo WeTransfer)
+   -------------------------------------------------------------------------- */
+.checkout__type-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-1);
+  padding: 4px;
+  margin-bottom: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+}
+
+.checkout__type-tab {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-full);
+  color: var(--fg-muted);
+  font: var(--type-ui);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s var(--ease-out-quart),
+    color 0.15s var(--ease-out-quart);
+}
+
+.checkout__type-tab:hover:not(.is-active) {
+  color: var(--fg);
+}
+
+.checkout__type-tab.is-active {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
    Paso 2 — formulario de datos de compra
    -------------------------------------------------------------------------- */
 /* ⚠️ PROVISIONAL: botón de autorrelleno para pruebas (retirar con la demo). */
