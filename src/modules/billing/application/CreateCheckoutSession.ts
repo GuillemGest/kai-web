@@ -16,11 +16,11 @@ export interface CreateCheckoutSessionInput {
   extraSeats: number
   userId: string
   /**
-   * Email de la cuenta (no el de facturación, que el formulario permite
-   * cambiar libremente): identifica al Customer de Stripe para comprobar el
-   * límite de una suscripción por cuenta.
+   * Organización que compra (identidad de facturación): identifica al
+   * Customer de Stripe para comprobar el límite de una suscripción por
+   * organización.
    */
-  accountEmail: string
+  organizationId: string
   billingDetails: BillingDetailsPrimitive
   successUrl: string
   cancelUrl: string
@@ -75,8 +75,8 @@ export class CreateCheckoutSession {
   ) {}
 
   async execute(input: CreateCheckoutSessionInput): Promise<CheckoutSession> {
-    const existingSubscriptions = await this.subscriptionRepository.listByEmail(
-      input.accountEmail,
+    const existingSubscriptions = await this.subscriptionRepository.listByOrganization(
+      input.organizationId,
     )
     const activeSubscription = existingSubscriptions.find((sub) => sub.isManageable)
     if (activeSubscription) {
@@ -113,8 +113,8 @@ export class CreateCheckoutSession {
       planId: plan.id,
       period: input.period,
       extraSeats: input.extraSeats,
+      organizationId: input.organizationId,
       userId: input.userId,
-      accountEmail: input.accountEmail,
       billingDetails,
       successUrl: input.successUrl,
       cancelUrl: input.cancelUrl,

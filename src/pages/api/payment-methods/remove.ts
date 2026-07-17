@@ -1,6 +1,9 @@
 import type { APIRoute } from 'astro'
-import { createSetDefaultPaymentMethodUseCase } from '../../../modules/billing/application/paymentMethodFactory'
-import { PaymentMethodNotFoundError } from '../../../modules/billing/domain/paymentMethodErrors'
+import { createRemovePaymentMethodUseCase } from '../../../modules/billing/application/paymentMethodFactory'
+import {
+  PaymentMethodNotFoundError,
+  CannotRemoveOnlyPaymentMethodError,
+} from '../../../modules/billing/domain/paymentMethodErrors'
 
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
@@ -13,10 +16,10 @@ function json(body: unknown, status: number): Response {
 }
 
 /**
- * Marca una tarjeta guardada como predeterminada: la que Stripe usará para
- * cobrar la próxima renovación de cualquier suscripción del Customer. El use
- * case, vía el repo de Stripe, verifica que la tarjeta pertenece a la
- * organización indicada.
+ * Elimina una tarjeta guardada del Customer en Stripe. El use case, vía el
+ * repo de Stripe, verifica que la tarjeta pertenece a la organización
+ * indicada y bloquea el borrado si es la predeterminada y hay suscripciones
+ * activas.
  *
  * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
  * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
@@ -47,13 +50,19 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    await createSetDefaultPaymentMethodUseCase(secretKey).execute(organizationId, paymentMethodId)
+    await createRemovePaymentMethodUseCase(secretKey).execute(organizationId, paymentMethodId)
     return json({ ok: true }, 200)
   } catch (error) {
     if (error instanceof PaymentMethodNotFoundError) {
       return json({ error: 'Método de pago no encontrado.' }, 404)
     }
-    console.error('[payment-methods/set-default] error actualizando la tarjeta:', error)
-    return json({ error: 'No se pudo actualizar la tarjeta predeterminada.' }, 502)
+    if (error instanceof CannotRemoveOnlyPaymentMethodError) {
+      return json(
+        { error: 'No se puede eliminar la tarjeta predeterminada con suscripciones activas.' },
+        409,
+      )
+    }
+    console.error('[payment-methods/remove] error eliminando la tarjeta:', error)
+    return json({ error: 'No se pudo eliminar la tarjeta.' }, 502)
   }
 }

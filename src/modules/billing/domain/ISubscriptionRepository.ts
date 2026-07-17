@@ -3,23 +3,23 @@ import type { BillingPeriod, Plan, PlanChangeTiming } from './Plan'
 
 export interface ISubscriptionRepository {
   /**
-   * TODAS las suscripciones del email indicado (un usuario puede tener varios
+   * TODAS las suscripciones de la organización indicada (puede tener varios
    * planes a la vez). Ordenadas por relevancia: activas primero, luego con
    * impago, luego canceladas; a igualdad de estado, la más reciente primero.
-   * El email es la identidad de facturación: es la clave del Customer en
-   * Stripe (el checkout crea/reutiliza el Customer por email).
+   * La organización es la identidad de facturación: tiene un único Customer
+   * en Stripe (`stripeCustomerId`, resuelto vía `resolveCustomerId`).
    */
-  listByEmail(email: string): Promise<Subscription[]>
+  listByOrganization(organizationId: string): Promise<Subscription[]>
 
   /**
    * Programa la baja de la suscripción al final del periodo ya pagado (no se
-   * corta el acceso ni se reembolsa nada). El email verifica la titularidad:
-   * si la suscripción no pertenece a ese email, la operación falla.
+   * corta el acceso ni se reembolsa nada). La organización verifica la
+   * titularidad: si la suscripción no le pertenece, la operación falla.
    */
-  cancelAtPeriodEnd(email: string, subscriptionId: string): Promise<void>
+  cancelAtPeriodEnd(organizationId: string, subscriptionId: string): Promise<void>
 
   /** Revierte una baja programada que aún no se ha hecho efectiva. */
-  reactivate(email: string, subscriptionId: string): Promise<void>
+  reactivate(organizationId: string, subscriptionId: string): Promise<void>
 
   /**
    * Cambia el plan de la suscripción según `timing` (regla en `planChangeTiming`):
@@ -35,7 +35,7 @@ export interface ISubscriptionRepository {
    * factura se paga — mientras tanto la suscripción puede quedar `past_due`.
    */
   changePlan(
-    email: string,
+    organizationId: string,
     subscriptionId: string,
     target: Plan,
     period: BillingPeriod,

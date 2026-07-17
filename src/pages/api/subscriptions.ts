@@ -4,8 +4,6 @@ import { createSubscriptionsUseCase } from '../../modules/billing/application/su
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -14,14 +12,13 @@ function json(body: unknown, status: number): Response {
 }
 
 /**
- * Suscripciones del usuario en Stripe, por su email de facturación. Un usuario
- * puede tener varios planes a la vez: se devuelven todas (`{ subscriptions: [] }`
- * si no está suscrito a nada).
+ * Suscripciones de la organización en Stripe. Puede tener varios planes a la
+ * vez: se devuelven todas (`{ subscriptions: [] }` si no está suscrita a nada).
  *
- * Nota de seguridad: misma limitación que /api/checkout y /api/invoices — la
- * sesión vive en localStorage, así que el email llega del cliente. Suficiente
- * para la demo en test; en producción, validar aquí el token contra el backend
- * de auth.
+ * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
+ * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
+ * contra el token `Authorization: Bearer`, ver
+ * docs/billing-multi-organizacion.md §6 y §7.1.
  */
 export const GET: APIRoute = async ({ url }) => {
   const secretKey = import.meta.env.STRIPE_SECRET_KEY
@@ -29,13 +26,13 @@ export const GET: APIRoute = async ({ url }) => {
     return json({ error: 'Stripe no está configurado en el servidor.' }, 500)
   }
 
-  const email = url.searchParams.get('email')?.trim() ?? ''
-  if (!EMAIL_PATTERN.test(email)) {
-    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  const organizationId = url.searchParams.get('organizationId')?.trim() ?? ''
+  if (!organizationId) {
+    return json({ error: 'organizationId es obligatorio.' }, 400)
   }
 
   try {
-    const subscriptions = await createSubscriptionsUseCase(secretKey).execute(email)
+    const subscriptions = await createSubscriptionsUseCase(secretKey).execute(organizationId)
     return json({ subscriptions: subscriptions.map((sub) => sub.toPrimitive()) }, 200)
   } catch (error) {
     // No filtrar detalles internos de Stripe al cliente; el detalle queda en el log.

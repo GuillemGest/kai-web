@@ -8,8 +8,12 @@
 export interface ICardSetupGateway {
   /**
    * Crea una sesión alojada donde el usuario introduce una tarjeta nueva y
-   * Stripe la guarda en el Customer del email indicado (sin cobrar). Devuelve
-   * la URL a la que redirigir.
+   * Stripe la guarda en el Customer de la organización indicada (sin cobrar).
+   * Devuelve la URL a la que redirigir.
    */
-  createSetupSession(email: string, successUrl: string, cancelUrl: string): Promise<{ url: string }>
+  createSetupSession(
+    organizationId: string,
+    successUrl: string,
+    cancelUrl: string,
+  ): Promise<{ url: string }>
 }

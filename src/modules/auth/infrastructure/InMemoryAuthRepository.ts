@@ -152,7 +152,7 @@ export class InMemoryAuthRepository implements IAuthRepository {
       if (parsed.__mockUser) {
         const org =
           parsed.organizationId && parsed.organizationName
-            ? new Organization(parsed.organizationId, parsed.organizationName)
+            ? new Organization(parsed.organizationId, parsed.organizationName, null)
             : undefined
         return new AuthSession(
           User.fromPrimitive(parsed.__mockUser),

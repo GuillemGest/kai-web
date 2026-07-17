@@ -5,8 +5,6 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from '../../../i18n/locales'
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -16,13 +14,15 @@ function json(body: unknown, status: number): Response {
 
 /**
  * Crea una sesión alojada de Stripe (Checkout en modo `setup`) para guardar
- * una tarjeta nueva en la cuenta, sin cobrar nada. Se abre en pestaña nueva
- * desde el cliente (mismo patrón que el pago de un upgrade): al terminar, el
- * usuario vuelve a /cuenta y la lista de tarjetas se refresca sola.
+ * una tarjeta nueva en la organización, sin cobrar nada. Se abre en pestaña
+ * nueva desde el cliente (mismo patrón que el pago de un upgrade): al
+ * terminar, el usuario vuelve a /cuenta y la lista de tarjetas se refresca
+ * sola.
  *
- * Misma limitación de auth que el resto de /api/*: el email llega del
- * cliente. En producción conviene validar aquí el token de sesión contra el
- * backend de auth.
+ * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
+ * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
+ * contra el token `Authorization: Bearer`, ver
+ * docs/billing-multi-organizacion.md §6 y §7.1.
  */
 export const POST: APIRoute = async ({ request, url }) => {
   const secretKey = import.meta.env.STRIPE_SECRET_KEY
@@ -30,16 +30,16 @@ export const POST: APIRoute = async ({ request, url }) => {
     return json({ error: 'Stripe no está configurado en el servidor.' }, 500)
   }
 
-  let body: { email?: unknown; locale?: unknown }
+  let body: { organizationId?: unknown; locale?: unknown }
   try {
-    body = (await request.json()) as { email?: unknown; locale?: unknown }
+    body = (await request.json()) as { organizationId?: unknown; locale?: unknown }
   } catch {
     return json({ error: 'Body inválido.' }, 400)
   }
 
-  const email = typeof body.email === 'string' ? body.email.trim() : ''
-  if (!EMAIL_PATTERN.test(email)) {
-    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  const organizationId = typeof body.organizationId === 'string' ? body.organizationId.trim() : ''
+  if (!organizationId) {
+    return json({ error: 'organizationId es obligatorio.' }, 400)
   }
   const lang: Locale = isLocale(body.locale) ? body.locale : DEFAULT_LOCALE
 
@@ -50,7 +50,7 @@ export const POST: APIRoute = async ({ request, url }) => {
 
   try {
     const session = await createCardSetupSessionUseCase(secretKey).execute({
-      email,
+      organizationId,
       successUrl: returnUrl,
       cancelUrl: returnUrl,
     })

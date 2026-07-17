@@ -1,4 +1,5 @@
 import { StripeInvoiceRepository } from '../infrastructure/StripeInvoiceRepository'
+import { StripeMetadataOrganizationBillingRepository } from '../infrastructure/StripeMetadataOrganizationBillingRepository'
 import { GetInvoices } from './GetInvoices'
 
 /**
@@ -13,5 +14,12 @@ import { GetInvoices } from './GetInvoices'
  * falle de forma controlada en la request, no al cargar el módulo.
  */
 export function createInvoicesUseCase(secretKey: string) {
-  return new GetInvoices(new StripeInvoiceRepository(secretKey))
+  // StripeMetadataOrganizationBillingRepository: el backend Amplify aún no
+  // expone cómo leer/persistir stripeCustomerId (ver
+  // docs/billing-multi-organizacion.md §10 paso 1). Mientras tanto resuelve
+  // el Customer buscando en Stripe por metadata['organizationId']. Sustituir
+  // por la implementación HTTP real en cuanto exista.
+  return new GetInvoices(
+    new StripeInvoiceRepository(secretKey, new StripeMetadataOrganizationBillingRepository(secretKey)),
+  )
 }

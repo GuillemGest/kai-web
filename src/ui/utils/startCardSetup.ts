@@ -1,7 +1,7 @@
 import type { Locale } from '../../i18n/locales'
 
 interface StartCardSetupParams {
-  email: string
+  organizationId: string
   /** Idioma actual, para que la URL de retorno de Stripe quede localizada. */
   locale: Locale
 }

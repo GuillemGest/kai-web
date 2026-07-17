@@ -19,13 +19,10 @@ export interface CheckoutRequest {
   period: BillingPeriod
   /** Usuarios adicionales al incluido, para reconciliar en el webhook. */
   extraSeats: number
-  /** Identificador del usuario que compra, para asociar la suscripción. */
+  /** Organización que compra (identidad de facturación): resuelve el Customer. */
+  organizationId: string
+  /** Usuario que hace clic, para trazabilidad en el webhook — no es identidad de facturación. */
   userId: string
-  /**
-   * Email de la cuenta del usuario. Se usa como email del Customer de Stripe
-   * cuando el modo personal no aporta email de facturación propio.
-   */
-  accountEmail: string
   /** Datos fiscales del comprador, ya validados (value object). */
   billingDetails: BillingDetails
   /** URL absoluta a la que volver tras un pago con éxito. */

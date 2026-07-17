@@ -4,8 +4,6 @@ import { createInvoicesUseCase } from '../../modules/billing/application/invoice
 // Endpoint SSR: se ejecuta en el servidor, no se prerenderiza.
 export const prerender = false
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -14,13 +12,12 @@ function json(body: unknown, status: number): Response {
 }
 
 /**
- * Facturas del usuario desde Stripe, filtradas por su email de facturación.
+ * Facturas de la organización desde Stripe.
  *
- * Nota de seguridad: la sesión de KAI vive en localStorage (cliente), así que
- * el servidor no puede derivar el usuario aquí; el island envía el email por
- * query. Es suficiente para la demo en modo test. Para producción conviene
- * mover la sesión a cookie httpOnly y validar aquí el token contra el backend
- * de auth (evita que alguien liste facturas de otro email).
+ * TODO(billing-multi-org, seguridad): este endpoint NO verifica que el
+ * usuario pertenezca a `organizationId` — falta `assertOrganizationAccess`
+ * contra el token `Authorization: Bearer`, ver
+ * docs/billing-multi-organizacion.md §6 y §7.1.
  */
 export const GET: APIRoute = async ({ url }) => {
   const secretKey = import.meta.env.STRIPE_SECRET_KEY
@@ -28,13 +25,13 @@ export const GET: APIRoute = async ({ url }) => {
     return json({ error: 'Stripe no está configurado en el servidor.' }, 500)
   }
 
-  const email = url.searchParams.get('email')?.trim() ?? ''
-  if (!EMAIL_PATTERN.test(email)) {
-    return json({ error: 'email es obligatorio y debe ser válido.' }, 400)
+  const organizationId = url.searchParams.get('organizationId')?.trim() ?? ''
+  if (!organizationId) {
+    return json({ error: 'organizationId es obligatorio.' }, 400)
   }
 
   try {
-    const invoices = await createInvoicesUseCase(secretKey).execute(email)
+    const invoices = await createInvoicesUseCase(secretKey).execute(organizationId)
     return json({ invoices: invoices.map((invoice) => invoice.toPrimitive()) }, 200)
   } catch (error) {
     // No filtrar detalles internos de Stripe al cliente; el detalle queda en el log.

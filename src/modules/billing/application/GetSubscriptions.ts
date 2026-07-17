@@ -4,7 +4,7 @@ import type { Subscription } from '../domain/Subscription'
 export class GetSubscriptions {
   constructor(private readonly repository: ISubscriptionRepository) {}
 
-  execute(email: string): Promise<Subscription[]> {
-    return this.repository.listByEmail(email)
+  execute(organizationId: string): Promise<Subscription[]> {
+    return this.repository.listByOrganization(organizationId)
   }
 }

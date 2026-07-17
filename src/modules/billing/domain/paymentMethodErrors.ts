@@ -11,3 +11,11 @@ export class PaymentMethodNotFoundError extends Error {
     this.name = 'PaymentMethodNotFoundError'
   }
 }
+
+/** No se puede eliminar la única tarjeta guardada mientras cobra una suscripción activa. */
+export class CannotRemoveOnlyPaymentMethodError extends Error {
+  constructor(paymentMethodId: string) {
+    super(`No se puede eliminar la tarjeta ${paymentMethodId}: es la única y hay suscripciones activas`)
+    this.name = 'CannotRemoveOnlyPaymentMethodError'
+  }
+}

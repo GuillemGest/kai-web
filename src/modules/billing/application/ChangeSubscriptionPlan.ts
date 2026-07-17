@@ -13,7 +13,7 @@ import {
 import { PlanNotFoundError, PlanNotPurchasableError } from './CreateCheckoutSession'
 
 export interface ChangeSubscriptionPlanRequest {
-  email: string
+  organizationId: string
   subscriptionId: string
   planId: string
   period: BillingPeriod
@@ -46,9 +46,9 @@ export class ChangeSubscriptionPlan {
   ) {}
 
   async execute(request: ChangeSubscriptionPlanRequest): Promise<ChangeSubscriptionPlanResult> {
-    const { email, subscriptionId, planId, period } = request
+    const { organizationId, subscriptionId, planId, period } = request
 
-    const subscriptions = await this.subscriptionRepository.listByEmail(email)
+    const subscriptions = await this.subscriptionRepository.listByOrganization(organizationId)
     const subscription = subscriptions.find(
       (sub) => sub.stripeSubscriptionId === subscriptionId || sub.id === subscriptionId,
     )
@@ -71,7 +71,7 @@ export class ChangeSubscriptionPlan {
     const timing = current ? planChangeTiming(current, target) : 'at_period_end'
 
     const { paymentUrl } = await this.subscriptionRepository.changePlan(
-      email,
+      organizationId,
       subscriptionId,
       target,
       period,

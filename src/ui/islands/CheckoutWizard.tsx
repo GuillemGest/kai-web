@@ -105,16 +105,22 @@ const BILLING_AUTOCOMPLETE: Record<BillingDetailsField, string> = {
 /**
  * Devuelve una copia del billing con SOLO los campos requeridos por el tipo de
  * comprador seleccionado. Evita enviar cadenas vacías del otro modo a la API
- * (que a su vez las omitiría de la metadata de Stripe).
+ * (que a su vez las omitiría de la metadata de Stripe). En personal se
+ * inyecta el email de la cuenta como `billingEmail` para que Stripe pueda
+ * enviar el recibo (el modo personal no muestra ese campo en el formulario).
  */
-function pickRelevantBilling(billing: BillingDetailsPrimitive): Partial<BillingDetailsPrimitive> & {
-  customerType: CustomerType
-} {
+function pickRelevantBilling(
+  billing: BillingDetailsPrimitive,
+  accountEmail: string,
+): Partial<BillingDetailsPrimitive> & { customerType: CustomerType } {
   const payload: Partial<BillingDetailsPrimitive> & { customerType: CustomerType } = {
     customerType: billing.customerType,
   }
   for (const field of REQUIRED_FIELDS_BY_TYPE[billing.customerType]) {
     payload[field] = billing[field]
+  }
+  if (billing.customerType === 'personal') {
+    payload.billingEmail = billing.billingEmail || accountEmail
   }
   return payload
 }
@@ -315,6 +321,13 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
   // Paso 3: pide la sesión de Stripe al servidor y redirige a la pasarela.
   async function handlePay() {
     if (!user || !selectedPlan) return
+    // Identidad de facturación: la organización de la sesión actual, NO el
+    // email del usuario (ver docs/billing-multi-organizacion.md).
+    const organizationId = authUseCases.getCurrentSessionSync.execute()?.organization?.id
+    if (!organizationId) {
+      setPayError(content.payment.errorGeneric)
+      return
+    }
     setPayError(null)
     setSubscriptionLimitHit(false)
     setSubmitting(true)
@@ -324,8 +337,8 @@ export function CheckoutWizard({ locale }: CheckoutWizardProps) {
         period: 'monthly',
         seats: effectiveSeats,
         userId: user.id,
-        email: user.email,
-        billingDetails: pickRelevantBilling(billing),
+        organizationId,
+        billingDetails: pickRelevantBilling(billing, user.email),
         locale,
       })
       // Redirección en marcha: los datos fiscales ya viajaron a Stripe.

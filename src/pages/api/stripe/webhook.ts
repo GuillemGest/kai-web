@@ -42,11 +42,13 @@ export const POST: APIRoute = async ({ request }) => {
     case 'checkout.session.completed': {
       const session = event.data.object
       const userId = session.client_reference_id ?? session.metadata?.userId ?? null
+      const organizationId = session.metadata?.organizationId ?? null
       // DEMO: aquí es donde, en producción, se crearía/activaría la Subscription
-      // del usuario vía ISubscriptionRepository (backend Amplify). De momento solo
-      // se registra para verificar que el flujo end-to-end llega hasta aquí.
+      // de la organización vía ISubscriptionRepository (backend Amplify). De
+      // momento solo se registra para verificar que el flujo end-to-end llega
+      // hasta aquí.
       console.info(
-        `[webhook] checkout completado — userId=${userId}, subscription=${session.subscription}`,
+        `[webhook] checkout completado — organizationId=${organizationId}, userId=${userId}, subscription=${session.subscription}`,
       )
       break
     }

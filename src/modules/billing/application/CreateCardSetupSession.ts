@@ -1,7 +1,7 @@
 import type { ICardSetupGateway } from '../domain/ICardSetupGateway'
 
 export interface CreateCardSetupSessionInput {
-  email: string
+  organizationId: string
   successUrl: string
   cancelUrl: string
 }
@@ -15,6 +15,10 @@ export class CreateCardSetupSession {
   constructor(private readonly cardSetupGateway: ICardSetupGateway) {}
 
   execute(input: CreateCardSetupSessionInput): Promise<{ url: string }> {
-    return this.cardSetupGateway.createSetupSession(input.email, input.successUrl, input.cancelUrl)
+    return this.cardSetupGateway.createSetupSession(
+      input.organizationId,
+      input.successUrl,
+      input.cancelUrl,
+    )
   }
 }

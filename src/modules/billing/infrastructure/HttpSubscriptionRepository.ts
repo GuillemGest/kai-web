@@ -11,10 +11,18 @@ import type { BillingPeriod, Plan, PlanChangeTiming } from '../domain/Plan'
  * endpoint vuelve a ejecutar el use case con los datos reales de Stripe y
  * recalcula el timing él mismo — un cliente manipulado no puede forzar un
  * downgrade inmediato ni esquivar el prorrateo.
+ *
+ * TODO(billing-multi-org): los endpoints SSR todavía reciben `email` en vez
+ * de `organizationId` y no verifican pertenencia a la organización (ver
+ * docs/billing-multi-organizacion.md §6 y §7.1) — pendiente de actualizar
+ * junto con `assertOrganizationAccess`. Este repo ya expone el contrato final
+ * (`organizationId`) para que el dominio no dependa de ese paso.
  */
 export class HttpSubscriptionRepository implements ISubscriptionRepository {
-  async listByEmail(email: string): Promise<Subscription[]> {
-    const res = await fetch(`/api/subscriptions?email=${encodeURIComponent(email)}`)
+  async listByOrganization(organizationId: string): Promise<Subscription[]> {
+    const res = await fetch(
+      `/api/subscriptions?organizationId=${encodeURIComponent(organizationId)}`,
+    )
 
     const data = (await res.json().catch(() => null)) as {
       subscriptions?: SubscriptionPrimitive[]
@@ -28,23 +36,23 @@ export class HttpSubscriptionRepository implements ISubscriptionRepository {
     return data.subscriptions.map(Subscription.fromPrimitive)
   }
 
-  async cancelAtPeriodEnd(email: string, subscriptionId: string): Promise<void> {
-    await this.post('/api/subscriptions/cancel', { email, subscriptionId })
+  async cancelAtPeriodEnd(organizationId: string, subscriptionId: string): Promise<void> {
+    await this.post('/api/subscriptions/cancel', { organizationId, subscriptionId })
   }
 
-  async reactivate(email: string, subscriptionId: string): Promise<void> {
-    await this.post('/api/subscriptions/reactivate', { email, subscriptionId })
+  async reactivate(organizationId: string, subscriptionId: string): Promise<void> {
+    await this.post('/api/subscriptions/reactivate', { organizationId, subscriptionId })
   }
 
   async changePlan(
-    email: string,
+    organizationId: string,
     subscriptionId: string,
     target: Plan,
     period: BillingPeriod,
     _timing: PlanChangeTiming,
   ): Promise<{ paymentUrl: string | null }> {
     const data = await this.postJson('/api/subscriptions/change-plan', {
-      email,
+      organizationId,
       subscriptionId,
       planId: target.id,
       period,

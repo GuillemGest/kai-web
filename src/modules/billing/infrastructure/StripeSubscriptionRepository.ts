@@ -3,6 +3,8 @@ import type { ISubscriptionRepository } from '../domain/ISubscriptionRepository'
 import { Subscription, type SubscriptionStatus } from '../domain/Subscription'
 import type { IPlanRepository } from '../domain/IPlanRepository'
 import type { BillingPeriod, Plan, PlanChangeTiming } from '../domain/Plan'
+import type { IOrganizationBillingRepository } from '../domain/IOrganizationBillingRepository'
+import { resolveCustomerId } from './resolveCustomerId'
 import {
   SeatLimitExceededError,
   SubscriptionNotFoundError,
@@ -14,16 +16,15 @@ import {
  * secreta (inyectada por constructor), así que debe usarse únicamente detrás
  * de endpoints SSR (`src/pages/api/*`) vía `subscriptionFactory`.
  *
- * La búsqueda es por email (identidad de facturación, igual que las facturas)
- * y devuelve TODAS las suscripciones del usuario — puede tener varios planes a
- * la vez — agregando las de todos los Customers con ese email, ordenadas por
- * relevancia (activas > con impago > canceladas) y, a igualdad, más recientes
- * primero.
+ * La búsqueda es por `stripeCustomerId` de la organización (identidad de
+ * facturación, igual que las facturas) y devuelve TODAS sus suscripciones —
+ * puede tener varios planes a la vez — ordenadas por relevancia (activas >
+ * con impago > canceladas) y, a igualdad, más recientes primero.
  *
  * Las operaciones de gestión (cancelar, reactivar, cambiar de plan) verifican
- * SIEMPRE la titularidad: la suscripción debe pertenecer a un Customer con el
- * email indicado; si no, SubscriptionNotFoundError (misma respuesta exista o
- * no, para no revelar suscripciones ajenas).
+ * SIEMPRE la titularidad: la suscripción debe pertenecer al Customer de la
+ * organización indicada; si no, SubscriptionNotFoundError (misma respuesta
+ * exista o no, para no revelar suscripciones ajenas).
  */
 export class StripeSubscriptionRepository implements ISubscriptionRepository {
   private readonly stripe: Stripe
@@ -32,32 +33,30 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
     secretKey: string,
     /** Para resolver el planId propio a partir del price de Stripe. */
     private readonly planRepository: IPlanRepository,
+    private readonly organizationBillingRepository: IOrganizationBillingRepository,
   ) {
     this.stripe = new Stripe(secretKey)
   }
 
-  async listByEmail(email: string): Promise<Subscription[]> {
-    const customers = await this.stripe.customers.list({ email, limit: 10 })
-    if (customers.data.length === 0) return []
-
-    const subscriptionsPerCustomer = await Promise.all(
-      customers.data.map((customer) =>
-        this.stripe.subscriptions.list({
-          customer: customer.id,
-          status: 'all',
-          limit: 20,
-          // El schedule expandido permite detectar downgrades programados sin
-          // una llamada extra por suscripción.
-          expand: ['data.schedule'],
-        }),
-      ),
+  async listByOrganization(organizationId: string): Promise<Subscription[]> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
     )
+    const page = await this.stripe.subscriptions.list({
+      customer: customerId,
+      status: 'all',
+      limit: 20,
+      // El schedule expandido permite detectar downgrades programados sin
+      // una llamada extra por suscripción.
+      expand: ['data.schedule'],
+    })
 
     // El catálogo de planes se carga una vez para mapear price → planId.
     const plans = await this.planRepository.getAll()
 
-    return subscriptionsPerCustomer
-      .flatMap((page) => page.data)
+    return page.data
       .map((sub) => ({ sub, status: mapStatus(sub.status) }))
       .filter((c): c is { sub: Stripe.Subscription; status: SubscriptionStatus } =>
         c.status !== null,
@@ -80,8 +79,8 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
       )
   }
 
-  async cancelAtPeriodEnd(email: string, subscriptionId: string): Promise<void> {
-    const sub = await this.findOwnedSubscription(email, subscriptionId)
+  async cancelAtPeriodEnd(organizationId: string, subscriptionId: string): Promise<void> {
+    const sub = await this.findOwnedSubscription(organizationId, subscriptionId)
     if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
 
     // Un downgrade programado ya no tiene sentido si el usuario se da de baja:
@@ -90,21 +89,21 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
     await this.stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: true })
   }
 
-  async reactivate(email: string, subscriptionId: string): Promise<void> {
-    const sub = await this.findOwnedSubscription(email, subscriptionId)
+  async reactivate(organizationId: string, subscriptionId: string): Promise<void> {
+    const sub = await this.findOwnedSubscription(organizationId, subscriptionId)
     if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
 
     await this.stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: false })
   }
 
   async changePlan(
-    email: string,
+    organizationId: string,
     subscriptionId: string,
     target: Plan,
     period: BillingPeriod,
     timing: PlanChangeTiming,
   ): Promise<{ paymentUrl: string | null }> {
-    const sub = await this.findOwnedSubscription(email, subscriptionId)
+    const sub = await this.findOwnedSubscription(organizationId, subscriptionId)
     if (!isManageableStatus(sub.status)) throw new SubscriptionNotManageableError(subscriptionId)
 
     const priceId = target.stripePriceIdFor(period)
@@ -186,23 +185,30 @@ export class StripeSubscriptionRepository implements ISubscriptionRepository {
   }
 
   /**
-   * Recupera la suscripción verificando que pertenece al email indicado. La
-   * comparación es contra el email del Customer (identidad de facturación).
+   * Recupera la suscripción verificando que pertenece al Customer de la
+   * organización indicada — nunca se confía en un `subscriptionId` que venga
+   * del cliente sin comprobar antes que cuelga del Customer resuelto (ver
+   * docs/billing-multi-organizacion.md §7.2).
    */
   private async findOwnedSubscription(
-    email: string,
+    organizationId: string,
     subscriptionId: string,
   ): Promise<Stripe.Subscription> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
+    )
+
     let sub: Stripe.Subscription
     try {
-      sub = await this.stripe.subscriptions.retrieve(subscriptionId, { expand: ['customer'] })
+      sub = await this.stripe.subscriptions.retrieve(subscriptionId)
     } catch {
       throw new SubscriptionNotFoundError(subscriptionId)
     }
 
-    const customer = sub.customer as Stripe.Customer | Stripe.DeletedCustomer
-    const ownerEmail = 'email' in customer ? customer.email : null
-    if (!ownerEmail || ownerEmail.toLowerCase() !== email.toLowerCase()) {
+    const ownerCustomerId = typeof sub.customer === 'string' ? sub.customer : sub.customer?.id
+    if (ownerCustomerId !== customerId) {
       throw new SubscriptionNotFoundError(subscriptionId)
     }
     return sub

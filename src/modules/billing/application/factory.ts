@@ -9,6 +9,7 @@ import { ChangeSubscriptionPlan } from './ChangeSubscriptionPlan'
 import { GetInvoices } from './GetInvoices'
 import { GetPaymentMethods } from './GetPaymentMethods'
 import { SetDefaultPaymentMethod } from './SetDefaultPaymentMethod'
+import { RemovePaymentMethod } from './RemovePaymentMethod'
 import { GetPlans } from './GetPlans'
 
 const planRepository = new InMemoryPlanRepository()
@@ -30,4 +31,5 @@ export const billingUseCases = {
   getInvoices: new GetInvoices(invoiceRepository),
   getPaymentMethods: new GetPaymentMethods(paymentMethodRepository),
   setDefaultPaymentMethod: new SetDefaultPaymentMethod(paymentMethodRepository),
+  removePaymentMethod: new RemovePaymentMethod(paymentMethodRepository),
 }

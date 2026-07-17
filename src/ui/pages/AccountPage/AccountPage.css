@@ -594,6 +594,31 @@
   font: var(--type-secondary);
   font-weight: 400;
 }
+.payment__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.payment__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm, 6px);
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.payment__remove:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--error) 12%, transparent);
+  color: var(--error);
+}
+.payment__remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* --- Tabla de facturas ---------------------------------------------------- */
 .invoice-table-wrap {

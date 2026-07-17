@@ -5,6 +5,8 @@ import type {
   CheckoutSession,
 } from '../domain/ICheckoutGateway'
 import type { BillingDetails } from '../domain/BillingDetails'
+import type { IOrganizationBillingRepository } from '../domain/IOrganizationBillingRepository'
+import { resolveCustomerId } from './resolveCustomerId'
 
 /**
  * Implementación del puerto de checkout con Stripe Billing + Checkout Sessions.
@@ -13,13 +15,13 @@ import type { BillingDetails } from '../domain/BillingDetails'
  *  - `mode: 'subscription'` (renovación, reintentos y dunning gestionados por Stripe),
  *  - NO se pasa `payment_method_types`: Stripe decide dinámicamente los métodos de
  *    pago elegibles según la configuración del Dashboard (mejor conversión),
- *  - `client_reference_id` + `metadata` transportan el `userId`/`planId` para que
- *    el webhook pueda asociar la suscripción al usuario tras el pago.
+ *  - `client_reference_id` + `metadata` transportan el `userId`/`organizationId`/
+ *    `planId` para que el webhook pueda asociar la suscripción tras el pago.
  *
- * Datos fiscales: se pre-crea un Customer con nombre, dirección y (en company)
- * NIF para que las facturas de Stripe salgan con los datos correctos. El
- * formulario propio del wizard es la fuente de esos datos, así que NO se usa
- * `tax_id_collection` ni `billing_address_collection`.
+ * Datos fiscales: se refresca el Customer de la organización con nombre,
+ * dirección y (en company) NIF para que las facturas de Stripe salgan con los
+ * datos correctos. El formulario propio del wizard es la fuente de esos datos,
+ * así que NO se usa `tax_id_collection` ni `billing_address_collection`.
  *
  * La clave secreta se inyecta por constructor (nunca se lee aquí de env): el
  * adapter no debe conocer el origen del secreto, solo usarlo.
@@ -27,32 +29,32 @@ import type { BillingDetails } from '../domain/BillingDetails'
 export class StripeCheckoutGateway implements ICheckoutGateway {
   private readonly stripe: Stripe
 
-  constructor(secretKey: string) {
+  constructor(
+    secretKey: string,
+    private readonly organizationBillingRepository: IOrganizationBillingRepository,
+  ) {
     this.stripe = new Stripe(secretKey)
   }
 
   async createSubscriptionSession(request: CheckoutRequest): Promise<CheckoutSession> {
-    const customerEmail = request.billingDetails.isCompany
-      ? request.billingDetails.billingEmail
-      : request.accountEmail
     const customerId = await this.findOrCreateCustomer(
-      request.userId,
+      request.organizationId,
       request.billingDetails,
-      customerEmail,
     )
 
     // Metadata aplanada: es lo que consumirán el webhook y el backoffice para
     // reconciliar la compra y emitir factura (límite Stripe: 500 chars/valor).
     // Solo se incluyen los campos aplicables al `customerType`; los del otro
-    // modo se omiten para no persistir cadenas vacías en el Customer.
+    // modo se omiten para no persistir cadenas vacías.
     const billing = request.billingDetails
     const metadata: Record<string, string> = {
+      organizationId: request.organizationId,
       userId: request.userId,
       planId: request.planId,
       period: request.period,
       extraSeats: String(request.extraSeats),
       billingCustomerType: billing.customerType,
-      billingEmail: customerEmail,
+      billingEmail: billing.billingEmail,
       billingPostalCode: billing.postalCode,
       billingCountry: billing.country,
     }
@@ -75,7 +77,7 @@ export class StripeCheckoutGateway implements ICheckoutGateway {
       })),
       // Permite reconciliar el pago con nuestro usuario en el webhook.
       client_reference_id: request.userId,
-      // Customer con los datos fiscales del wizard (excluyente con customer_email).
+      // Customer de la organización, con datos fiscales del wizard ya aplicados.
       customer: customerId,
       metadata,
       subscription_data: { metadata },
@@ -91,17 +93,22 @@ export class StripeCheckoutGateway implements ICheckoutGateway {
   }
 
   /**
-   * Reutiliza el Customer del email si ya existe (evita duplicar clientes en
-   * reintentos/cancelaciones) y refresca sus datos fiscales; si no, lo crea.
-   * En company registra el NIF best-effort (Stripe valida checksum y un tax id
-   * que rechace no debe bloquear la compra: queda igualmente en metadata).
-   * En personal se omiten los campos que el usuario no ha aportado.
+   * Resuelve el Customer de la organización (`resolveCustomerId` centraliza la
+   * lookup por metadata + creación bajo lock) y le aplica los datos fiscales
+   * del wizard. En company registra el NIF best-effort; en personal se omiten
+   * los campos que el usuario no ha aportado y se limpian los tax ids
+   * heredados de una compra company anterior para que la factura no lleve NIF.
    */
   private async findOrCreateCustomer(
-    userId: string,
+    organizationId: string,
     billing: BillingDetails,
-    email: string,
   ): Promise<string> {
+    const customerId = await resolveCustomerId(
+      this.stripe,
+      this.organizationBillingRepository,
+      organizationId,
+    )
+
     // Address: solo se envían los campos con valor. Stripe acepta direcciones
     // parciales (personal aporta solo postal_code + country).
     const address: Stripe.AddressParam = {
@@ -112,20 +119,19 @@ export class StripeCheckoutGateway implements ICheckoutGateway {
     if (billing.city) address.city = billing.city
     if (billing.province) address.state = billing.province
 
-    const fiscalData: Stripe.CustomerCreateParams = {
+    const fiscalData: Stripe.CustomerUpdateParams = {
       name: billing.displayName,
-      email,
+      email: billing.billingEmail,
       address,
-      metadata: { userId },
+      metadata: { organizationId },
     }
 
     // `tax_ids` no viene en la respuesta por defecto: se expande para poder
     // comprobar si el NIF ya está registrado sin una llamada extra.
-    const expand = ['tax_ids']
-    const existing = await this.stripe.customers.list({ email, limit: 1 })
-    const customer = existing.data[0]
-      ? await this.stripe.customers.update(existing.data[0].id, { ...fiscalData, expand })
-      : await this.stripe.customers.create({ ...fiscalData, expand })
+    const customer = await this.stripe.customers.update(customerId, {
+      ...fiscalData,
+      expand: ['tax_ids'],
+    })
 
     if (billing.isCompany && billing.taxId) {
       try {
@@ -140,6 +146,17 @@ export class StripeCheckoutGateway implements ICheckoutGateway {
         }
       } catch (error) {
         console.warn('[stripe] tax id no registrado en el Customer (sigue en metadata):', error)
+      }
+    } else {
+      // Personal: purga cualquier NIF heredado de una compra company previa
+      // sobre esta misma organización para que las próximas facturas no lo lleven.
+      const existingTaxIds = customer.tax_ids?.data ?? []
+      for (const taxId of existingTaxIds) {
+        try {
+          await this.stripe.customers.deleteTaxId(customer.id, taxId.id)
+        } catch (error) {
+          console.warn('[stripe] tax id no eliminado del Customer:', error)
+        }
       }
     }
 
