@@ -5,6 +5,7 @@ import { DemoVideo } from '../islands/DemoVideo'
 import { FreeTrialButton } from '../islands/FreeTrialButton'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import { assetUrl } from '../utils/assetUrl'
 import type { Locale } from '../../i18n/locales'
 import './MainPage.css'
 
@@ -48,7 +49,7 @@ const freeTrialLoginHref = getLocaleUrl(hero.secondaryCtaHref, locale)
 
     <DemoVideo
       client:visible
-      videoSrc="/demo.mp4"
+      videoSrc={assetUrl('/demo.mp4')}
       videoAlt={hero.videoAlt}
       videoPause={hero.videoPause}
       videoPlay={hero.videoPlay}
@@ -128,7 +129,7 @@ const freeTrialLoginHref = getLocaleUrl(hero.secondaryCtaHref, locale)
     <div class="compat__group">
       <span class="compat__label">{compat.integrationLabel}</span>
       <span class="compat__item compat__item--pr">
-        <img src="/premiereLOGO.png" alt={compat.integrationApp} class="compat__logo" />
+        <img src={assetUrl('/premiereLOGO.png')} alt={compat.integrationApp} class="compat__logo" />
       </span>
     </div>
   </div>

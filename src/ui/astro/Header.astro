@@ -5,6 +5,7 @@ import { HeaderActions } from '../islands/HeaderActions'
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import { getLocaleUrl, stripLocalePrefix } from '../../i18n/getLocaleUrl'
 import { LOCALES, type Locale } from '../../i18n/locales'
+import { assetUrl } from '../utils/assetUrl'
 import './Header.css'
 
 interface Props {
@@ -24,7 +25,7 @@ function isNavActive(to: string, end: boolean): boolean {
 <header class="header" id="site-header">
   <div class="header__inner">
     <a href={getLocaleUrl('/', locale)} class="header__logo" aria-label={content.logoAriaLabel}>
-      <img src="/logo.svg" alt="KAI" class="header__logo-img" />
+      <img src={assetUrl('/logo.svg')} alt="KAI" class="header__logo-img" />
     </a>
 
     <nav class="header__nav" aria-label={content.navAriaLabel}>
@@ -74,7 +75,7 @@ function isNavActive(to: string, end: boolean): boolean {
     <div class="header__drawer-inner">
       <div class="header__drawer-top">
         <span class="header__logo">
-          <img src="/logo.svg" alt="KAI" class="header__logo-img" />
+          <img src={assetUrl('/logo.svg')} alt="KAI" class="header__logo-img" />
         </span>
         <button type="button" class="header__menu-btn" aria-label={content.closeMenuLabel} id="header-menu-close">
           <X size={24} strokeWidth={2} aria-hidden />

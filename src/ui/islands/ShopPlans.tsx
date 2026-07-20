@@ -87,7 +87,7 @@ export function ShopPlans({ content, planTranslations, loginHref, locale }: Shop
     // Los planes a medida (KAI Enterprise) no tienen checkout: derivan a contacto
     // para solicitar presupuesto por produccion.
     if (plan.custom) {
-      window.location.href = empty.linkHref
+      window.location.href = getLocaleUrl(empty.linkHref, locale)
       return
     }
 
@@ -158,7 +158,7 @@ export function ShopPlans({ content, planTranslations, loginHref, locale }: Shop
         <div className="shop__empty">
           <p>{empty.message}</p>
           <p className="shop__empty-hint">{empty.hint}</p>
-          <a href={empty.linkHref} className="shop__empty-link">
+          <a href={getLocaleUrl(empty.linkHref, locale)} className="shop__empty-link">
             {empty.linkLabel}
           </a>
         </div>

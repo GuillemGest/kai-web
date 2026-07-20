@@ -1,9 +1,13 @@
 ---
+import { getLocaleUrl } from '../../i18n/getLocaleUrl'
+import { DEFAULT_LOCALE } from '../../i18n/locales'
+
 // Stub legacy: la página real vive en /[lang]/checkout/gracias. Redirige en
 // cliente (no SSR, Pages es estático) para CONSERVAR la query string, que
 // lleva el ?session_id= que Stripe añade al success_url.
+const target = getLocaleUrl('/checkout/gracias', DEFAULT_LOCALE)
 ---
 
-<script>
-  window.location.replace(`/es/checkout/gracias${window.location.search}`)
+<script is:inline define:vars={{ target }}>
+  window.location.replace(target + window.location.search)
 </script>

@@ -1,6 +1,7 @@
 ---
 import { getContentRepository } from '../../modules/content/application/getContentRepository'
 import type { Locale } from '../../i18n/locales'
+import { assetUrl } from '../utils/assetUrl'
 import './CompanyPage.css'
 
 interface Props {
@@ -46,7 +47,7 @@ const { hero, mission, partners } = await repo.getCompanyPage(locale)
       {partners.items.map((partner, index) => (
         <li class="company__partner" data-reveal style={{ '--reveal-i': index }}>
           <img
-            src={partner.logoSrc}
+            src={assetUrl(partner.logoSrc)}
             alt={partners.logoAriaLabelTemplate.replace('{name}', partner.name)}
             class="company__partner-logo"
             loading="lazy"

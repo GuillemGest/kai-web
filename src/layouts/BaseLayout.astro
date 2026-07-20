@@ -4,6 +4,8 @@ import Footer from '../ui/astro/Footer.astro'
 import type { Locale } from '../i18n/locales'
 import { LOCALES } from '../i18n/locales'
 import { ORIGINS, GOOGLE_FONTS_STYLESHEET } from '../config/appUrls'
+import { assetUrl } from '../ui/utils/assetUrl'
+import { getLocaleUrl } from '../i18n/getLocaleUrl'
 import '../ui/styles/globals.css'
 import '../ui/layouts/PublicLayout.css'
 
@@ -18,6 +20,11 @@ interface Props {
 }
 
 const { locale, title = 'KAI', hideChrome = false } = Astro.props
+
+// Prefijo del subdirectorio del despliegue, sin barra final ('' en local,
+// '/kai-web' en GitHub Pages). Se pasa al script inline de redirect por idioma,
+// que trabaja con window.location.pathname (que sí incluye el base).
+const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '')
 ---
 
 <!DOCTYPE html>
@@ -25,13 +32,13 @@ const { locale, title = 'KAI', hideChrome = false } = Astro.props
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <link rel="icon" type="image/png" href="/kai_icona.png" />
+    <link rel="icon" type="image/png" href={assetUrl('/kai_icona.png')} />
     <title>{title}</title>
     <link rel="preconnect" href={ORIGINS.googleFonts} />
     <link rel="preconnect" href={ORIGINS.googleFontsStatic} crossorigin />
     <link href={GOOGLE_FONTS_STYLESHEET} rel="stylesheet" />
     {LOCALES.map((loc) => (
-      <link rel="alternate" hreflang={loc} href={`/${loc}/`} />
+      <link rel="alternate" hreflang={loc} href={getLocaleUrl('/', loc)} />
     ))}
   </head>
   <body>
@@ -66,7 +73,7 @@ const { locale, title = 'KAI', hideChrome = false } = Astro.props
     </script>
 
     {locale === 'es' && (
-      <script is:inline>
+      <script is:inline define:vars={{ base: BASE_PATH }}>
         // Redirect por idioma del navegador, solo en la primera visita de la sesión
         // y solo desde la raíz (es, sin prefijo). Reutiliza la clave kai:locale.
         ;(function () {
@@ -79,11 +86,14 @@ const { locale, title = 'KAI', hideChrome = false } = Astro.props
           const preferred = stored || (navigator.language || '').slice(0, 2).toLowerCase()
           if (preferred !== 'en' && preferred !== 'ca') return
 
-          const path = window.location.pathname
+          // El pathname incluye el `base` del despliegue (p. ej. /kai-web);
+          // se quita para razonar solo sobre el prefijo de idioma.
+          const full = window.location.pathname
+          const path = base && full.startsWith(base) ? full.slice(base.length) : full
           if (path.startsWith('/en') || path.startsWith('/ca')) return
 
           const bare = path.startsWith('/es') ? path.slice(3) || '/' : path
-          const target = '/' + preferred + bare
+          const target = base + '/' + preferred + bare
           window.location.replace(target)
         })()
       </script>
