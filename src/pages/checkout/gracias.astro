@@ -1,8 +1,9 @@
 ---
-// Stub legacy: la página real vive en /[lang]/checkout/gracias. Se redirige por
-// SSR (no vía `redirects` de astro.config) para CONSERVAR la query string, que
+// Stub legacy: la página real vive en /[lang]/checkout/gracias. Redirige en
+// cliente (no SSR, Pages es estático) para CONSERVAR la query string, que
 // lleva el ?session_id= que Stripe añade al success_url.
-export const prerender = false
-
-return Astro.redirect(`/es/checkout/gracias${Astro.url.search}`)
 ---
+
+<script>
+  window.location.replace(`/es/checkout/gracias${window.location.search}`)
+</script>
