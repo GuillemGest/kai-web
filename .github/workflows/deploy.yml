@@ -53,6 +53,11 @@ jobs:
       - name: SPA fallback (404.html)
         run: cp dist/index.html dist/404.html
 
+      # Evita que GitHub Pages procese el sitio con Jekyll, que ignora las
+      # carpetas con guion bajo (Astro publica los assets en _astro/).
+      - name: Disable Jekyll
+        run: touch dist/.nojekyll
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
