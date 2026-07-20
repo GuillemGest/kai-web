@@ -26,7 +26,7 @@ function json(body: unknown, status: number): Response {
   })
 }
 /**
- * Cambia el plan de una suscripción. El TIMING (upgrade prorrateado ya vs
+ * Cambia el plan de una suscripción. El TIMING (upgrade prorrateado ya vs.
  * downgrade a fin de periodo) lo decide SIEMPRE el use case en el servidor a
  * partir de los precios reales: el cliente solo dice a qué plan quiere ir.
  *
