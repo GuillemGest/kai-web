@@ -4,6 +4,12 @@ import node from '@astrojs/node'
 
 const isPagesBuild = process.env.DEPLOY_TARGET === 'pages'
 
+// En Pages la app se sirve bajo /kai-web/. Astro prefija con `base` las CLAVES
+// de `redirects` (origen), pero NO los VALORES (destino), que se emiten literal
+// en el <meta refresh>. Por eso el destino se prefija a mano aquí.
+const basePrefix = isPagesBuild ? '/kai-web' : ''
+const to = (path) => `${basePrefix}${path}`
+
 export default defineConfig({
   integrations: [react()],
   // Local / hosts con Node: SSR para endpoints /api/* (prerender = false).
@@ -20,15 +26,15 @@ export default defineConfig({
     routing: { prefixDefaultLocale: true },
   },
   redirects: {
-    '/': '/es/',
-    '/planes': '/es/planes',
-    '/cuenta': '/es/cuenta',
-    '/empresa': '/es/empresa',
-    '/login': '/es/login',
-    '/registro': '/es/registro',
-    '/checkout': '/es/checkout',
-    '/confirmar-cuenta': '/es/confirmar-cuenta',
-    '/recursos': '/es/recursos',
+    '/': to('/es/'),
+    '/planes': to('/es/planes'),
+    '/cuenta': to('/es/cuenta'),
+    '/empresa': to('/es/empresa'),
+    '/login': to('/es/login'),
+    '/registro': to('/es/registro'),
+    '/checkout': to('/es/checkout'),
+    '/confirmar-cuenta': to('/es/confirmar-cuenta'),
+    '/recursos': to('/es/recursos'),
   },
   // Dev en localhost:3000: el backend permite este origen, así que el navegador
   // llama directo al API (sin proxy de Vite).
